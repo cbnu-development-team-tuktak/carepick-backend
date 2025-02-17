@@ -38,3 +38,8 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+### ChromeDriver ###
+drivers/chromedriver.exe
+drivers/LICENSE.chromedriver
+drivers/THIRD_PARTY_NOTICES.chromedriver
