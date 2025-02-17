@@ -1,0 +1,87 @@
+plugins {
+	id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
+	id 'org.springframework.boot' version '3.4.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.25'
+}
+
+group = 'com.callrapport'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Web Starter (REST API 개발을 위한 기본 의존성)
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    
+    // Spring Boot JPA Starter (데이터베이스 연동 및 ORM 지원)
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    
+    // Jakarta Persistence API (JPA 사용을 위한 인터페이스)
+    implementation("jakarta.persistence:jakarta.persistence-api:3.1.0") 
+    
+    // Jackson (JSON 데이터 변환을 위한 Kotlin 지원 모듈)
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    
+    // Kotlin 리플렉션 (Sprin에서 Kotlin 클래스 분석을 위한 기능)
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    
+    // Kotlin 표준 라이브러리 (JDK 8 버젼 호환)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    
+    // MySQL 드라이버 (MySQL 데이터베이스 연동)
+    runtimeOnly("com.mysql:mysql-connector-j") 
+    
+    // H2 데이터베이스 (개발 및 테스트 환경에서 사용되는 인메모리 DB)
+    runtimeOnly("com.h2database:h2")
+
+    // Jsoup (HTML 파싱 및 웹 크롤링 라이브러리)
+    implementation("org.jsoup:jsoup:1.16.1")
+    // Lombok (Getter, Setter 자동 생성)
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+
+    // Spring Boot 개발 도구 (애플레키엿ㄴ 자동 재시작 기능 지원)
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+    // 테스트 관련 라이브러리 (Spring Boot 테스트 환경 구성)
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+
+    // Koltin 테스트 지원 (JUnit 5 기반 테스트 프레임워크)
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
+    // JUnit 플랫폼 런쳐 (테스트 실행을 위한 기본 런처)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+
+kotlin {
+	compilerOptions {
+		freeCompilerArgs.addAll '-Xjsr305=strict'
+	}
+}
+
+allOpen {
+	annotation 'jakarta.persistence.Entity'
+	annotation 'jakarta.persistence.MappedSuperclass'
+	annotation 'jakarta.persistence.Embeddable'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
