@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*
 class HtmlController(
     private val htmlAnalyzer: HtmlAnalyzer
 ) {
-    @GetMapping("/raw")
+    // 전체 HTML 반환
+    @GetMapping("/get/raw")
     fun getRawHtml(
         @RequestParam url: String, 
     ): ResponseEntity<String> {
@@ -26,7 +27,10 @@ class HtmlController(
             ResponseEntity.status(500).body("오류: ${e.message}")
         }
     }
-    @GetMapping("/filter-by-text")
+    
+    
+    // 택스트를 포함한 HTML 반환 
+    @GetMapping("/get/filter-by-text")
     fun getHtmlByTextContent(
         @RequestParam url: String,
         @RequestParam textContent: String
