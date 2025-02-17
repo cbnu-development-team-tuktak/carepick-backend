@@ -1,4 +1,4 @@
-package com.callrapport.controller
+package com.callrapport.controller.doctor
 
 import com.callrapport.model.doctor.Doctor
 import com.callrapport.repository.doctor.DoctorRepository

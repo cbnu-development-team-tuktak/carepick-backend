@@ -16,7 +16,7 @@ class Crawler {
                 urls.add(detailUrl)
             }
         } catch (e: Exception) {
-            println("⚠️ ${listUrl} 목록 크롤링 실패 : ${e.message}")
+            println("⚠️ ${listUrl} 목록 크롤링 실패: ${e.message}")
         }  
         return urls
     }
