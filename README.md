@@ -22,3 +22,29 @@
     - Jsoup (HTML 파싱 및 데이터 추출)
 - 데이터 저장: CSV(테스트 및 가공 전) → MySQL (최종 저장)
 - 로그 관리: println()을 통한 기본 로깅 (추후 로깅 프레임워크 적용 가능)
+
+## 질병 크롤링 방식
+### 질병 링크 크롤링
+1. Selenium WebDriver를 사용하여 국가건강정보포털에 접속
+2. 건강문제 버튼을 통해 질병 관련 데이터만을 필터링
+3. 각 질병의 고유 ID를 포함한 JavaScript 링크만 추출 <br/>
+(예: javascript:fn_goView('6549', '만성피로증후군');
+4. 정규 표현식을 통해 해당 ID를 파싱하고, 최종적으로 질병 링크를 생성 <br/> (예: https://health.kdca.go.kr/healthinfo/.../gnrlzHealthInfoView.do?cntntns_sn=6549)
+### 질병 상세 정보 크롤링
+1. Jsoup을 이용해 각 질병 상세 페이지 HRML을 파싱
+2. 주요 정보를 추출
+    - name (질병명)
+    - overview (개요)
+    - definition (정의)
+    - type (질병 종류)
+    - cause (원인)
+    - symptoms (증상)
+    - FAQ (자주 묻는 질문)
+    - url (출처)
+## 데이터 정제 및 저장
+1. 질병명, 개요, 정의, 증상, 원인, FAQ, URL 컬럼으로 CSV를 저장
+2. 데이터 검증 및 2차 수정
+    - 개요(overview): "~은 ...한 질병입니다." 형식으로 통일
+        - 이때, 개요 문장이 비정상적인 경우, 2차 수정 완료 컬럼을 추가해 O/X로 체크
+    - 증상(symptoms): 숫자 리스트 형태로 정리 <br/>
+(예: 1. 피로감, 2. 근육통, 3. 기억력 저하)
