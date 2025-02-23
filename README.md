@@ -41,6 +41,7 @@
     - symptoms (증상)
     - FAQ (자주 묻는 질문)
     - url (출처)
+      
 ## 데이터 정제 및 저장
 1. 질병명, 개요, 정의, 증상, 원인, FAQ, URL 컬럼으로 CSV를 저장
 2. 데이터 검증 및 2차 수정
@@ -48,3 +49,16 @@
         - 이때, 개요 문장이 비정상적인 경우, 2차 수정 완료 컬럼을 추가해 O/X로 체크
     - 증상(symptoms): 숫자 리스트 형태로 정리 <br/>
 (예: 1. 피로감, 2. 근육통, 3. 기억력 저하)
+
+## 실행 방법
+1. 크롤러 실행 (Spring Boot)
+```js
+./gradlew bootRun
+```
+2. API 엔드포인트 (REST API)
+| 엔드포인트 | 설명 |
+| --- | --- |
+| /api/crawl/disease/links | 크롤링한 질병 목록을 반환 |
+| /api/crawl/disease/infos | 질병 상세 정보를 반환 |
+| /api/crawl/disease/csv | CSV 파일로 저장 후 다운로드 |
+
