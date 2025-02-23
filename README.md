@@ -56,9 +56,9 @@
 ./gradlew bootRun
 ```
 2. API 엔드포인트 (REST API)
+
 | 엔드포인트 | 설명 |
 | --- | --- |
 | /api/crawl/disease/links | 크롤링한 질병 목록을 반환 |
 | /api/crawl/disease/infos | 질병 상세 정보를 반환 |
 | /api/crawl/disease/csv | CSV 파일로 저장 후 다운로드 |
-
