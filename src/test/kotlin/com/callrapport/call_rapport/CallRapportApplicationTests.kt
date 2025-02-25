@@ -8,6 +8,7 @@ class CallRapportApplicationTests {
 
 	@Test
 	fun contextLoads() {
+		
 	}
 
 }
