@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/crawl/doctor")
 class DoctorCrawlController(
-    private val doctorCrawler: DoctorCrawler
+    private val doctorCrawler: DoctorCrawler,
     private val doctorService: DoctorService // 의사 정보 저장 서비스
 ) {
     // 의사 정보 크롤링 (성명 + 프로필 링크 반환)
