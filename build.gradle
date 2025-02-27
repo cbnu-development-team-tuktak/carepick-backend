@@ -29,9 +29,8 @@ dependencies {
     // Spring Boot Web Starter (REST API 개발을 위한 기본 의존성)
     implementation("org.springframework.boot:spring-boot-starter-web")
     
-    // Spring Boot JPA Starter (데이터베이스 연동 및 ORM 지원)
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.0")
     // Jakarta Persistence API (JPA 사용을 위한 인터페이스)
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0") 
     
@@ -53,14 +52,14 @@ dependencies {
     // Jsoup (HTML 파싱 및 웹 크롤링 라이브러리)
     implementation("org.jsoup:jsoup:1.16.1")
 
-    
+    // 
     implementation("org.seleniumhq.selenium:selenium-java:4.6.0")
 
     // Lombok (Getter, Setter 자동 생성)
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
-    // Spring Boot 개발 도구 (애플레키엿ㄴ 자동 재시작 기능 지원)
+    // Spring Boot 개발 도구 (애플레키이션 자동 재시작 기능 지원)
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     // 테스트 관련 라이브러리 (Spring Boot 테스트 환경 구성)
@@ -80,7 +79,7 @@ kotlin {
 	}
 }
 
-allOpen {
+allOpen {   
 	annotation 'jakarta.persistence.Entity'
 	annotation 'jakarta.persistence.MappedSuperclass'
 	annotation 'jakarta.persistence.Embeddable'
