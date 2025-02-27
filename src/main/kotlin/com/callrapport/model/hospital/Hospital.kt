@@ -21,6 +21,9 @@ data class Hospital(
     @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
     val address: String, // 병원 주소
 
+    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
+    val operatingHours: String?, 
+    
     @OneToMany( // M:N 관계
         mappedBy = "hospital", 
         cascade = [CascadeType.ALL], 
