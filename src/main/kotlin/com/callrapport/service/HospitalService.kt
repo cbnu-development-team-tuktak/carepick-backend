@@ -3,6 +3,7 @@ package com.callrapport.service
 // Model (엔티티) 관련 import
 import com.callrapport.model.hospital.Hospital // Hospital: 병원 기본 정보 엔티티
 import com.callrapport.model.hospital.HospitalDoctor
+import com.callrapport.model.hospital.AdditionalInfo
 import com.callrapport.model.hospital.HospitalAdditionalInfo // HospitalAdditionalInfo: 병원 추가 정보 엔티티
 import com.callrapport.model.hospital.HospitalSpecialty // HospitalSpecialty: 병원-진료과 연결 엔티티
 import com.callrapport.model.common.Specialty // Specialty: 진료과 엔티티
@@ -12,6 +13,7 @@ import com.callrapport.model.doctor.Doctor
 import com.callrapport.repository.hospital.HospitalRepository // 병원 정보 저장소
 import com.callrapport.repository.hospital.HospitalDoctorRepository
 import com.callrapport.repository.hospital.HospitalAdditionalInfoRepository // 병원 추가 정보 저장소
+import com.callrapport.repository.hospital.AdditionalInfoRepository
 import com.callrapport.repository.hospital.HospitalSpecialtyRepository // 병원-진료과 관계 저장소
 import com.callrapport.repository.common.SpecialtyRepository // 진료과 정보 저장소
 
@@ -32,12 +34,13 @@ class HospitalService(
     private val hospitalRepository: HospitalRepository, // 병원 저장소
     private val hospitalDoctorRepository: HospitalDoctorRepository,
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원 추가 정보 저장소
+    private val additionalInfoRepository: AdditionalInfoRepository, 
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 연결 저장소
     private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
     private val doctorRepository: DoctorRepository // 의사 저장소
 ) {
     @Transactional
-    fun saveHospitalWithDetails(
+    fun saveHospital(
         id: String,
         name: String,
         phoneNumber: String?,
@@ -45,14 +48,12 @@ class HospitalService(
         address: String,
         operatingHours: String?,
         specialties: List<String>?,
-        url: String,
-        doctors: List<String>?,
-        additionalInfo: HospitalAdditionalInfo?
+        url: String?,
+        additionalInfo: Map<String, Any>? // HospitalAdditionalInfo를 위한 추가 매개변수
     ): Hospital {
-        // 기존 병원 정보가 존재하는지 확인
+        // 기존 병원 데이터 확인 (있으면 업데이트, 없으면 새로 생성)
         val existingHospital = hospitalRepository.findById(id).orElse(null)
 
-        // 병원 객체 생성
         val hospital = if (existingHospital != null) {
             existingHospital.copy(
                 name = name,
@@ -74,7 +75,7 @@ class HospitalService(
             )
         }
 
-        // 병원 저장
+        // 병원 정보 저장
         val savedHospital = hospitalRepository.save(hospital)
 
         // specialties 저장
@@ -87,45 +88,39 @@ class HospitalService(
             hospitalSpecialtyRepository.saveAll(specialtyEntities)
         }
 
-        // 의사 저장
-        if (!doctors.isNullOrEmpty()) {
-            val doctorEntities = doctorRepository.findAllById(doctors)
-            val hospitalDoctors = doctorEntities.map { doctor ->
-                HospitalDoctor(hospital = savedHospital, doctor = doctor)
-            }
-            hospitalDoctorRepository.saveAll(hospitalDoctors)
-        }
-
-        // 추가 정보 저장
+    
+        // 추가 정보가 제공되었으면 AdditionalInfo 저장
         if (additionalInfo != null) {
-            // hospitalId를 명시적으로 설정하여 새로운 HospitalAdditionalInfo 객체 생성
-            val hospitalAdditionalInfo = HospitalAdditionalInfo(
-                id = savedHospital.id, // hospitalId를 id로 설정
-                hospital = savedHospital,
-                open24Hours = additionalInfo.open24Hours,
-                emergencyTreatment = additionalInfo.emergencyTreatment,
-                maleFemaleDoctorChoice = additionalInfo.maleFemaleDoctorChoice,
-                networkHospital = additionalInfo.networkHospital,
-                freeCheckup = additionalInfo.freeCheckup,
-                nearSubway = additionalInfo.nearSubway,
-                openAllYear = additionalInfo.openAllYear,
-                openOnSunday = additionalInfo.openOnSunday,
-                nightShift = additionalInfo.nightShift,
-                collaborativeCare = additionalInfo.collaborativeCare,
-                noLunchBreak = additionalInfo.noLunchBreak
+            // Map을 기반으로 AdditionalInfo 객체 생성
+            val additionalInfoEntity = AdditionalInfo(
+                open24Hours = additionalInfo["open24Hours"] as? Boolean ?: false,
+                emergencyTreatment = additionalInfo["emergencyTreatment"] as? Boolean ?: false,
+                maleFemaleDoctorChoice = additionalInfo["maleFemaleDoctorChoice"] as? Boolean ?: false,
+                networkHospital = additionalInfo["networkHospital"] as? Boolean ?: false,
+                freeCheckup = additionalInfo["freeCheckup"] as? Boolean ?: false,
+                nearSubway = additionalInfo["nearSubway"] as? Boolean ?: false,
+                openAllYear = additionalInfo["openAllYear"] as? Boolean ?: false,
+                openOnSunday = additionalInfo["openOnSunday"] as? Boolean ?: false,
+                nightShift = additionalInfo["nightShift"] as? Boolean ?: false,
+                collaborativeCare = additionalInfo["collaborativeCare"] as? Boolean ?: false,
+                noLunchBreak = additionalInfo["noLunchBreak"] as? Boolean ?: false
             )
+
+            // 추가 정보를 저장
+            val savedAdditionalInfo = additionalInfoRepository.save(additionalInfoEntity)
+
+            // 병원과 추가 정보를 연결하는 HospitalAdditionalInfo 저장
+            val hospitalAdditionalInfo = HospitalAdditionalInfo(
+                id = savedHospital.id,  // 병원 ID를 사용하여 연결
+                hospital = savedHospital,
+                additionalInfo = savedAdditionalInfo
+            )
+
             hospitalAdditionalInfoRepository.save(hospitalAdditionalInfo)
         }
 
         return savedHospital
     }
-
-
-
-
-
-
-
 
 
     fun getHospitalById(hospitalId: String): Hospital? {

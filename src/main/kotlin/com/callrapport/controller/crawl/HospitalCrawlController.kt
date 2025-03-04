@@ -21,7 +21,8 @@ import org.springframework.web.bind.annotation.* // REST API 관련 어노테이
 
 import org.springframework.dao.OptimisticLockingFailureException
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
+
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.nio.charset.StandardCharsets
 
@@ -65,86 +66,46 @@ class HospitalCrawlController(
     @GetMapping("/save-db")
     fun saveHospitalInfosToDB(): ResponseEntity<String> {
         return try {
+            // 크롤링한 병원 정보 가져오기
             val hospitalLinks = hospitalCrawler.crawlHospitalLinks() // 병원 목록 크롤링 실행
 
-            // 링크에서 hospital ID를 추출하고 각 병원 정보를 크롤링
-            val hospitalInfos = hospitalLinks.map { (name, url) ->
-                // URL에서 ID를 추출
+            // 크롤링한 각 병원 정보를 DB에 저장
+            hospitalLinks.forEach { (name, url) ->
+                // URL에서 병원 ID 추출
                 val hospitalId = extractHospitalIdFromUrl(url)
 
-                // 병원 정보 크롤링 결과를 MutableMap으로 변환하여 ID 추가
-                val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url).toMutableMap().apply {
-                    this["id"] = hospitalId // hospitalId를 hospitalInfo에 추가
+                // 병원 상세 정보 크롤링
+                val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url)
+
+                // 추가 정보를 Map으로 변환 (JSON을 Map으로 변환하는 로직)
+                val additionalInfo = hospitalInfo["additional_info"]?.let { info ->
+                    try {
+                        ObjectMapper().readValue(info as String, Map::class.java) as Map<String, Any>
+                    } catch (e: Exception) {
+                        emptyMap<String, Any>()
+                    }
                 }
-                hospitalInfo
-            }
 
-            // 크롤링된 각 병원 정보를 DB에 저장
-            hospitalInfos.forEach { hospitalInfo ->
-                // 필수 값 확인 (null 체크)
-                val hospitalId = hospitalInfo["id"] ?: throw IllegalArgumentException("Hospital ID is required")
-                val name = hospitalInfo["name"] ?: throw IllegalArgumentException("Hospital name is required")
-                val address = hospitalInfo["address"] ?: throw IllegalArgumentException("Hospital address is required")
-                val url = hospitalInfo["url"] ?: throw IllegalArgumentException("Hospital URL is required")
+                // specialties를 문자열로 받아 List<String>으로 변환
+                val specialties = (hospitalInfo["specialties"] as? String)?.split(" | ") ?: emptyList()
 
-                // 선택적 필드 처리: null을 허용하는 필드는 null이 들어올 수 있으므로 기본값 처리
-                val phoneNumber = hospitalInfo["phone_number"] // null 가능
-                val homepage = hospitalInfo["homepage"] // null 가능
-                val operatingHours = hospitalInfo["operating_hours"] // null 가능
-                val specialties = hospitalInfo["specialties"]?.split("|") ?: emptyList() // 기본값 처리
-                val doctorIds = hospitalInfo["doctor_ids"]?.split(",") ?: emptyList() // 기본값 처리
-                val additionalInfoJson = hospitalInfo["additional_info"] ?: "{}" // 기본값 처리
-
-                // Hospital 정보를 DB에 저장
-                val savedHospital = hospitalService.saveHospitalWithDetails(
+                // 병원 정보 저장
+                hospitalService.saveHospital(
                     id = hospitalId,
                     name = name,
-                    phoneNumber = phoneNumber,
-                    homepage = homepage,
-                    address = address,
-                    operatingHours = operatingHours,
-                    specialties = specialties,
+                    phoneNumber = hospitalInfo["phone_number"] as? String,
+                    homepage = hospitalInfo["homepage"] as? String,
+                    address = hospitalInfo["address"] as? String ?: "",
+                    operatingHours = hospitalInfo["operating_hours"] as? String,
+                    specialties = specialties,  // specialties를 List<String>으로 변환하여 저장
                     url = url,
-                    doctors = doctorIds,
-                    additionalInfo = jacksonObjectMapper().readValue(additionalInfoJson) // JSON 파싱
+                    additionalInfo = additionalInfo
                 )
-
-                // specialties 저장
-                if (specialties.isNotEmpty()) {
-                    val specialtyEntities = specialties.map { specialtyName ->
-                        // Specialty가 존재하는지 확인하고 없으면 새로 생성
-                        val existingSpecialty = specialtyRepository.findByName(specialtyName)
-                            ?: Specialty(name = specialtyName).also { specialtyRepository.save(it) }
-
-                        HospitalSpecialty(specialty = existingSpecialty, hospital = savedHospital)
-                    }
-                    hospitalSpecialtyRepository.saveAll(specialtyEntities)
-                }
-
-                // doctors 저장
-                if (doctorIds.isNotEmpty()) {
-                    val doctorEntities = doctorRepository.findAllById(doctorIds)
-                    val hospitalDoctors = doctorEntities.map { doctor ->
-                        HospitalDoctor(hospital = savedHospital, doctor = doctor)
-                    }
-                    hospitalDoctorRepository.saveAll(hospitalDoctors)
-                }
-
-                // 추가 정보 저장 (optional)
-                val additionalInfo = jacksonObjectMapper().readValue<HospitalAdditionalInfo>(additionalInfoJson)
-
-                // 추가 정보의 hospitalId를 새로 할당
-                val updatedAdditionalInfo = additionalInfo.copy(id = savedHospital.id) // `copy`로 새로운 객체 생성
-
-                // 저장
-                hospitalAdditionalInfoRepository.save(updatedAdditionalInfo)
-
             }
-
-            ResponseEntity("All hospitals' info saved successfully", HttpStatus.OK)
+            // 모든 병원 정보 저장 완료 메시지 반환
+            ResponseEntity("All hospital info saved successfully", HttpStatus.OK)
         } catch (e: Exception) {
-            println("Error occurred while saving hospitals: ${e.message}")
-            e.printStackTrace()
+            // 예외 발생 시 에러 메시지 반환
             ResponseEntity.status(500).body("⚠️ Error occurred while saving hospitals: ${e.message}")
         }
     }
@@ -154,6 +115,7 @@ class HospitalCrawlController(
         // URL에서 마지막 슬래시 뒤의 값을 ID로 추출
         return url.substringAfterLast("/")
     }
+
 
 
 }

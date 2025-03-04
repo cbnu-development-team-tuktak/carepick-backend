@@ -1,6 +1,7 @@
 package com.callrapport.model.hospital
 
 import jakarta.persistence.*
+import com.fasterxml.jackson.annotation.JsonManagedReference
 
 @Entity
 @Table(name = "hospitals")
@@ -32,6 +33,7 @@ data class Hospital(
     @OneToMany(mappedBy = "hospital", cascade = [CascadeType.ALL], orphanRemoval = true)
     val doctors: List<HospitalDoctor> = mutableListOf(),
 
-    @OneToOne(mappedBy = "hospitalId", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val additionalInfo: HospitalAdditionalInfo? = null // HospitalAdditionalInfo와 관계 설정
+    @OneToOne(mappedBy = "hospital", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference
+    val additionalInfo: HospitalAdditionalInfo? = null
 )
