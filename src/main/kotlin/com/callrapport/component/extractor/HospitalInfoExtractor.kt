@@ -54,23 +54,43 @@ class HospitalInfoExtractor {
         }
     }
     
-    fun extractAdditionalInfo(doc: Document): String? { // 추가정보 추출 (JSON 문자열로 변환)
-        val additionalInfoMap = mutableMapOf<String, Boolean>()
-
-        // 모든 추가 정보 리스트 항목 가져오기
+    fun extractAdditionalInfo(doc: Document, hospitalId: String): String? {
+        val additionalInfoMap = mutableMapOf<String, Any>(
+            "hospitalId" to hospitalId // ✅ 기본적으로 hospitalId 포함
+        )
+    
+        // 항목 이름과 실제 JSON 필드명을 매핑
+        val fieldMappings = mapOf(
+            "24시간 문의 가능" to "open24Hours",
+            "24시간 응급환자 진료" to "emergencyTreatment",
+            "남여전문의 선택진료" to "maleFemaleDoctorChoice",
+            "네트워크 병원" to "networkHospital",
+            "무료 검진" to "freeCheckup",
+            "역세권 위치" to "nearSubway",
+            "연중무휴 진료" to "openAllYear",
+            "일요일, 공휴일 진료" to "openOnSunday",
+            "평일 야간 진료" to "nightShift",
+            "협진시스템" to "collaborativeCare",
+            "점심시간 없이 진료" to "noLunchBreak"
+        )
+    
         val specialItems = doc.select("ul.list_special li")
-
+    
         for (item in specialItems) {
-            val text = item.text().trim() // 추가 정보 항목 이름
-            val isActive = item.hasClass("on") // "on" 클래스가 있으면 true, 없으면 false
-
-            additionalInfoMap[text] = isActive
+            val text = item.text().trim()
+            val isActive = item.hasClass("on")
+    
+            // 매핑된 필드명으로 키 값 변경
+            val mappedField = fieldMappings[text]
+            if (mappedField != null) {
+                additionalInfoMap[mappedField] = isActive
+            }
         }
-
-        // ✅ Map<String, Boolean> → JSON String 변환
+    
         return jacksonObjectMapper().writeValueAsString(additionalInfoMap)
     }
-
+    
+    
     fun extractDoctorIds(doc: Document): List<String> {
         val doctorIds = mutableListOf<String>()
 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*
 class DoctorEntityController(
     private val doctorService: DoctorService
 ) {
+    // 의사 이름으로 검색 (페이징)
     @GetMapping("/search")
     fun searchDoctors(@RequestParam keyword: String, pageable: Pageable): Page<Doctor> {
         return doctorService.searchDoctorsByName(keyword, pageable)

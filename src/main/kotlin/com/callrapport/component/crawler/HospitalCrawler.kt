@@ -97,7 +97,7 @@ class HospitalCrawler(
             val operatingHoursMap = hospitalInfoExtractor.extractOperatingHours(doc)
             val operatingHours = jacksonObjectMapper().writeValueAsString(operatingHoursMap ?: emptyMap<String, String>())
 
-            val additionalInfo = hospitalInfoExtractor.extractAdditionalInfo(doc) ?: ""
+            val additionalInfo = hospitalInfoExtractor.extractAdditionalInfo(doc, hospitalId) ?: ""
             
             val doctorIds = hospitalInfoExtractor.extractDoctorIds(doc)
             val doctorIdsJson = jacksonObjectMapper().writeValueAsString(doctorIds) // ✅ JSON 변환

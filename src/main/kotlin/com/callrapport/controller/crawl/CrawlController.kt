@@ -69,30 +69,4 @@ class CrawlController(
             ResponseEntity.status(500).body("⚠️ Error occurred: ${e.message}")
         }
     }
-
-    // ✅ 병원 정보 크롤링 (이름, 링크 반환)
-    @GetMapping("/hospital/links")
-    fun getHospitalLinks(): ResponseEntity<List<Map<String, String>>> {
-        return try {
-            val hospitalLinks = hospitalCrawler.crawlHospitalLinks()
-            val response = hospitalLinks.map { (name, url) -> mapOf("name" to name, "url" to url) }
-            ResponseEntity(response, HttpStatus.OK)
-        } catch (e: Exception) {
-            ResponseEntity.status(500).body(listOf(mapOf("error" to "⚠️ Error occurred: ${e.message}")))
-        }
-    }
-
-    // ✅ 병원 정보 크롤링 (상세 정보 포함)
-    @GetMapping("/hospital/infos")
-    fun getHospitalInfos(): ResponseEntity<List<Map<String, String?>>> {
-        return try {
-            val hospitalLinks = hospitalCrawler.crawlHospitalLinks()
-            val hospitalInfos = hospitalLinks.map { (name, url) ->
-                hospitalCrawler.crawlHospitalInfos(name, url)
-            }
-            ResponseEntity(hospitalInfos, HttpStatus.OK)
-        } catch (e: Exception) {
-            ResponseEntity.status(500).body(listOf(mapOf("error" to "⚠️ Error occurred: ${e.message}")))
-        }
-    }
 }

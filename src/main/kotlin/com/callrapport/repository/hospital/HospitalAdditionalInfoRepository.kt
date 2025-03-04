@@ -7,9 +7,8 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface HospitalAdditionalInfoRepository : JpaRepository<HospitalAdditionalInfo, String> {
-    // 병원 ID로 추가 정보 조회
-    fun findByHospital(hospital: Hospital): HospitalAdditionalInfo?
-
+    fun findByHospitalId(hospitalId: String): HospitalAdditionalInfo?
+    
     // 24시간 운영하는 병원 목록 조회
     fun findByOpen24HoursTrue(): List<HospitalAdditionalInfo>
 

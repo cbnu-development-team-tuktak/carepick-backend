@@ -12,5 +12,5 @@ interface HospitalSpecialtyRepository : JpaRepository<HospitalSpecialty, Long> {
     fun findByHospital(hospital: Hospital): List<HospitalSpecialty>
     
     // 특정 진료과를 갖고 있는 병원 검색
-    fun funBySpecialty(specialty: Specialty): List<HospitalSpecialty>
+    fun findBySpecialty(specialty: Specialty): List<HospitalSpecialty>
 }

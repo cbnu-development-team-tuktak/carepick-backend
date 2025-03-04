@@ -6,6 +6,8 @@ import com.callrapport.model.common.Specialty // Specialty 엔티티: 의사의 
 // JPA 관련 import 
 import jakarta.persistence.* 
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+
 @Entity
 @Table(name = "hospital_specialties")
 data class HospitalSpecialty(
@@ -15,6 +17,7 @@ data class HospitalSpecialty(
 
     @ManyToOne
     @JoinColumn(name = "hospital_id", nullable = false)
+    @JsonBackReference // 순환 참조 방지
     val hospital: Hospital, // 병원 ID
 
     @ManyToOne

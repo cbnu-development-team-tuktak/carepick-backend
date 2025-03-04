@@ -1,47 +1,37 @@
 package com.callrapport.model.hospital
 
-// JPA 관련 import 
 import jakarta.persistence.*
 
 @Entity
 @Table(name = "hospitals")
 data class Hospital(
-    @Id // 기본 키
+    @Id
     val id: String, // 병원 ID (기본키)
 
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
+    @Column(nullable = false)
     val name: String, // 병원 이름 
 
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val phoneNumber: String?, // 전화번호
+    @Column(nullable = true)
+    val phoneNumber: String? = null, // 전화번호
 
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val homepage: String?, // 홈페이지 URL 
+    @Column(nullable = true)
+    val homepage: String? = null, // 홈페이지 URL 
 
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
-    val address: String, // 병원 주소
+    @Column(nullable = true)
+    val address: String? = null, // 병원 주소
 
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val operatingHours: String?, 
-    
-    @OneToMany( // M:N 관계
-        mappedBy = "hospital", 
-        cascade = [CascadeType.ALL], 
-        orphanRemoval = true
-    )
+    @Column(nullable = true)
+    val operatingHours: String? = null,
+
+    @Column(nullable = true)
+    val url: String? = null, // 병원 정보 페이지 URL
+
+    @OneToMany(mappedBy = "hospital", cascade = [CascadeType.ALL], orphanRemoval = true)
     val specialties: List<HospitalSpecialty> = mutableListOf(),
 
-    @OneToMany(
-        mappedBy = "hospital",
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "hospital", cascade = [CascadeType.ALL], orphanRemoval = true)
     val doctors: List<HospitalDoctor> = mutableListOf(),
 
-    @OneToOne(
-        mappedBy = "hospital",
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true
-    )
-    val additionalInfo: HospitalAdditionalInfo? = null
+    @OneToOne(mappedBy = "hospitalId", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val additionalInfo: HospitalAdditionalInfo? = null // HospitalAdditionalInfo와 관계 설정
 )

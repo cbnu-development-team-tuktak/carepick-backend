@@ -14,7 +14,7 @@ import org.springframework.data.domain.Pageable // 페이지네이션 요청을 
 @Repository
 interface DoctorRepository : JpaRepository<Doctor, String> {
     // 의사 이름을 기준으로 검색하는 메서드
-    // Like %:keyword%: 부분 일치 검색을 수행하여 특정 키워드가 포함된 이름 검색 간킁
+    // Like %:keyword%: 부분 일치 검색을 수행하여 특정 키워드가 포함된 이름 검색 가능
     // Pageable을 사용하여 검색 결과를 페이지 단위로 반환
     @Query("SELECT d FROM Doctor d WHERE d.name LIKE %:keyword%")
     fun searchByName(
