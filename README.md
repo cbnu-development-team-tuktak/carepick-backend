@@ -118,4 +118,24 @@ SELECT * FROM hospitals;
 | H0000218720 | ...               | ...               | ...               | ...         | ...          | ...               |
 | H0000238449 | ...               | ...               | ...               | ...         | ...          | ...               |
 +-------------+-------------------+-------------------+-------------------+-------------+--------------+-------------------+
-```  
+```
+
+### 5. 테이블 삭제
+병원 관련 테이블 삭제
+```sql
+DROP TABLE IF EXISTS additional_info;
+DROP TABLE IF EXISTS hospital_additional_info;
+DROP TABLE IF EXISTS hospital_doctors;
+DROP TABLE IF EXISTS hospital_specialties;
+DROP TABLE IF EXISTS hospitals;
+```
+의사 관련 테이블 삭제
+```sql
+DROP TABLE IF EXISTS doctor_education_licenses;
+DROP TABLE IF EXISTS doctor_hospitals;
+DROP TABLE IF EXISTS doctors;
+```
+진료과 테이블 삭제
+```sql
+DROP TABLE IF EXISTS specialties;
+```
