@@ -152,13 +152,17 @@ Gradle이 실행되면 애플리케이션이 빌드되고, Spring Boot 서버가
 ```bash
 http://localhost:8080/api/hospitals/search?keyword={병원명}&page={페이지번호&size={페이지당 개수}
 ```
+```bash
+http://localhost:8080/api/hospitals/search?keyword=예사랑병원&page=0&size=5
+```
 주소로 병원 검색
 ```bash
 http://localhost:8080/api/hospitals/search/address?keyword={주소}&page={페이지번호}&size={페이지당 개수}
+```
+```bash
+http://localhost:8080/api/hospitals/search/address?keyword=부산광역시+서구+옥천로130번길+38&page=0&size=5
 ```
 모든 병원 검색
 ```bash
 http://localhost:8080/api/hospitals?page={페이지번호}&size={페이지당 개수}
 ```
-
-
