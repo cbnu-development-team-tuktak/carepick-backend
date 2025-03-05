@@ -139,3 +139,25 @@ DROP TABLE IF EXISTS doctors;
 ```sql
 DROP TABLE IF EXISTS specialties;
 ```
+
+## 💾 데이터베이스 확인 방법 (웹페이지)
+### 1. Gradle 실행
+Gradle을 사용해 애플리케이션을 실행
+```bash
+./gradlew bootRun
+```
+Gradle이 실행되면 애플리케이션이 빌드되고, Spring Boot 서버가 http://localhost:8080에서 실행됨
+### 2. 웹페이지에서 API 접근
+병원명으로 병원 검색
+```bash
+http://localhost:8080/api/hospitals/search?keyword={병원명}&page={페이지번호&size={페이지당 개수}
+```
+주소로 병원 검색
+```bash
+http://localhost:8080/api/hospitals/search/address?keyword={주소}&page={페이지번호}&size={페이지당 개수}
+```
+모든 병원 검색
+```bash
+http://localhost:8080/api/hospitals?page={페이지번호}&size={페이지당 개수}
+```
+
