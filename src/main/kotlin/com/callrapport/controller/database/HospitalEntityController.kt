@@ -37,6 +37,6 @@ class HospitalEntityController(
         val hospitalPage = hospitalService.getAllHospitals(pageable)
         return hospitalPage.map { hospital -> 
             HospitalDetailsResponse.from(hospital)
-        }
+        }   
     }
 }

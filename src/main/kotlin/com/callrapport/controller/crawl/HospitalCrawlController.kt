@@ -77,27 +77,26 @@ class HospitalCrawlController(
                 // 병원 상세 정보 크롤링
                 val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url)
 
-                // 추가 정보를 Map으로 변환 (JSON을 Map으로 변환하는 로직)
-                val additionalInfo = hospitalInfo["additional_info"]?.let { info ->
+                val additionalInfo: Map<String, Any> = hospitalInfo["additional_info"]?.let { info ->
                     try {
-                        ObjectMapper().readValue(info as String, Map::class.java) as Map<String, Any>
+                        ObjectMapper().readValue(info)
                     } catch (e: Exception) {
-                        emptyMap<String, Any>()
+                        emptyMap()
                     }
-                }
-
+                } ?: emptyMap()
+                
                 // specialties를 문자열로 받아 List<String>으로 변환
-                val specialties = (hospitalInfo["specialties"] as? String)?.split(" | ") ?: emptyList()
+                val specialties = hospitalInfo["specialties"]?.toString()?.split(" | ") ?: emptyList()
 
                 // 병원 정보 저장
                 hospitalService.saveHospital(
                     id = hospitalId,
                     name = name,
-                    phoneNumber = hospitalInfo["phone_number"] as? String,
-                    homepage = hospitalInfo["homepage"] as? String,
-                    address = hospitalInfo["address"] as? String ?: "",
-                    operatingHours = hospitalInfo["operating_hours"] as? String,
-                    specialties = specialties,  // specialties를 List<String>으로 변환하여 저장
+                    phoneNumber = hospitalInfo["phone_number"]?.toString(),
+                    homepage = hospitalInfo["homepage"]?.toString(),
+                    address = hospitalInfo["address"]?.toString() ?: "", 
+                    operatingHours = hospitalInfo["operating_hours"]?.toString(),
+                    specialties = specialties, 
                     url = url,
                     additionalInfo = additionalInfo
                 )
