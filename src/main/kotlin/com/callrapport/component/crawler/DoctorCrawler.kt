@@ -25,101 +25,59 @@ class DoctorCrawler(
     private val doctorInfoExtractor: DoctorInfoExtractor, // HTML 문서에서 의사 정보를 추출하는 유틸리티
     private val doctorService: DoctorService // 크롤링한 데이터를 DB에 저장하는 서비스
 ) {
-    // 의사 프로필 페이지 링크를 크롤링하는 메서드
-    fun crawlDoctorLinks(): List<Pair<String, String>> {
-        val doctorLinks = mutableListOf<Pair<String, String>>() // 의사 링크를 저장할 리스트
-        var pageNum = 1 // 현재 페이지 번호
-
-        while (true) {
-            // 하이닥 의사·병원 찾기 페이지 URL
-            val url = "https://www.hidoc.co.kr/find/result/list?orderType=15010&page=${pageNum}&filterType=D"
-            val doc: Document = Jsoup.connect(url).get()
-
-            // 의사 이름과 프로필 페이지 링크가 포함된 요소를 선택
-            val doctorElements = doc.select("div.search_result_list ul.search_list li.item.item_2 strong.name a")
-            
-            // 더 이상 의사 목록이 없으면 크롤링 종료
-            if (doctorElements.isEmpty()) break
-            
-            // 크롤링한 의사 정보를 리스트에 추가
-            for (element: Element in doctorElements) {
-                val name = element.text() // 의사 이름
-                val link = "https://www.hidoc.co.kr" + element.attr("href") // 상세 페이지 링크
-                doctorLinks.add(name to link) // 의사 이름, 링크
-            }
-
-            println("$pageNum page") // 현재 페이지 번호 출력
-            println("new found doctor links count: ${doctorElements.size}") // 새롭게 발견된 링크 개수 출력
-            println("total found doctor links count: ${doctorLinks.size}") // 전체 발견된 링크 개수 출력
-
-            pageNum++ // 다음 페이지로 이동
-        }
-        return doctorLinks
-    }
-
     fun crawlDoctorInfos(
+        id: String,  // 의사 ID
         name: String, // 의사 이름
-        url: String // 의사 프로필 페이지 URL
+        url: String   // 의사 프로필 페이지 URL
     ): Map<String, String?> {
         val driver = webCrawler.createWebDriver() // 웹 드라이버 생성
-    
-        try { 
+
+        try {
+            // ✅ 매개변수로 받은 ID 확인
+            println("🚀 Inside crawlDoctorInfos() - Received ID: $id, Name: $name, URL: $url")
+
             driver.get(url) // 해당 URL의 웹페이지 열기
-            
-            // 프로필 이미지가 로드될 때까지 대기 (최대 10초)
-            WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.thumb_img img")))
-    
+
             val doc: Document = Jsoup.parse(driver.pageSource) // 페이지 소스를 Jsoup 문서로 변환
-    
-            // 의사 id를 추출 (URL의 마지막 부분을 사용)
-            val id = url.substringAfterLast("/", "").takeIf { it.isNotEmpty() } ?: ""
-    
-            // 크롤링한 데이터를 Map으로 정리
+
+            // ✅ 진료과 정보 추출
+            val specialty = doctorInfoExtractor.extractSpecialty(doc)
+
+            // ✅ 크롤링한 데이터를 Map으로 정리
             val doctorData = mapOf(
-                "id" to id,
-                "name" to name,
-                "profileImage" to doctorInfoExtractor.extractProfileImage(doc),
-                "educationLicenses" to doctorInfoExtractor.extractEducationLicenses(doc)?.joinToString(", "), 
-                "hospitalId" to doctorInfoExtractor.extractHospitalId(doc),
-                "specialty" to doctorInfoExtractor.extractSpecialty(doc),
+                "id" to id,  // ✅ ID 유지
+                "name" to name,  // ✅ 이름 유지
+                "url" to url,  // ✅ URL 유지
+                "specialty" to specialty  // ✅ 진료과 정보 추가
             )
-            
-            // 크롤링한 데이터를 데이터베이스에 저장
-            doctorService.saveDoctorWithDetails(
-                id = doctorData["id"]!!,
-                name = doctorData["name"]!!,
-                profileImage = doctorData["profileImage"],
-                educationLicenses = doctorInfoExtractor.extractEducationLicenses(doc) ?: emptyList(), 
-                hospitalId = doctorData["hospitalId"],
-                specialtyName = doctorData["specialty"]
-            )
-    
-            println("$name doctor data saved successfully") // 저장 완료 로그 출력
+
+            // ✅ 반환 직전 데이터 확인
+            println("🔍 Doctor data before return: $doctorData")
+
             return doctorData
-    
+
         } catch (e: Exception) {
-            return errorResponse(name, url, e.message ?: "Unknown error") // 오류 발생 시 errorResponse 반환
+            return errorResponse(id, name, url, e.message ?: "Unknown error") // 오류 발생 시 errorResponse 반환
         } finally {
             driver.quit() // 웹 드라이버 종료
         }
     }
-    
+
     // 오류 발생 시 기본 응답을 반환하는 메서드
     private fun errorResponse(
+        id: String, // 의사 ID
         name: String, // 의사 이름
-        url: String, // 프로필 페이지 URL 
-        message: String // 오류 메시지 
+        url: String, // 프로필 페이지 URL
+        message: String // 오류 메시지
     ): Map<String, String?> {
         println("⚠️ Failed to crawl doctor info from $url: $message")
+
         return mapOf(
-            "id" to "",
-            "name" to name,
-            "profileImage" to "",
-            "educationLicenses" to null, 
-            "hospitalId" to "",
-            "specialty" to "",
-            "error" to "⚠️ $message"
+            "id" to id,  // ✅ 기존 id 유지
+            "name" to name,  // ✅ 기존 name 유지
+            "url" to url,  // ✅ 기존 url 유지
+            "specialty" to "", // 진료과 정보 없음
+            "error" to "⚠️ $message" // 오류 메시지 추가
         )
     }
 }

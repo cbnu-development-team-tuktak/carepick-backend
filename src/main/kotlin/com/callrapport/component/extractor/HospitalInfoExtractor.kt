@@ -90,20 +90,34 @@ class HospitalInfoExtractor {
         return jacksonObjectMapper().writeValueAsString(additionalInfoMap)
     }
     
+    fun extractDoctorUrls(doc: Document): List<Map<String, String>> {
+        val doctorList = mutableListOf<Map<String, String>>()
     
-    fun extractDoctorIds(doc: Document): List<String> {
-        val doctorIds = mutableListOf<String>()
-
+        // ✅ 의사 정보가 있는 HTML 요소 찾기
         val doctorElements = doc.select("div.item_search.item_doctor a.link_award")
-
-        for (element in doctorElements) {
-            val href = element.attr("href")
-            val doctorId = href.substringAfterLast("/")
-            if (doctorId.isNotBlank()) {
-                doctorIds.add(doctorId)
-            }
-        }
         
-        return doctorIds
-    }
+        for (element in doctorElements) {
+            val rawUrl = element.attr("href")
+            val doctorUrl = if (rawUrl.startsWith("/")) "https://mobile.hidoc.co.kr$rawUrl" else rawUrl
+        
+            val doctorName = element.select("span.name .fw_b")?.text() ?: "No Name" // ✅ 의사 이름 추출
+            val doctorId = doctorUrl.substringAfterLast("/") // ✅ URL에서 의사 ID 추출
+        
+            // ✅ 디버깅 로그 추가
+            println("🔍 Extracting doctor info: name=$doctorName, id=$doctorId, rawUrl=$rawUrl, fullUrl=$doctorUrl")
+        
+            if (doctorName.isNotBlank() && doctorId.isNotBlank()) {
+                doctorList.add(
+                    mapOf(
+                        "id" to doctorId,
+                        "name" to doctorName,
+                        "url" to doctorUrl
+                    )
+                )
+            } else {
+                println("⚠️ Skipping doctor due to missing data: name=$doctorName, id=$doctorId, rawUrl=$rawUrl, fullUrl=$doctorUrl")
+            }
+        }        
+        return doctorList
+    }    
 }

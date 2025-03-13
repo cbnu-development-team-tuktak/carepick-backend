@@ -19,7 +19,7 @@ data class Doctor(
     val name: String, // 의사 이름
 
     @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val profileImage: String?, // 프로필 이미지 URL  
+    val profileImage: String? = null, // 프로필 이미지 URL  
 
     @OneToMany( // 1:N 관계
         mappedBy = "doctor", // DoctorEducationLicense 엔티티에서 doctor 필드를 기준으로 관계 설정
@@ -28,9 +28,6 @@ data class Doctor(
         fetch = FetchType.EAGER // Doctor 조회 시 educationLicenses도 즉시 가져옴
     )  
     val educationLicenses: List<DoctorEducationLicense> = mutableListOf(), // 의사의 학력 및 자격면허 정보 
-
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val hospitalId: String?, // 병원 ID
 
     @ManyToOne // N:1 관계
     @JoinColumn(

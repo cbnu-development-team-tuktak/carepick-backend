@@ -11,10 +11,10 @@ data class HospitalDoctor(
     val id: Long? = null,
 
     @ManyToOne
-    @JoinColumn(name = "hospital_id", nullable = false)
-    val hospital: Hospital, // 병원 ID
+    @JoinColumn(name = "hospital_id", nullable = false, referencedColumnName = "id") // 병원의 id와 연결
+    val hospital: Hospital, // 병원
 
     @ManyToOne
-    @JoinColumn(name = "doctor_id", nullable = false)
-    val doctor: Doctor // 의사 ID
+    @JoinColumn(name = "doctor_id", nullable = false, referencedColumnName = "id") // 의사의 id와 연결
+    val doctor: Doctor // 의사
 )

@@ -43,8 +43,6 @@ class DoctorService(
         val doctor = Doctor(
             id = id, 
             name = name, 
-            profileImage = profileImage, 
-            hospitalId = hospitalId,
             specialty = specialty
         )
 

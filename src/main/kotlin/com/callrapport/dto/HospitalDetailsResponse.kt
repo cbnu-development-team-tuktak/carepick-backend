@@ -35,4 +35,5 @@ data class HospitalDetailsResponse(
             )
         }
     }
+    
 }

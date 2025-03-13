@@ -51,10 +51,11 @@ dependencies {
 
     // Jsoup (HTML 파싱 및 웹 크롤링 라이브러리)
     implementation("org.jsoup:jsoup:1.16.1")
-
-    // 
+ 
     implementation("org.seleniumhq.selenium:selenium-java:4.6.0")
 
+    // JTS
+    implementation("org.locationtech.jts:jts-core:1.18.2") 
     // Lombok (Getter, Setter 자동 생성)
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")

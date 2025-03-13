@@ -71,11 +71,13 @@ class HospitalCrawler(
     }
     
     /**
-     * 병원 상세 정보 크롤링 (이름, 전화번호, 주소, 진료과목 등)
-     */
-    fun crawlHospitalInfos(name: String, url: String): Map<String, String?> {
+    * 병원 상세 정보 크롤링 (이름, 전화번호, 주소, 진료과목 등)
+    */
+    /**
+    * 병원 상세 정보 크롤링 (이름, 전화번호, 주소, 진료과목 등)
+    */
+    fun crawlHospitalInfos(name: String, url: String): Map<String, Any?> {
         val driver = webCrawler.createWebDriver() // WebDriver 생성
-
         var hospitalId: String? = null
 
         return try {
@@ -88,6 +90,7 @@ class HospitalCrawler(
             val doc: Document = Jsoup.parse(htmlContent)
 
             hospitalId = url.substringAfterLast("/")
+
             val phoneNumber = hospitalInfoExtractor.extractPhoneNumber(doc) ?: ""
             val homepage = hospitalInfoExtractor.extractHomepage(doc) ?: ""
             val address = hospitalInfoExtractor.extractAddress(doc) ?: ""
@@ -98,9 +101,10 @@ class HospitalCrawler(
             val operatingHours = jacksonObjectMapper().writeValueAsString(operatingHoursMap ?: emptyMap<String, String>())
 
             val additionalInfo = hospitalInfoExtractor.extractAdditionalInfo(doc, hospitalId) ?: ""
-            
-            val doctorIds = hospitalInfoExtractor.extractDoctorIds(doc)
-            val doctorIdsJson = jacksonObjectMapper().writeValueAsString(doctorIds) // ✅ JSON 변환
+
+            // ✅ 의사 URL 크롤링 (의사 ID + URL)
+            val doctorUrls = hospitalInfoExtractor.extractDoctorUrls(doc)
+            val doctorUrlsJson = jacksonObjectMapper().writeValueAsString(doctorUrls) // ✅ JSON 변환
 
             mapOf(
                 "hospital_id" to hospitalId,
@@ -111,7 +115,7 @@ class HospitalCrawler(
                 "specialties" to specialties,
                 "operating_hours" to operatingHours,
                 "additional_info" to additionalInfo,
-                "doctor_ids" to doctorIdsJson, 
+                "doctor_urls" to doctorUrlsJson, // ✅ 의사 URL 추가
                 "url" to url
             )
         } catch (e: Exception) {
