@@ -9,6 +9,8 @@ import com.callrapport.model.hospital.HospitalSpecialty // HospitalSpecialty: �
 import com.callrapport.model.common.Specialty // Specialty: 진료과 엔티티
 import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보 엔티티
 import com.callrapport.model.doctor.DoctorSpecialty
+import com.callrapport.model.doctor.EducationLicense
+import com.callrapport.model.doctor.DoctorEducationLicense
 
 // Repository (저장소) 관련 import
 import com.callrapport.repository.hospital.HospitalRepository // HospitalRepository: 병원 정보 저장소
@@ -17,9 +19,11 @@ import com.callrapport.repository.hospital.HospitalDoctorRepository // HospitalD
 import com.callrapport.repository.hospital.HospitalAdditionalInfoRepository // HospitalAdditionalInfoRepositor: 병원-병원 부가 정보 관계 저장소
 import com.callrapport.repository.hospital.HospitalSpecialtyRepository // HospitalSpecialtyRepository: 병원-진료과 관계 저장소 
 import com.callrapport.repository.common.SpecialtyRepository // SpecialtyRepository: 진료과 정보 저장소
-import com.callrapport.repository.doctor.DoctorRepository // DoctorRepository: 의사 정보 저장소
+import com.callrapport.repository.doctor.DoctorRepository // DoctorRepository: 의사 정보 저장소 
+import com.callrapport.repository.doctor.EducationLicenseRepository
 import com.callrapport.repository.user.UserFavoriteHospitalRepository // UserFavoriteHospitalRepository
 import com.callrapport.repository.doctor.DoctorSpecialtyRepository
+import com.callrapport.repository.doctor.DoctorEducationLicenseRepository
 
 // Spring 및 JPA 관련 import
 import org.springframework.stereotype.Service // 해당 클래스를 Spring의 서비스 컴포넌트로 등록하는 어노테이션
@@ -54,8 +58,10 @@ class HospitalService(
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원-병원 부가 정보 관계 저장소
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 연결 저장소
     private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
+    private val educationLicenseRepository: EducationLicenseRepository,
     private val doctorRepository: DoctorRepository, // 의사 저장소
     private val doctorSpecialtyRepository: DoctorSpecialtyRepository,
+    private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository,
     private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository
 ) {
     @Transactional
@@ -116,6 +122,11 @@ class HospitalService(
                 val doctorId = doctorData["id"] as? String ?: return@forEach
                 val doctorName = doctorData["name"] as? String ?: return@forEach
                 val specialtyNames = (doctorData["specialty"] as? String)?.split(", ") ?: emptyList() // ✅ 여러 개의 진료과 처리
+                val licenseNames = (doctorData["educationLicense"] as? String)
+                    ?.split(", ")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?: emptyList()
 
                 // 의사 정보 저장 (기존 정보가 있으면 업데이트, 없으면 새로 저장)
                 val existingDoctor = doctorRepository.findById(doctorId).orElse(null)
@@ -141,6 +152,16 @@ class HospitalService(
                         DoctorSpecialty(doctor = savedDoctor, specialty = specialty)
                     }
                     doctorSpecialtyRepository.saveAll(doctorSpecialties)
+                }
+                
+                // ✅ 의사와 자격면허 관계 (N:M) 설정
+                if (licenseNames.isNotEmpty()) {
+                    val doctorLicenses = licenseNames.map { licenseName ->
+                        val license = educationLicenseRepository.findByName(licenseName)
+                            ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
+                        DoctorEducationLicense(doctor = savedDoctor, educationLicense = license)
+                    }
+                    doctorEducationLicenseRepository.saveAll(doctorLicenses)
                 }
 
                 // 병원과 의사의 관계를 저장

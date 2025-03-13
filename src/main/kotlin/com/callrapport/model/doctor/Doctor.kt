@@ -23,13 +23,12 @@ data class Doctor(
     @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
     val profileImage: String? = null, // 프로필 이미지 URL  
 
-    @OneToMany( // 1:N 관계
-        mappedBy = "doctor", // DoctorEducationLicense 엔티티에서 doctor 필드를 기준으로 관계 설정
-        cascade = [CascadeType.ALL], // Doctor 삭제 시 관련 DoctorEducationLicense도 함께 삭제
-        orphanRemoval = true, // DctorEducationLicense가 Doctor에서 제거되면 DB에서도 삭제됨
-        fetch = FetchType.EAGER // Doctor 조회 시 educationLicenses도 즉시 가져옴
-    )  
-    val educationLicenses: List<DoctorEducationLicense> = mutableListOf(), // 의사의 학력 및 자격면허 정보 
+    @OneToMany(
+        mappedBy = "doctor",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    val educationLicenses: MutableList<DoctorEducationLicense> = mutableListOf(), // 의사의 학력 및 자격면허 정보 
 
     // ✅ 의사와 진료과(N:M)를 연결하는 `DoctorSpecialty` 테이블과의 관계 (1:N)
     @OneToMany(

@@ -13,11 +13,13 @@ data class DoctorEducationLicense(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(nullable = false)
-    val educationLicense: String, // ✅ 자격면허 정보
+    @ManyToOne
+    @JoinColumn(name = "education_licenses_id", nullable = false, referencedColumnName = "id")
+    @JsonIgnore
+    val educationLicense: EducationLicense,
 
     @ManyToOne
-    @JoinColumn(name = "doctor_id", nullable = false)
+    @JoinColumn(name = "doctor_id", nullable = false, referencedColumnName = "id")
     @JsonIgnore
     val doctor: Doctor // ✅ `Doctor`와 연관 관계 설정
 )

@@ -6,6 +6,7 @@ import com.callrapport.model.doctor.DoctorEducationLicense
 import com.callrapport.model.doctor.DoctorSpecialty // ✅ 추가
 import com.callrapport.model.hospital.HospitalDoctor // ✅ 추가
 import com.callrapport.model.common.Specialty
+import com.callrapport.model.doctor.EducationLicense
 
 // Repository (저장소) 관련 import
 import com.callrapport.repository.doctor.DoctorRepository
@@ -14,6 +15,7 @@ import com.callrapport.repository.doctor.DoctorSpecialtyRepository // ✅ 추가
 import com.callrapport.repository.hospital.HospitalDoctorRepository // ✅ 추가
 import com.callrapport.repository.hospital.HospitalRepository // ✅ 추가
 import com.callrapport.repository.common.SpecialtyRepository
+import com.callrapport.repository.doctor.EducationLicenseRepository
 
 // DTO 관련 import
 import com.callrapport.dto.DoctorDetailsResponse
@@ -27,8 +29,9 @@ import org.springframework.data.domain.Pageable
 @Service
 class DoctorService(
     private val doctorRepository: DoctorRepository,
-    private val doctorEducationRepository: DoctorEducationLicenseRepository,
+    private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository,
     private val specialtyRepository: SpecialtyRepository,
+    private val educationLicenseRepository: EducationLicenseRepository,
     private val doctorSpecialtyRepository: DoctorSpecialtyRepository, // ✅ 추가
     private val hospitalRepository: HospitalRepository, // ✅ 추가
     private val hospitalDoctorRepository: HospitalDoctorRepository // ✅ 추가
@@ -40,7 +43,8 @@ class DoctorService(
         profileImage: String?,
         educationLicenses: List<String>?,
         hospitalId: String?,
-        specialtyNames: List<String>? // ✅ 여러 개의 진료과 가능하도록 수정
+        specialtyNames: List<String>?, // ✅ 여러 개의 진료과 가능하도록 수정
+        educationLicenseNames: List<String>? 
     ): Doctor {    
         // 기존 의사 정보 확인 (있으면 업데이트, 없으면 새로 생성)
         val existingDoctor = doctorRepository.findById(id).orElse(null)
@@ -72,16 +76,16 @@ class DoctorService(
             doctorSpecialtyRepository.saveAll(specialties)
         }
 
-        // ✅ 자격면허 저장 (1:N 관계)
-        if (!educationLicenses.isNullOrEmpty()) {
-            val doctorEducations = educationLicenses.map { license ->
-                DoctorEducationLicense(
-                    educationLicense = license,
-                    doctor = savedDoctor
-                )
+        // ✅ 자격면허 저장 (N:M 관계)
+        if (!educationLicenseNames.isNullOrEmpty()) {
+            val doctorEducations = educationLicenseNames.map { licenseName ->
+                val educationLicense = educationLicenseRepository.findByName(licenseName)
+                    ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
+                DoctorEducationLicense(doctor = savedDoctor, educationLicense = educationLicense)
             }
-            doctorEducationRepository.saveAll(doctorEducations)
+            doctorEducationLicenseRepository.saveAll(doctorEducations)
         }
+
 
         // ✅ 병원과 의사 연결 (N:M 관계)
         if (hospitalId != null) {

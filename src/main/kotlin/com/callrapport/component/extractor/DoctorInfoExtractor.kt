@@ -30,52 +30,36 @@ class DoctorInfoExtractor {
         return specialtyElement?.text()?.replace("진료과목", "")?.trim()
     }
     
+    fun extractCareer(doc: Document): String? {
+        val careerElement = doc.selectFirst("div.doc_history:has(h4.tit:contains(경력)) ul.doctor_history li p.txt")
 
-    fun extractMainTreatment(doc: Document): String? { // 주요 진료 분야 추출
-        return extractField(doc, "주요 진료 분야 ")
-    }
-
-    fun extractAcademicActivity(doc: Document): String? { // 학회활동 추출
-        return extractField(doc, "학회활동")
-    }
-
-    fun extractEducationLicenses(doc: Document): List<String>? { // 학력/자격면허 추출 (여러 개 가능)
-        return extractFieldList(doc, "학력/자격면허")
-    }
-
-    
-    // 특정 필드 값을 `String?`으로 추출 (단일값)
-    private fun extractField(doc: Document, title: String): String? {
-        return extractFieldList(doc, title)?.joinToString(", ") // 리스트를 단일 문자열로 변환
-    }
-
-    // 특정 필드 값을 List<String>으로 추출 (여러 개 가능)   
-    private fun extractFieldList(doc: Document, title: String): List<String>? {
-        val element: Element? = doc.select("div.info_inner.career h3")
-            .firstOrNull { it.text().contains(title) } // 정확한 제목 매칭
-
-        val ulElement = element?.nextElementSibling()?.selectFirst("ul")
-
-        // 리스트 항목을 선택
-        val items = ulElement?.select("li.item span.desc") ?: emptyList()
-
-        return if (items.isEmpty()) {
-            println("⚠️ No valid data found for '$title'.")
-            null
+        if (educationElement == null) {
+            println("⚠️ Education/Licenses element not found in the page.")
         } else {
-            items.map { 
-                it.html()
-                    .replace("&nbsp;", "") // 불필요한 공백 제거
-                    .replace("&amp;", "&") // HTML 엔티티 변환
-                    .replace("<br>", ", ") // 줄바꿈을 콤마로 변환
-                    .replace(Regex("^-\\s*"), "") // 문장 맨 앞의 '- ' 제거
-                    .replace(Regex("-\\s*"), "")  // 모든 '-' 제거
-                    .split(", ") // 마침표 앞에서 분리
-                    .map { it.replace(".", "").trim() }  // 모든 마침표 제거 후 정리
-                    .joinToString(", ") // 정리된 리스트를 다시 문자열로 변환
-                    .replace(Regex("\\s*,\\s*"), ", ")  // 콤마 앞뒤 공백 정리
-                    .trim().removeSuffix(",")  // 마지막 콤마 제거
-            }.filter { it.isNotEmpty() } // 빈 값 제거
+            println("✅ Education/Licenses element found: ${educationElement.html()}")
         }
+
+        return educationElement?.html()
+            ?.replace("<br>", ", ")
+            ?.replace("<br/>", ", ")
+            ?.replace("<br />", ", ")
+            ?.trim()
     }
+    
+    fun extractEducationLicenses(doc: Document): String? {
+        val educationElement = doc.selectFirst("div.doc_history:has(h4.tit:contains(학력/자격면허)) ul.doctor_history li p.txt")
+    
+        if (educationElement == null) {
+            println("⚠️ Education/Licenses element not found in the page.")
+        } else {
+            println("✅ Education/Licenses element found: ${educationElement.html()}")
+        }
+    
+        // ✅ <br> 태그를 쉼표(,)로 변환한 뒤 텍스트 추출
+        return educationElement?.html()
+            ?.replace("<br>", ", ")
+            ?.replace("<br/>", ", ")
+            ?.replace("<br />", ", ")
+            ?.trim()
+    }   
 }

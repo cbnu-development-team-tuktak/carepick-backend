@@ -43,12 +43,20 @@ class DoctorCrawler(
             // ✅ 진료과 정보 추출
             val specialty = doctorInfoExtractor.extractSpecialty(doc)
 
+            // 경력 추출
+            val career = doctorInfoExtractor.extractCareer(doc)
+
+            // 자격/면허 정보 추출
+            val educationLicense = doctorInfoExtractor.extractEducationLicenses(doc)
+
             // ✅ 크롤링한 데이터를 Map으로 정리
             val doctorData = mapOf(
                 "id" to id,  // ✅ ID 유지
                 "name" to name,  // ✅ 이름 유지
                 "url" to url,  // ✅ URL 유지
-                "specialty" to specialty  // ✅ 진료과 정보 추가
+                "specialty" to specialty,  // ✅ 진료과 정보 추가
+                "career" to career, // 경력 정보
+                "educationLicense" to educationLicense
             )
 
             // ✅ 반환 직전 데이터 확인
