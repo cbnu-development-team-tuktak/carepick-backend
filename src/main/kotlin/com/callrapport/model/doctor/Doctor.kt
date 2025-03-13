@@ -1,5 +1,7 @@
 package com.callrapport.model.doctor
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
+
 // Model (엔티티) 관련 import
 import com.callrapport.model.common.Specialty // Specialty 엔티티: 의사의 진료과 정보를 저장하는 엔티티
 
@@ -29,10 +31,12 @@ data class Doctor(
     )  
     val educationLicenses: List<DoctorEducationLicense> = mutableListOf(), // 의사의 학력 및 자격면허 정보 
 
-    @ManyToOne // N:1 관계
-    @JoinColumn(
-        name = "specialty_id", // specialty_id를 외래키(FK)로 사용
-        nullable = true // 선택적 입력 값 (NULL 허용)
-    ) 
-    val specialty: Specialty? // Specialty (진료과) 엔티티
+    // ✅ 의사와 진료과(N:M)를 연결하는 `DoctorSpecialty` 테이블과의 관계 (1:N)
+    @OneToMany(
+        mappedBy = "doctor",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true
+    )
+    @JsonManagedReference // 순환 참조 방지
+    var specialties: MutableList<DoctorSpecialty> = mutableListOf() // 의사의 진료과 목록
 )

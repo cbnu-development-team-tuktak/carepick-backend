@@ -1,21 +1,19 @@
 package com.callrapport.dto
 
 // Model (엔티티) 관련 import
-import com.callrapport.model.doctor.Doctor // Doctor 엔티티: 의사 정보를 저장하는 엔티티 (의사 ID, 이름, 프로필 이미지, 진료과 등)
+import com.callrapport.model.doctor.Doctor
 
 data class DoctorDetailsResponse(
     val id: String, // 의사 ID
     val name: String, // 의사 이름
-    val specialty: String? // 의사의 진료과 
+    val specialties: List<String> // ✅ 의사의 진료과 목록 (N:M 관계 반영)
 ) {
     companion object {
-        fun from(
-            doctor: Doctor // 변환할 Doctor 엔티티 객체
-        ): DoctorDetailsResponse {
+        fun from(doctor: Doctor): DoctorDetailsResponse {
             return DoctorDetailsResponse(
                 id = doctor.id, 
                 name = doctor.name,
-                specialty = doctor.specialty?.name ?: "미등록" // 진료과가 없을 경우 미등록을 반환
+                specialties = doctor.specialties.map { it.specialty.name } // ✅ 여러 개의 진료과를 리스트로 변환
             )
         }
     }

@@ -17,9 +17,19 @@ class DoctorInfoExtractor {
         return doc.selectFirst("div.thumb_img img")?.attr("src")
     }
 
-    fun extractSpecialty(doc: Document): String? {  // 진료과 추출
-        return doc.selectFirst("div.clinic span.parts.keyword")?.text()
+    fun extractSpecialty(doc: Document): String? {  
+        val specialtyElement = doc.selectFirst("div.clinic") // ✅ div.clinic 요소 선택 (기존 span 제거)
+    
+        if (specialtyElement == null) {
+            println("⚠️ Specialty element not found in the page.")
+        } else {
+            println("✅ Specialty element found: ${specialtyElement.text()}")
+        }
+    
+        // `진료과목`이라는 텍스트가 포함되어 있으므로, 해당 부분을 제거하고 반환
+        return specialtyElement?.text()?.replace("진료과목", "")?.trim()
     }
+    
 
     fun extractMainTreatment(doc: Document): String? { // 주요 진료 분야 추출
         return extractField(doc, "주요 진료 분야 ")
