@@ -33,13 +33,7 @@ class DoctorInfoExtractor {
     fun extractCareer(doc: Document): String? {
         val careerElement = doc.selectFirst("div.doc_history:has(h4.tit:contains(경력)) ul.doctor_history li p.txt")
 
-        if (educationElement == null) {
-            println("⚠️ Education/Licenses element not found in the page.")
-        } else {
-            println("✅ Education/Licenses element found: ${educationElement.html()}")
-        }
-
-        return educationElement?.html()
+        return careerElement?.html()
             ?.replace("<br>", ", ")
             ?.replace("<br/>", ", ")
             ?.replace("<br />", ", ")

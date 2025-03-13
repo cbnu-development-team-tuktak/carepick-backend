@@ -11,6 +11,8 @@ import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보 엔티티
 import com.callrapport.model.doctor.DoctorSpecialty
 import com.callrapport.model.doctor.EducationLicense
 import com.callrapport.model.doctor.DoctorEducationLicense
+import com.callrapport.model.doctor.Career
+import com.callrapport.model.doctor.DoctorCareer
 
 // Repository (저장소) 관련 import
 import com.callrapport.repository.hospital.HospitalRepository // HospitalRepository: 병원 정보 저장소
@@ -24,6 +26,8 @@ import com.callrapport.repository.doctor.EducationLicenseRepository
 import com.callrapport.repository.user.UserFavoriteHospitalRepository // UserFavoriteHospitalRepository
 import com.callrapport.repository.doctor.DoctorSpecialtyRepository
 import com.callrapport.repository.doctor.DoctorEducationLicenseRepository
+import com.callrapport.repository.doctor.CareerRepository
+import com.callrapport.repository.doctor.DoctorCareerRepository
 
 // Spring 및 JPA 관련 import
 import org.springframework.stereotype.Service // 해당 클래스를 Spring의 서비스 컴포넌트로 등록하는 어노테이션
@@ -60,7 +64,9 @@ class HospitalService(
     private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
     private val educationLicenseRepository: EducationLicenseRepository,
     private val doctorRepository: DoctorRepository, // 의사 저장소
+    private val careerRepository: CareerRepository, 
     private val doctorSpecialtyRepository: DoctorSpecialtyRepository,
+    private val doctorCareerRepository: DoctorCareerRepository,
     private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository,
     private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository
 ) {
@@ -122,12 +128,17 @@ class HospitalService(
                 val doctorId = doctorData["id"] as? String ?: return@forEach
                 val doctorName = doctorData["name"] as? String ?: return@forEach
                 val specialtyNames = (doctorData["specialty"] as? String)?.split(", ") ?: emptyList() // ✅ 여러 개의 진료과 처리
+                val careerNames = (doctorData["career"] as? String)
+                    ?.split(", ")
+                    ?.map { it.trim() }
+                    ?.filter { it.isNotEmpty() }
+                    ?: emptyList()
                 val licenseNames = (doctorData["educationLicense"] as? String)
                     ?.split(", ")
                     ?.map { it.trim() }
                     ?.filter { it.isNotEmpty() }
                     ?: emptyList()
-
+                
                 // 의사 정보 저장 (기존 정보가 있으면 업데이트, 없으면 새로 저장)
                 val existingDoctor = doctorRepository.findById(doctorId).orElse(null)
                 val doctor = if (existingDoctor != null) {
@@ -154,6 +165,15 @@ class HospitalService(
                     doctorSpecialtyRepository.saveAll(doctorSpecialties)
                 }
                 
+                if (careerNames.isNotEmpty()) {
+                    val doctorCareers = careerNames.map { careerName ->
+                        val career = careerRepository.findByName(careerName)
+                            ?: careerRepository.save(Career(name = careerName))
+                        DoctorCareer(doctor = savedDoctor, career = career)
+                    }
+                    doctorCareerRepository.saveAll(doctorCareers)
+                }
+
                 // ✅ 의사와 자격면허 관계 (N:M) 설정
                 if (licenseNames.isNotEmpty()) {
                     val doctorLicenses = licenseNames.map { licenseName ->
