@@ -12,6 +12,6 @@ interface SpecialtyRepository : JpaRepository<Specialty, Long> {
     // 진료과 이름을 기준으로 검색하는 메서드
     fun findByName(
         name: String // 검색할 진료과 이름
-    ): Specialty?
+    ): Specialty? // 해당 이름과 일치하는 Specialty 객체 
 }
 

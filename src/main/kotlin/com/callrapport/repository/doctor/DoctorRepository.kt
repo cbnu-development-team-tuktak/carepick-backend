@@ -1,7 +1,7 @@
 package com.callrapport.repository.doctor
 
 // Model (엔티티) 관련 import 
-import com.callrapport.model.doctor.Doctor // Doctor 엔티티: 의사 정보를 저장하는 엔티티 (ID, 이름, 프로필 이미지, 진료과 등)
+import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보를 저장하는 엔티티 (ID, 이름, 프로필 이미지, 진료과 등)
 
 // Spring Data JPA 관련 import
 import org.springframework.stereotype.Repository // 해당 인터페이스가 데이터베이스 접근 레이어(Repository)임을 나타내는 어노테이션
@@ -20,11 +20,11 @@ interface DoctorRepository : JpaRepository<Doctor, String> {
     fun searchByName(
         @Param("keyword") keyword: String, // 검색할 이름 키워드
         pageable: Pageable // 페이지네이션 정보를 포함한 객체
-    ): Page<Doctor>
+    ): Page<Doctor> // 페이지 단위의 검색된 Doctor 목록
 
     // 모든 의사 정보를 페이지네이션으로 조회하는 메서드
     // 페이지네이션을 적용하기 위해 오버라이드
     override fun findAll(
         pageable: Pageable // 페이지네이션 정보를 포함한 객체
-    ): Page<Doctor>
+    ): Page<Doctor> // 페이지 단위의 모든 Doctor 목록
 }
