@@ -25,6 +25,7 @@ class DoctorCrawler(
     private val doctorInfoExtractor: DoctorInfoExtractor, // HTML 문서에서 의사 정보를 추출하는 유틸리티
     private val doctorService: DoctorService // 크롤링한 데이터를 DB에 저장하는 서비스
 ) {
+    // 의사 정보를 크롤링
     fun crawlDoctorInfos(
         id: String,  // 의사 ID
         name: String, // 의사 이름
@@ -33,45 +34,45 @@ class DoctorCrawler(
         val driver = webCrawler.createWebDriver() // 웹 드라이버 생성
 
         try {
-            // ✅ 매개변수로 받은 ID 확인
+            // 웹 페이지 접근 및 로드
             println("🚀 Inside crawlDoctorInfos() - Received ID: $id, Name: $name, URL: $url")
 
             driver.get(url) // 해당 URL의 웹페이지 열기
 
             val doc: Document = Jsoup.parse(driver.pageSource) // 페이지 소스를 Jsoup 문서로 변환
 
-            // ✅ 진료과 정보 추출
+            // 진료과 정보 추출
             val specialty = doctorInfoExtractor.extractSpecialty(doc)
 
             // 경력 추출
             val career = doctorInfoExtractor.extractCareer(doc)
 
-            // 자격/면허 정보 추출
+            // 학력 및 자격면허 정보 추출
             val educationLicense = doctorInfoExtractor.extractEducationLicenses(doc)
 
-            // ✅ 크롤링한 데이터를 Map으로 정리
+            // 크롤링한 데이터를 Map으로 정리
             val doctorData = mapOf(
-                "id" to id,  // ✅ ID 유지
-                "name" to name,  // ✅ 이름 유지
-                "url" to url,  // ✅ URL 유지
-                "specialty" to specialty,  // ✅ 진료과 정보 추가
+                "id" to id, // 의사 ID
+                "name" to name, // 의사 이름
+                "url" to url, // 의사 프로필 페이지 URL
+                "specialty" to specialty, // 진료과 정보
                 "career" to career, // 경력 정보
-                "educationLicense" to educationLicense
+                "educationLicense" to educationLicense // 학력 및 자격면허 정보
             )
 
-            // ✅ 반환 직전 데이터 확인
+            // 반환 직전 데이터 확인
             println("🔍 Doctor data before return: $doctorData")
 
             return doctorData
 
-        } catch (e: Exception) {
+        } catch (e: Exception) { // 오류 발생 시 errorResponse 반환
             return errorResponse(id, name, url, e.message ?: "Unknown error") // 오류 발생 시 errorResponse 반환
         } finally {
             driver.quit() // 웹 드라이버 종료
         }
     }
 
-    // 오류 발생 시 기본 응답을 반환하는 메서드
+    // 오류 발생 시 기본 응답을 반환
     private fun errorResponse(
         id: String, // 의사 ID
         name: String, // 의사 이름
@@ -80,12 +81,13 @@ class DoctorCrawler(
     ): Map<String, String?> {
         println("⚠️ Failed to crawl doctor info from $url: $message")
 
+        // 오류 발생 시 기본 응답 반환
         return mapOf(
-            "id" to id,  // ✅ 기존 id 유지
-            "name" to name,  // ✅ 기존 name 유지
-            "url" to url,  // ✅ 기존 url 유지
-            "specialty" to "", // 진료과 정보 없음
-            "error" to "⚠️ $message" // 오류 메시지 추가
+            "id" to id, // 의사 ID (기본 값 유지)
+            "name" to name, // 의사 이름 (기본 값 유지)
+            "url" to url, // 의사 프로필 페이지 URL (기존 값 유지)
+            "specialty" to "", // 진료과 정보 없음 (오류 발생 시 빈 값 처리)
+            "error" to "⚠️ $message" // 오류 메시지 포함
         )
     }
 }
