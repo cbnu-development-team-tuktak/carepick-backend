@@ -39,7 +39,10 @@ out/
 ### Kotlin ###
 .kotlin
 
-### ChromeDriver ###
-drivers/chromedriver.exe
-drivers/LICENSE.chromedriver
-drivers/THIRD_PARTY_NOTICES.chromedriver
+# Chrome 관련 파일 및 폴더 무시
+chrome/
+chrome.exe
+chrome.dll
+*.dll
+*.exe
+*.pdb
