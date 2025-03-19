@@ -225,8 +225,6 @@ class HospitalService(
         return savedHospital
     }
 
-
-    
     // 주소를 기반으로 위도/경도를 조회 (카카오맵 API 사용)
     fun getCoordinatesFromAddress(address: String): Pair<Double, Double>? {
         val apiKey = "b66445a2658c58be46ba36fef5748c4f" // REST API 키 사용

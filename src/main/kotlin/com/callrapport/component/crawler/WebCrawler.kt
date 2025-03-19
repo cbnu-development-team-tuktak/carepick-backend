@@ -25,9 +25,10 @@ import java.time.Duration
 class WebCrawler {
     // 웹 드라이버 생성
     fun createWebDriver(): WebDriver {
-        System.setProperty("webdriver.chrome.driver", "drivers/chromedriver.exe") // Chrome 드라이버 경로 설정
+        System.setProperty("webdriver.chrome.driver", "chrome/driver/chromedriver.exe") // Chrome 드라이버 경로 설정
         val options = ChromeOptions()
-        options.addArguments("--headless") // GUI 없이 실행 (백그라운드 동작)
+        options.setBinary("chrome/browser/chrome.exe") // Chrome 실행 파일 지정
+        // options.addArguments("--headless") // GUI 없이 실행 (백그라운드 동작)
         options.addArguments("--disable-gpu") // GPU 사용 비활성화 (호환성 문제 방지)
         options.addArguments("--no-sandbox") // 샌드박스 모드 비활성화 (권한 문제 방지)
         options.addArguments("--disable-dev-shm-usage") // 메모리 사용 최적화
