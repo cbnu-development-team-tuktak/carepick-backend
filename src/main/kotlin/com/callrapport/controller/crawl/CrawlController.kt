@@ -3,7 +3,7 @@ package com.callrapport.controller.crawl
 // 크롤러 관련 import
 import com.callrapport.component.crawler.WebCrawler // WebCrawler: 웹페이지를 크롤링하는 기본 클래스
 import com.callrapport.component.crawler.DiseaseCrawler // DiseaseCrawler: 질병 정보를 크롤링하는 클래스
-import com.callrapport.component.crawler.HospitalCrawler // HospitalCrawler: 병원 정보를 크롤링하는 클래스
+import com.callrapport.component.crawler.hospital.HospitalCrawler // HospitalCrawler: 병원 정보를 크롤링하는 클래스
 import com.callrapport.component.csv.CSVWriter // 크롤링한 데이터를 CSV 파일로 저장하는 유틸리티 클래스
 
 // Spring 관련 import

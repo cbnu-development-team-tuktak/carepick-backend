@@ -28,9 +28,16 @@ repositories {
 dependencies {
     // Spring Boot Web Starter (REST API 개발을 위한 기본 의존성)
     implementation("org.springframework.boot:spring-boot-starter-web")
-    
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.0")
+
+    // Spring WebFlux (비동기 처리를 위한 WebClient, Reactor 지원)
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+    // Reactor Kotlin 확장 모듈 (Reactor의 Kotlin 지원을 위한 추가 기능 제공)
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
+
     // Jakarta Persistence API (JPA 사용을 위한 인터페이스)
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0") 
     

@@ -1,8 +1,8 @@
 package com.callrapport.controller.crawl
 
 // 크롤러 관련 import 
-import com.callrapport.component.crawler.HospitalCrawler // 병원 정보를 크롤링하는 클래스
-import com.callrapport.component.crawler.DoctorCrawler // 의사 정보를 크롤링하는 클래스
+import com.callrapport.component.crawler.hospital.HospitalCrawler // 병원 정보를 크롤링하는 클래스
+import com.callrapport.component.crawler.doctor.DoctorCrawler // 의사 정보를 크롤링하는 클래스
 
 // 서비스 관련 import
 import com.callrapport.service.HospitalService // 병원 데이터를 저장하는 서비스

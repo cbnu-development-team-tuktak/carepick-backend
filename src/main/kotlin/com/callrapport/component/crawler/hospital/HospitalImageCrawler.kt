@@ -1,5 +1,8 @@
 package com.callrapport.component.crawler.hospital
 
+// 크롤러 관련 import
+import com.callrapport.component.crawler.WebCrawler
+
 // Selenium 관련 라이브러리
 import org.openqa.selenium.By // HTML 요소를 찾기 위한 선택자 클래스
 import org.openqa.selenium.WebDriver // 웹 브라우저를 조작하는 인터페이스 
