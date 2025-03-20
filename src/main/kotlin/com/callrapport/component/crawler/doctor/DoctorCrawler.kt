@@ -50,11 +50,15 @@ class DoctorCrawler(
             // 학력 및 자격면허 정보 추출
             val educationLicense = doctorInfoExtractor.extractEducationLicenses(doc)
 
+            // 프로필 이미지 추출
+            val profileImage = doctorInfoExtractor.extractProfileImage(doc)
+
             // 크롤링한 데이터를 Map으로 정리
             val doctorData = mapOf(
                 "id" to id, // 의사 ID
                 "name" to name, // 의사 이름
                 "url" to url, // 의사 프로필 페이지 URL
+                "profileImage" to profileImage, 
                 "specialty" to specialty, // 진료과 정보
                 "career" to career, // 경력 정보
                 "educationLicense" to educationLicense // 학력 및 자격면허 정보

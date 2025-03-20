@@ -21,9 +21,9 @@ class DoctorInfoExtractor {
     }
 
     // 프로필 이미지 추출 
-    fun extractProfileImage(doc: Document): String? { 
-        // 프로필 이미지 URL 반환
-        return doc.selectFirst("div.thumb_img img")?.attr("src")
+    fun extractProfileImage(doc: Document): String? {
+        // img 태그에서 src 속성을 추출하여 프로필 이미지 URL을 반환
+        return doc.selectFirst("img.img_round")?.attr("src")
     }
 
     // 진료과목 추출

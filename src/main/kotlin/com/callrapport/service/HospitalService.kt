@@ -164,6 +164,7 @@ class HospitalService(
             doctors.forEach { doctorData ->
                 val doctorId = doctorData["id"] as? String ?: return@forEach
                 val doctorName = doctorData["name"] as? String ?: return@forEach
+                val profileImage = doctorData["profileImage"] as? String
                 val specialtyNames = (doctorData["specialty"] as? String)?.split(", ") ?: emptyList() // ✅ 여러 개의 진료과 처리
                 val careerNames = (doctorData["career"] as? String)
                     ?.split(", ")
@@ -180,12 +181,14 @@ class HospitalService(
                 val existingDoctor = doctorRepository.findById(doctorId).orElse(null)
                 val doctor = if (existingDoctor != null) {
                     existingDoctor.copy(
-                        name = doctorName
+                        name = doctorName,
+                        profileImage = profileImage ?: existingDoctor.profileImage
                     )
                 } else {
                     Doctor(
                         id = doctorId,
-                        name = doctorName
+                        name = doctorName,
+                        profileImage = profileImage
                     )
                 }
 
@@ -221,13 +224,22 @@ class HospitalService(
 
                 // ✅ 의사와 자격면허 관계 (N:M) 설정
                 if (licenseNames.isNotEmpty()) {
-                    val doctorLicenses = licenseNames.map { licenseName ->
+                    val doctorLicenses = licenseNames.mapNotNull { licenseName ->
                         val license = educationLicenseRepository.findByName(licenseName)
                             ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
-                        DoctorEducationLicense(doctor = savedDoctor, educationLicense = license)
-                    }
-                    doctorEducationLicenseRepository.saveAll(doctorLicenses)
+
+                        // 의사-자격면허 관계가 이미 존재하는지 확인
+                        val exists = doctorEducationLicenseRepository.existsByDoctorIdAndEducationLicenseId(savedDoctor.id, license.id!!)
+                        if (!exists) {
+                            DoctorEducationLicense(doctor = savedDoctor, educationLicense = license)
+                        } else {
+                            null // 이미 존재하면 저장하지 않음
+                        }
+                    }.filterNotNull() // Null 값을 제거
+
+                    doctorEducationLicenseRepository.saveAll(doctorLicenses) // ✅ 중복 데이터 없이 저장
                 }
+
 
                 // ✅ 병원-의사 관계 중복 방지
                 val existsHospitalDoctor = hospitalDoctorRepository.existsByHospitalIdAndDoctorId(savedHospital.id, savedDoctor.id)
