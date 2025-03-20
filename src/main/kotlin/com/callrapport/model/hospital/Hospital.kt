@@ -57,7 +57,15 @@ data class Hospital(
     )
     var doctors: MutableList<HospitalDoctor> = mutableListOf(), // 병원 소속 의사 목록
 
-    // ✅ 병원과 추가 정보의 관계 (1:1)
+    // 병원과 이미지의 관계 (1:N)
+    @OneToMany(
+        mappedBy = "hospital", // HospitalImage 엔티티에서 hospital 필드를 기준으로 관계 설정
+        cascade = [CascadeType.ALL], // 병원 삭제 시 HospitalImage도 함께 삭제
+        orphanRemoval = true // 관계가 끊기면 DB에서 삭제됨
+    )
+    var images: MutableList<HospitalImage> = mutableListOf(), // 병원 관련 이미지 목록
+    
+    // 병원과 추가 정보의 관계 (1:1)
     @OneToOne(
         mappedBy = "hospital", // HospitalAdditionalInfo 엔티티에서 hospital 필드를 기준으로 관계 설정
         cascade = [CascadeType.ALL], // 병원 삭제 시 HospitalAdditionalInfo도 함께 삭제

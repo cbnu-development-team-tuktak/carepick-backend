@@ -1,7 +1,9 @@
 package com.callrapport.controller.crawl
 
+import com.callrapport.model.common.Image
 // 크롤러 관련 import 
 import com.callrapport.component.crawler.hospital.HospitalCrawler // 병원 정보를 크롤링하는 클래스
+import com.callrapport.component.crawler.hospital.HospitalImageCrawler // 병원 이미지를 크롤링하는 클래스 
 import com.callrapport.component.crawler.doctor.DoctorCrawler // 의사 정보를 크롤링하는 클래스
 
 // 서비스 관련 import
@@ -27,7 +29,8 @@ import com.fasterxml.jackson.module.kotlin.readValue // JSON 문자열을 객체
 @RestController
 @RequestMapping("/api/crawl/hospital")
 class HospitalCrawlController(
-    private val hospitalCrawler: HospitalCrawler, // 병원 크롤러
+    private val hospitalCrawler: HospitalCrawler, // 병원 크롤러q
+    private val hospitalImageCrawler: HospitalImageCrawler, 
     private val doctorCrawler: DoctorCrawler, // 의사 크롤러
     private val hospitalService: HospitalService, // 병원 서비스
     private val doctorService: DoctorService, // 의사 서비스
@@ -140,6 +143,9 @@ class HospitalCrawlController(
                         println("Failed to crawl doctor data for $doctorName, ID: $doctorId")
                     }
                 }
+                
+                val hospitalImages: List<Image> = hospitalImageCrawler
+                    .crawlHospitalImages(name)
 
                 // 병원 정보 저장 (의사 정보 포함)
                 hospitalService.saveHospital(
@@ -152,7 +158,8 @@ class HospitalCrawlController(
                     specialties = specialties, // 병원의 진료과 목록
                     url = url, // 병원 상세 페이지 URL
                     additionalInfo = additionalInfo, // 병원의 추가 정보
-                    doctors = doctorsData // 크롤링된 의사 정보 전달
+                    doctors = doctorsData, // 크롤링된 의사 정보 전달
+                    hospitalImages = hospitalImages
                 )
             }
 

@@ -4,9 +4,11 @@ package com.callrapport.service
 import com.callrapport.model.hospital.Hospital // Hospital: 병원 기본 정보 엔티티
 import com.callrapport.model.hospital.HospitalDoctor // HospitalDoctor: 병원-의사 관계 엔티티
 import com.callrapport.model.hospital.AdditionalInfo // AdditionalInfo: 병원 관련 부가 정보 엔티티
+import com.callrapport.model.hospital.HospitalImage
 import com.callrapport.model.hospital.HospitalAdditionalInfo // HospitalAdditionalInfo: 병원-병원 관련 부가 정보 연결 엔티티
 import com.callrapport.model.hospital.HospitalSpecialty // HospitalSpecialty: 병원-진료과 연결 엔티티
 import com.callrapport.model.common.Specialty // Specialty: 진료과 엔티티
+import com.callrapport.model.common.Image
 import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보 엔티티
 import com.callrapport.model.doctor.DoctorSpecialty
 import com.callrapport.model.doctor.EducationLicense
@@ -16,11 +18,13 @@ import com.callrapport.model.doctor.DoctorCareer
 
 // Repository (저장소) 관련 import
 import com.callrapport.repository.hospital.HospitalRepository // HospitalRepository: 병원 정보 저장소
-import com.callrapport.repository.hospital.AdditionalInfoRepository // AdditionalInfoRepository: 병원 부가 정보 엔티티
+import com.callrapport.repository.hospital.AdditionalInfoRepository // AdditionalInfoRepository: 병원 부가 정보 저장소
+import com.callrapport.repository.hospital.HospitalImageRepository
 import com.callrapport.repository.hospital.HospitalDoctorRepository // HospitalDoctorRepository: 병원-의사 관계 저장소
 import com.callrapport.repository.hospital.HospitalAdditionalInfoRepository // HospitalAdditionalInfoRepositor: 병원-병원 부가 정보 관계 저장소
 import com.callrapport.repository.hospital.HospitalSpecialtyRepository // HospitalSpecialtyRepository: 병원-진료과 관계 저장소 
 import com.callrapport.repository.common.SpecialtyRepository // SpecialtyRepository: 진료과 정보 저장소
+import com.callrapport.repository.common.ImageRepository
 import com.callrapport.repository.doctor.DoctorRepository // DoctorRepository: 의사 정보 저장소 
 import com.callrapport.repository.doctor.EducationLicenseRepository
 import com.callrapport.repository.user.UserFavoriteHospitalRepository // UserFavoriteHospitalRepository
@@ -61,6 +65,7 @@ class HospitalService(
     private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 저장소
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원-병원 부가 정보 관계 저장소
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 연결 저장소
+    private val hospitalImageRepository: HospitalImageRepository,
     private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
     private val educationLicenseRepository: EducationLicenseRepository,
     private val doctorRepository: DoctorRepository, // 의사 저장소
@@ -68,8 +73,27 @@ class HospitalService(
     private val doctorSpecialtyRepository: DoctorSpecialtyRepository,
     private val doctorCareerRepository: DoctorCareerRepository,
     private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository,
-    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository
+    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository,
+    
+    private val imageRepository: ImageRepository
 ) {
+    @Transactional
+    fun saveHospitalImages(hospital: Hospital, images: List<Image>) {
+        images.forEach { image -> 
+            // 이미지 엔티티 먼저 저장
+            val savedImage = imageRepository.save(image)
+
+            // HospitalImage 엔티티를 이용해 병원과 이미지 연결
+            val hospitalImage = HospitalImage(
+                hospital = hospital, // 연결할 병원 엔티티
+                image = savedImage // 저장된 이미지 엔티티
+            )
+
+            // 병원과 이미지 관계 저장
+            hospitalImageRepository.save(hospitalImage)
+        }
+    }
+
     @Transactional
     fun saveHospital(
         id: String,
@@ -81,7 +105,8 @@ class HospitalService(
         specialties: List<String>?,
         url: String?,
         additionalInfo: Map<String, Any>?,
-        doctors: List<Map<String, String?>>? // ✅ 병원에 등록된 의사 목록 추가
+        doctors: List<Map<String, String?>>?,
+        hospitalImages: List<Image>  
     ): Hospital {
         // 기존 병원 데이터 확인 (있으면 업데이트, 없으면 새로 생성)
         val existingHospital = hospitalRepository.findById(id).orElse(null)
@@ -191,6 +216,10 @@ class HospitalService(
                 )
                 hospitalDoctorRepository.save(hospitalDoctor) // 병원-의사 관계 저장
             }
+        }
+
+        if (hospitalImages.isNotEmpty()) {
+            saveHospitalImages(savedHospital, hospitalImages)
         }
 
         // ✅ 추가 정보가 제공되었으면 AdditionalInfo 저장
