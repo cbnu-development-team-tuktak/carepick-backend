@@ -84,8 +84,6 @@ class DoctorService(
             doctorSpecialtyRepository.saveAll(doctorSpecialties)
         }
         
-
-
         // ✅ 경력 저장 (N:M 관계)
         if (!careerNames.isNullOrEmpty()) {
             val doctorCareers = careerNames.map { careerName ->
@@ -96,17 +94,24 @@ class DoctorService(
             doctorCareerRepository.saveAll(doctorCareers)
         }
 
-        // ✅ 자격면허 저장 (N:M 관계)
-        if (!educationLicenseNames.isNullOrEmpty()) {
-            val doctorEducations = educationLicenseNames.map { licenseName ->
-                val educationLicense = educationLicenseRepository.findByName(licenseName)
+        // ✅ 의사와 자격면허 관계 (N:M) 중복 방지하여 저장
+        if (!educationLicenseNames.isNullOrEmpty()) { // ✅ 변수명 수정
+            val doctorLicenses = educationLicenseNames.distinct().mapNotNull { licenseName -> // ✅ distinct()로 중복 제거
+                val license = educationLicenseRepository.findByName(licenseName)
                     ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
-                DoctorEducationLicense(doctor = savedDoctor, educationLicense = educationLicense)
-            }
-            doctorEducationLicenseRepository.saveAll(doctorEducations)
+
+                // ✅ 중복된 관계가 존재하는지 확인
+                val exists = doctorEducationLicenseRepository.existsByDoctorIdAndEducationLicenseId(savedDoctor.id, license.id!!)
+                if (!exists) {
+                    DoctorEducationLicense(doctor = savedDoctor, educationLicense = license)
+                } else {
+                    null 
+                }
+            }.filterNotNull() // ✅ Null 값 제거 후 저장
+
+            doctorEducationLicenseRepository.saveAll(doctorLicenses)
         }
-
-
+        
         // ✅ 병원과 의사 연결 (N:M 관계)
         if (hospitalId != null) {
             val hospital = hospitalRepository.findById(hospitalId).orElse(null)

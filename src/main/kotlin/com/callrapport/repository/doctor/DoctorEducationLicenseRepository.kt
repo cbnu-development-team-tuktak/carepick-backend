@@ -14,4 +14,7 @@ interface DoctorEducationLicenseRepository : JpaRepository<DoctorEducationLicens
     fun findByDoctor(
         doctor: Doctor // 검색할 대상인 Doctor 객체
     ): List<DoctorEducationLicense>? // 해당 Doctor 객체와 연관된 모든 DoctorEducationLicense 목록
+
+    // ✅ 특정 의사(doctorId)와 특정 자격면허(educationLicenseId)의 존재 여부 확인
+    fun existsByDoctorIdAndEducationLicenseId(doctorId: String, educationLicenseId: Long): Boolean
 }

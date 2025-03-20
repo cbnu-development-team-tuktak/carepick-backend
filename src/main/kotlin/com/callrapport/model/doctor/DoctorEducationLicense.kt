@@ -7,7 +7,15 @@ import jakarta.persistence.* // JPA 엔티티 매핑을 위한 어노테이션 �
 import com.fasterxml.jackson.annotation.JsonIgnore // 특정 필드를 JSON 변환 시 제외하는 어노테이션 (순환 참조 방지)
 
 @Entity
-@Table(name = "doctor_education_licenses") 
+@Table(
+    name = "doctor_education_licenses",
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "UK_doctor_education_license", // ✅ 의사-자격면허 관계 중복 방지
+            columnNames = ["doctor_id", "education_licenses_id"]
+        )
+    ]
+) 
 data class DoctorEducationLicense(
     @Id // 기본 키(Primary Key) 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID 값을 자동 증가(Auto Increment)하도록 설정

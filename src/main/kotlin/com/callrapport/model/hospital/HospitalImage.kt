@@ -7,7 +7,7 @@ import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 
 @Entity
 @Table(
-    name = "hospital_images"
+    name = "hospital_images",
     uniqueConstraints = [
         UniqueConstraint(name = "UK_hospital_image", columnNames = ["hospital_id", "image_id"]) // ✅ 병원-이미지 관계 중복 방지
     ]
