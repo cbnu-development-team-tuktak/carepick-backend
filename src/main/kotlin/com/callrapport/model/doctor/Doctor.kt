@@ -21,6 +21,14 @@ data class Doctor(
     @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
     val profileImage: String? = null, // 프로필 이미지 URL  
 
+    // 의사와 경력 관계
+    @OneToMany(
+        mappedBy = "doctor",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true 
+    )
+    val careers: MutableList<DoctorCareer> = mutableListOf(),
+    
     // 의사와 학력 및 자격면허(1:N) 관계
     @OneToMany(
         mappedBy = "doctor", // DoctorEducationLicense 엔티티의 doctor 필드와 매핑

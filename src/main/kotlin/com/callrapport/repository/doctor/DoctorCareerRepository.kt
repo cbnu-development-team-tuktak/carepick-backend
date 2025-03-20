@@ -16,4 +16,10 @@ interface DoctorCareerRepository : JpaRepository<DoctorCareer, Long> {
     fun findByDoctor(
         doctor: Doctor // 검색할 Doctor 객체
     ): List<DoctorCareer>? // 해당 Doctor 객체와 연관된 모든 DoctorCareer 목록
+
+    // 특정 의사(Doctor)와 경력(Career)의 조합이 존재하는지 확인
+    fun existsByDoctorIdAndCareerId(
+        doctorId: String, // 의사 ID
+        careerId: Long // 경력 ID
+    ): Boolean // 존재하면 true, 없으면 false 반환
 }

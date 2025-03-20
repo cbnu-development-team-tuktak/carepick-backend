@@ -97,7 +97,6 @@ class HospitalService(
         }
     }
 
-
     @Transactional
     fun saveHospital(
         id: String,
@@ -213,12 +212,21 @@ class HospitalService(
                     doctorSpecialtyRepository.saveAll(doctorSpecialties) // ✅ 중복 데이터 없이 저장
                 }          
                 
-                if (careerNames.isNotEmpty()) {
-                    val doctorCareers = careerNames.map { careerName ->
+                // 의사와 경력 관계 (N:M) 설정
+                if (!careerNames.isNullOrEmpty()) {
+                    val doctorCareers = careerNames.distinct().mapNotNull { careerName ->
                         val career = careerRepository.findByName(careerName)
                             ?: careerRepository.save(Career(name = careerName))
-                        DoctorCareer(doctor = savedDoctor, career = career)
-                    }
+
+                        // 의사-경력 관계가 이미 존재하는지 확인
+                        val exists = doctorCareerRepository.existsByDoctorIdAndCareerId(savedDoctor.id, career.id!!)
+                        if (!exists) {
+                            DoctorCareer(doctor = savedDoctor, career = career)
+                        } else {
+                            null // 이미 존재하면 저장하지 않음
+                        }
+                    }.filterNotNull() // Null 값 제거
+
                     doctorCareerRepository.saveAll(doctorCareers)
                 }
 
