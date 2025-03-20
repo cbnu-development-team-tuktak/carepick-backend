@@ -79,20 +79,24 @@ class HospitalService(
 ) {
     @Transactional
     fun saveHospitalImages(hospital: Hospital, images: List<Image>) {
-        images.forEach { image -> 
-            // 이미지 엔티티 먼저 저장
-            val savedImage = imageRepository.save(image)
+        images.forEach { image ->
+            val existingImage = imageRepository.findByUrl(image.url)
+            val savedImage = existingImage ?: imageRepository.save(image)
 
-            // HospitalImage 엔티티를 이용해 병원과 이미지 연결
-            val hospitalImage = HospitalImage(
-                hospital = hospital, // 연결할 병원 엔티티
-                image = savedImage // 저장된 이미지 엔티티
-            )
-
-            // 병원과 이미지 관계 저장
-            hospitalImageRepository.save(hospitalImage)
+            // ✅ 병원-이미지 관계가 이미 존재하는지 확인
+            val exists = hospitalImageRepository.existsByHospitalIdAndImageId(hospital.id, savedImage.id!!)
+            if (!exists) {
+                val hospitalImage = HospitalImage(
+                    hospital = hospital,
+                    image = savedImage
+                )
+                hospitalImageRepository.save(hospitalImage)
+            } else {
+                println("⚠️ Hospital-Image relation already exists: ${hospital.id} - ${savedImage.id}")
+            }
         }
     }
+
 
     @Transactional
     fun saveHospital(
@@ -225,12 +229,12 @@ class HospitalService(
                     doctorEducationLicenseRepository.saveAll(doctorLicenses)
                 }
 
-                // 병원과 의사의 관계를 저장
-                val hospitalDoctor = HospitalDoctor(
-                    hospital = savedHospital,
-                    doctor = savedDoctor
-                )
-                hospitalDoctorRepository.save(hospitalDoctor) // 병원-의사 관계 저장
+                // ✅ 병원-의사 관계 중복 방지
+                val existsHospitalDoctor = hospitalDoctorRepository.existsByHospitalIdAndDoctorId(savedHospital.id, savedDoctor.id)
+                if (!existsHospitalDoctor) {
+                    val hospitalDoctor = HospitalDoctor(hospital = savedHospital, doctor = savedDoctor)
+                    hospitalDoctorRepository.save(hospitalDoctor)
+                }
             }
         }
 

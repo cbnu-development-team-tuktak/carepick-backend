@@ -14,4 +14,6 @@ interface HospitalDoctorRepository : JpaRepository<HospitalDoctor, Long> {
     fun findByHospital(
         hospital: Hospital // 검색할 병원 객체
     ): List<HospitalDoctor> // 해당 병원과 연관된 모든 HospitalDoctor 목록
+
+    fun existsByHospitalIdAndDoctorId(hospitalId: String, doctorId: String): Boolean
 }

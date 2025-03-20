@@ -12,9 +12,11 @@ import java.nio.charset.StandardCharsets
 import java.time.Duration
 import java.net.URLDecoder
 
+import com.callrapport.repository.common.ImageRepository
 @Component
 class HospitalImageCrawler(
-    private val webCrawler: WebCrawler
+    private val webCrawler: WebCrawler,
+    private val imageRepository: ImageRepository
 ) {
     fun extractOriginalImageUrl(thumbnailUrl: String): String {
         return try {
@@ -54,14 +56,24 @@ class HospitalImageCrawler(
     
                     if (!thumbnailUrl.isNullOrBlank() && thumbnailUrl.startsWith("https://search.pstatic.net/common")) {
                         val originalUrl = extractOriginalImageUrl(thumbnailUrl) // 원본 URL 변환
-                        Image(url = originalUrl, alt = "${hospitalName}_이미지")
+    
+                        // ✅ 기존 이미지가 DB에 있는지 확인
+                        val existingImage = imageRepository.findByUrl(originalUrl)
+                        
+                        if (existingImage != null) {
+                            println("⚠️ Image already exists in DB: $originalUrl")
+                            existingImage // ✅ 이미 존재하는 이미지 반환
+                        } else {
+                            println("✅ New image found, adding to DB: $originalUrl")
+                            Image(url = originalUrl, alt = "${hospitalName}_이미지") // ✅ 새로운 이미지 생성
+                        }
                     } else {
                         null
                     }
                 } catch (e: Exception) {
                     null
                 }
-            }.take(5)
+            }.filterNotNull().take(5)
     
             println("✅ Extracted ${imageList.size} high-resolution image URLs: $imageList")
             return imageList

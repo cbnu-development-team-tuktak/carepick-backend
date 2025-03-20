@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository // 해당 인터페이스가 �
 
 @Repository
 interface HospitalImageRepository : JpaRepository<HospitalImage, String> {
+    fun existsByHospitalIdAndImageId(hospitalId: String, imageId: Long): Boolean
 }

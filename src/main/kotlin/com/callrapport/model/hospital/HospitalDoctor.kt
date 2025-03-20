@@ -7,7 +7,12 @@ import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보를 저장하
 import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 
 @Entity
-@Table(name = "hospital_doctors")
+@Table(
+    name = "hospital_doctors",
+    uniqueConstraints = [
+        UniqueConstraint(name = "UK_hospital_doctor", columnNames = ["hospital_id", "doctor_id"]) // ✅ 병원-의사 관계 중복 방지
+    ]
+)
 data class HospitalDoctor(
     @Id // 기본 키(Primary Key) 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID 값을 자동 증가(Auto Increment)하도록 설정

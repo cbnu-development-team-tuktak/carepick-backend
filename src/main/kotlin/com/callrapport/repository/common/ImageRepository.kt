@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImageRepository : JpaRepository<Image, Long> {
-    
+    fun existsByUrl(url: String): Boolean
+    fun findByUrl(url: String): Image?
 }

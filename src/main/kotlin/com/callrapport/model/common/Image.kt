@@ -4,13 +4,19 @@ import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "images")
+@Table(
+    name = "images",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["url"])] 
+)
 data class Image(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null, // 이미지 기본키
 
-    @Column(nullable = false)
+    @Column(
+        nullable = false,
+        unique = true
+    )
     val url: String, // 이미지 url
 
     @Column(nullable = false)

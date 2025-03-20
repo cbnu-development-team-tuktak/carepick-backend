@@ -6,7 +6,12 @@ import com.callrapport.model.common.Image
 import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 
 @Entity
-@Table(name = "hospital_images")
+@Table(
+    name = "hospital_images"
+    uniqueConstraints = [
+        UniqueConstraint(name = "UK_hospital_image", columnNames = ["hospital_id", "image_id"]) // ✅ 병원-이미지 관계 중복 방지
+    ]
+)
 data class HospitalImage(
     @Id // 기본 키(Primary Key) 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID 값을 자동 증가(Auto Increment)하도록 설정
