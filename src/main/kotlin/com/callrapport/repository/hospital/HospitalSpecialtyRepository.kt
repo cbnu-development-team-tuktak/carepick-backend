@@ -20,4 +20,6 @@ interface HospitalSpecialtyRepository : JpaRepository<HospitalSpecialty, Long> {
     fun findBySpecialty(
         specialty: Specialty // 검색할 진료과 객체
     ): List<HospitalSpecialty> // 해당 진료과와 연관된 모든 HospitalSpecialty 목록
+
+    fun existsByHospitalIdAndSpecialtyId(hospitalId: String, specialtyId: String): Boolean
 }

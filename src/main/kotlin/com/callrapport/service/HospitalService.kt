@@ -136,16 +136,24 @@ class HospitalService(
         // 병원 저장
         val savedHospital = hospitalRepository.save(hospital)
 
-        // ✅ 병원의 진료과 정보 저장
+         // ✅ 병원의 진료과 정보 저장 (중복 방지)
         if (!specialties.isNullOrEmpty()) {
-            val specialtyEntities = specialties.map { specialtyName ->
+            val specialtyEntities = specialties.distinct().mapNotNull { specialtyName ->
                 val specialty = specialtyRepository.findByName(specialtyName)
-                    ?: specialtyRepository.save(Specialty(name = specialtyName))
+                    ?: return@mapNotNull null // 존재하지 않는 진료과는 저장 X
 
-                HospitalSpecialty(specialty = specialty, hospital = savedHospital)
-            }
-            hospitalSpecialtyRepository.saveAll(specialtyEntities)
+                // ✅ 이미 존재하는 병원-진료과 관계인지 확인 후 중복 방지
+                val exists = hospitalSpecialtyRepository.existsByHospitalIdAndSpecialtyId(savedHospital.id, specialty.id)
+                if (!exists) {
+                    HospitalSpecialty(specialty = specialty, hospital = savedHospital)
+                } else {
+                    null // 이미 존재하면 저장 X
+                }
+            }.filterNotNull() // Null 제거
+
+            hospitalSpecialtyRepository.saveAll(specialtyEntities) // ✅ 중복 데이터 없이 저장!
         }
+        
 
         // ✅ 병원의 의사 정보 저장 (새로운 추가)
         if (!doctors.isNullOrEmpty()) {
@@ -180,15 +188,23 @@ class HospitalService(
                 // 의사 정보를 doctorRepository에 저장
                 val savedDoctor = doctorRepository.save(doctor)
 
-                // ✅ 의사와 진료과 관계 (N:M) 설정
+                // ✅ 의사와 진료과 관계 (N:M) 설정 (✅ 수정된 부분)
                 if (specialtyNames.isNotEmpty()) {
-                    val doctorSpecialties = specialtyNames.map { specialtyName ->
+                    val doctorSpecialties = specialtyNames.distinct().mapNotNull { specialtyName -> 
                         val specialty = specialtyRepository.findByName(specialtyName)
-                            ?: specialtyRepository.save(Specialty(name = specialtyName))
-                        DoctorSpecialty(doctor = savedDoctor, specialty = specialty)
-                    }
-                    doctorSpecialtyRepository.saveAll(doctorSpecialties)
-                }
+                            ?: return@mapNotNull null
+
+                        //  -이미 존재하는 의사-진료과 관계인지 확인
+                        val exists = doctorSpecialtyRepository.existsByDoctorIdAndSpecialtyId(savedDoctor.id, specialty.id)
+                        if (!exists) {
+                            DoctorSpecialty(doctor = savedDoctor, specialty = specialty)
+                        } else {
+                            null // 이미 존재하면 저장하지 않음
+                        }
+                    }.filterNotNull() // Null 값 제거
+
+                    doctorSpecialtyRepository.saveAll(doctorSpecialties) // ✅ 중복 데이터 없이 저장
+                }          
                 
                 if (careerNames.isNotEmpty()) {
                     val doctorCareers = careerNames.map { careerName ->

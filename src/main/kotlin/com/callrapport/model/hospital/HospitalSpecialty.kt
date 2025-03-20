@@ -10,7 +10,12 @@ import jakarta.persistence.*
 import com.fasterxml.jackson.annotation.JsonBackReference // 순환 참조 방지를 위한 JSON 어노테이션 
 
 @Entity
-@Table(name = "hospital_specialties")
+@Table(
+    name = "hospital_specialties",
+    uniqueConstraints = [ // 병원 ID + 진료과 ID 조합이 중복되지 않도록 설정
+        UniqueConstraint(columnNames = ["hospital_id", "specialty_id"])
+    ]
+)
 data class HospitalSpecialty(
     @Id // 기본 키(Primary Key) 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID 값을 자동 증가(Auto Increment)하도록 설정

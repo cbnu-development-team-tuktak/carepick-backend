@@ -73,15 +73,18 @@ class DoctorService(
         // ✅ 의사 정보 저장
         val savedDoctor = doctorRepository.save(doctor)
 
-        // ✅ 진료과 저장 (N:M 관계)
-        if (!specialtyNames.isNullOrEmpty()) {
-            val specialties = specialtyNames.map { specialtyName ->
+        // 
+        if (!specialtyNames.isNullOrEmpty()) { // ✅ 널 체크 추가
+            val doctorSpecialties = specialtyNames.mapNotNull { specialtyName ->
                 val specialty = specialtyRepository.findByName(specialtyName)
-                    ?: specialtyRepository.save(Specialty(name = specialtyName))
-                DoctorSpecialty(doctor = savedDoctor, specialty = specialty)
+                    ?: return@mapNotNull null // ❌ 존재하지 않으면 저장하지 않음
+        
+                DoctorSpecialty(doctor = savedDoctor, specialty = specialty) // ✅ 기존 Specialty ID 사용
             }
-            doctorSpecialtyRepository.saveAll(specialties)
+            doctorSpecialtyRepository.saveAll(doctorSpecialties)
         }
+        
+
 
         // ✅ 경력 저장 (N:M 관계)
         if (!careerNames.isNullOrEmpty()) {

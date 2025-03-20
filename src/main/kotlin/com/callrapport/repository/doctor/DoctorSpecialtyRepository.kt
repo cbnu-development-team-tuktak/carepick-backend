@@ -13,7 +13,13 @@ interface DoctorSpecialtyRepository : JpaRepository<DoctorSpecialty, Long> {
     fun findByDoctorId(
         doctorId: String // 검색할 대상인 Doctor의 ID
     ): List<DoctorSpecialty> // 해당 Doctor ID와 연관된 모든 DoctorSpecialty 목록
+    
     fun findBySpecialtyId(
-        specialtyId: Long // 검색할 대상인 Specialty의 ID
+        specialtyId: String // 검색할 대상인 Specialty의 ID
     ): List<DoctorSpecialty> // 해당 Specialty ID와 연관된 모든 DoctorSpecialty 목록
+
+    fun existsByDoctorIdAndSpecialtyId(
+        doctorId: String, 
+        specialtyId: String
+    ): Boolean
 }

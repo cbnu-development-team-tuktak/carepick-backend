@@ -7,8 +7,8 @@ import jakarta.persistence.*
 @Table(name = "specialties") 
 data class Specialty(
     @Id // 기본 키
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 자동 증가
-    var id: Long? = null, // 진료과 ID
+    @Column(length = 10)
+    var id: String, // 진료과 ID (예: PF000, PM000 
 
     @Column(
         nullable = false, // 필수 입력 값 (NULL 허용 안 함)
