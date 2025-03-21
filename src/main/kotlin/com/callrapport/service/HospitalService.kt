@@ -1,37 +1,15 @@
 package com.callrapport.service
 
 // Model (엔티티) 관련 import
-import com.callrapport.model.hospital.Hospital // Hospital: 병원 기본 정보 엔티티
-import com.callrapport.model.hospital.HospitalDoctor // HospitalDoctor: 병원-의사 관계 엔티티
-import com.callrapport.model.hospital.AdditionalInfo // AdditionalInfo: 병원 관련 부가 정보 엔티티
-import com.callrapport.model.hospital.HospitalImage
-import com.callrapport.model.hospital.HospitalAdditionalInfo // HospitalAdditionalInfo: 병원-병원 관련 부가 정보 연결 엔티티
-import com.callrapport.model.hospital.HospitalSpecialty // HospitalSpecialty: 병원-진료과 연결 엔티티
-import com.callrapport.model.common.Specialty // Specialty: 진료과 엔티티
-import com.callrapport.model.common.Image
-import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보 엔티티
-import com.callrapport.model.doctor.DoctorSpecialty
-import com.callrapport.model.doctor.EducationLicense
-import com.callrapport.model.doctor.DoctorEducationLicense
-import com.callrapport.model.doctor.Career
-import com.callrapport.model.doctor.DoctorCareer
+import com.callrapport.model.hospital.* // 병원 관련 엔티티들
+import com.callrapport.model.common.* // 공통 엔티티
+import com.callrapport.model.doctor.* // 의사 관련 엔티티
 
 // Repository (저장소) 관련 import
-import com.callrapport.repository.hospital.HospitalRepository // HospitalRepository: 병원 정보 저장소
-import com.callrapport.repository.hospital.AdditionalInfoRepository // AdditionalInfoRepository: 병원 부가 정보 저장소
-import com.callrapport.repository.hospital.HospitalImageRepository
-import com.callrapport.repository.hospital.HospitalDoctorRepository // HospitalDoctorRepository: 병원-의사 관계 저장소
-import com.callrapport.repository.hospital.HospitalAdditionalInfoRepository // HospitalAdditionalInfoRepositor: 병원-병원 부가 정보 관계 저장소
-import com.callrapport.repository.hospital.HospitalSpecialtyRepository // HospitalSpecialtyRepository: 병원-진료과 관계 저장소 
-import com.callrapport.repository.common.SpecialtyRepository // SpecialtyRepository: 진료과 정보 저장소
-import com.callrapport.repository.common.ImageRepository
-import com.callrapport.repository.doctor.DoctorRepository // DoctorRepository: 의사 정보 저장소 
-import com.callrapport.repository.doctor.EducationLicenseRepository
-import com.callrapport.repository.user.UserFavoriteHospitalRepository // UserFavoriteHospitalRepository
-import com.callrapport.repository.doctor.DoctorSpecialtyRepository
-import com.callrapport.repository.doctor.DoctorEducationLicenseRepository
-import com.callrapport.repository.doctor.CareerRepository
-import com.callrapport.repository.doctor.DoctorCareerRepository
+import com.callrapport.repository.hospital.* // 병원 관련 저장소
+import com.callrapport.repository.common.* // 공통 저장소
+import com.callrapport.repository.doctor.* // 의사 관련 저장소
+import com.callrapport.repository.user.* // 사용자 관련 저장소
 
 // Spring 및 JPA 관련 import
 import org.springframework.stereotype.Service // 해당 클래스를 Spring의 서비스 컴포넌트로 등록하는 어노테이션
@@ -60,238 +38,404 @@ import org.locationtech.jts.geom.PrecisionModel // 좌표 정밀도 설정
 
 @Service
 class HospitalService(
-    private val hospitalRepository: HospitalRepository, // 병원 저장소
-    private val additionalInfoRepository: AdditionalInfoRepository, // 병원 부가 정보 저장소
-    private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 저장소
-    private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원-병원 부가 정보 관계 저장소
-    private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 연결 저장소
-    private val hospitalImageRepository: HospitalImageRepository,
-    private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
-    private val educationLicenseRepository: EducationLicenseRepository,
+    // 의사 관련 레포지토리
     private val doctorRepository: DoctorRepository, // 의사 저장소
-    private val careerRepository: CareerRepository, 
-    private val doctorSpecialtyRepository: DoctorSpecialtyRepository,
-    private val doctorCareerRepository: DoctorCareerRepository,
-    private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository,
-    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository,
-    
-    private val imageRepository: ImageRepository
+    private val doctorSpecialtyRepository: DoctorSpecialtyRepository, // 의사-진료과 연결 저장소
+    private val doctorCareerRepository: DoctorCareerRepository, // 의사-경력 연결 저장소
+    private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository, // 의사-자격면허 연결 저장소
+    private val educationLicenseRepository: EducationLicenseRepository, // 자격면허 저장소
+    private val careerRepository: CareerRepository, // 경력 저장소
+
+    // 병원 관련 레포지토리
+    private val hospitalRepository: HospitalRepository, // 병원 저장소
+    private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 저장소
+    private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 관계 저장소
+    private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원-부가정보 연결 저장소
+    private val hospitalImageRepository: HospitalImageRepository, // 병원-이미지 연결 저장소
+    private val additionalInfoRepository: AdditionalInfoRepository, // 병원 부가 정보 저장소
+
+    // 공통 관련 레포지토리
+    private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
+    private val imageRepository: ImageRepository, // 이미지 저장소
+
+    // 사용자 관련 레포지토리
+    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository // 즐겨찾는 병원 저장소  
 ) {
+    // 병원과 연관된 이미지들을 저장하고, 병원-이미지 관계(HospitalImage)를 설정한다. 
     @Transactional
-    fun saveHospitalImages(hospital: Hospital, images: List<Image>) {
+    fun saveHospitalImages(
+        hospital: Hospital, // 이미지와 연결할 병원 객체
+        images: List<Image> // 저장할 이미지 리스트
+    ) {
+        // 이미지 URL을 기준으로 기존 이미지가 DB에 있는지 확인
         images.forEach { image ->
+            // 이미지 URL을 기준으로 기존 이미지에 DB가 있는지 확인
             val existingImage = imageRepository.findByUrl(image.url)
+            
+            // 기존 이미지가 없으면 새로 저장하고, 있으면 해당 객체 사용
             val savedImage = existingImage ?: imageRepository.save(image)
 
-            // ✅ 병원-이미지 관계가 이미 존재하는지 확인
-            val exists = hospitalImageRepository.existsByHospitalIdAndImageId(hospital.id, savedImage.id!!)
+            // 병원-이미지 관계가 이미 존재하는지 확인
+            val exists = hospitalImageRepository.existsByHospitalIdAndImageId(
+                hospital.id, 
+            savedImage.id!!)
+            
             if (!exists) {
+                // 병원-이미지 관계가 존재하지 않으면 새로 저장
                 val hospitalImage = HospitalImage(
-                    hospital = hospital,
-                    image = savedImage
+                    hospital = hospital, // 연결할 병원
+                    image = savedImage // 연결할 이미지
                 )
                 hospitalImageRepository.save(hospitalImage)
             } else {
+                // 이미 병원-이미지 관계가 존재하는 경우 로그 출력
                 println("⚠️ Hospital-Image relation already exists: ${hospital.id} - ${savedImage.id}")
             }
         }
     }
 
-    @Transactional
-    fun saveHospital(
-        id: String,
-        name: String,
-        phoneNumber: String?,
-        homepage: String?,
-        address: String,
-        operatingHours: String?,
-        specialties: List<String>?,
-        url: String?,
-        additionalInfo: Map<String, Any>?,
-        doctors: List<Map<String, String?>>?,
-        hospitalImages: List<Image>  
+    private fun createOrUpdateHospital(
+        id: String, // 병원 ID 
+        name: String, // 병원 이름
+        phoneNumber: String?, // 전화번호
+        homepage: String?, // 홈페이지 URL 
+        address: String?, // 병원 주소
+        operatingHours: String?, // 병원 운영 시간
+        url: String? // 병원 상세 정보 URL
     ): Hospital {
         // 기존 병원 데이터 확인 (있으면 업데이트, 없으면 새로 생성)
         val existingHospital = hospitalRepository.findById(id).orElse(null)
 
         // 병원 객체 생성 또는 업데이트
         val hospital = if (existingHospital != null) {
+            // 기존 병원 정보가 존재하는 경우, 값 일부만 수정하여 새 객체로 복사
             existingHospital.copy(
-                name = name,
-                phoneNumber = phoneNumber,
-                homepage = homepage,
-                address = address,
-                operatingHours = operatingHours,
-                url = url
+                name = name, // 병원명 업데이트
+                phoneNumber = phoneNumber, // 전화번호 업데이트
+                homepage = homepage, // 홈페이지 주소 업데이트
+                address = address, // 주소 업데이트
+                operatingHours = operatingHours, // 운영 시간 업데이트
+                url = url // 상세 정보 URL 업데이트
             )
         } else {
+            // 병원 정보가 존재하지 않는 경우, 새 병원 객체 생성
             Hospital(
-                id = id,
-                name = name,
-                phoneNumber = phoneNumber,
-                homepage = homepage,
-                address = address,
-                operatingHours = operatingHours,
-                url = url
+                id = id, // 병원 ID
+                name = name, // 병원명
+                phoneNumber = phoneNumber, // 전화번호
+                homepage = homepage, // 홈페이지 주소
+                address = address, // 주소
+                operatingHours = operatingHours, // 운영 시간
+                url = url // 상세 정보 URL
             )
         }
 
-        // 병원 저장
-        val savedHospital = hospitalRepository.save(hospital)
+        // 병원 정보 저장 (신규 또는 수정된 병원 정보 DB에 반영)
+        return hospitalRepository.save(hospital)
+    }
 
-         // ✅ 병원의 진료과 정보 저장 (중복 방지)
+    // 병원과 진료과의 관계(HospitalSpecialty)를 저장
+    private fun saveHospitalSpecialties(savedHospital: Hospital, specialties: List<String>?) {
+        // 병원의 진료과 정보 저장 (중복 방지)
         if (!specialties.isNullOrEmpty()) {
+            // 전달받은 진료과 이름 리스트에서 중복을 제거하고 각 이름에 대해 처리
             val specialtyEntities = specialties.distinct().mapNotNull { specialtyName ->
+                // 진료과 이름으로 Specialty 엔티티 조회 (DB에 존재하는 경우만 처리)
                 val specialty = specialtyRepository.findByName(specialtyName)
-                    ?: return@mapNotNull null // 존재하지 않는 진료과는 저장 X
+                    ?: return@mapNotNull null // 존재하지 않는 진료과는 무시하고 다음으로 넘어간다
 
-                // ✅ 이미 존재하는 병원-진료과 관계인지 확인 후 중복 방지
+                // 병원-진료과 관계가 이미 존재하는지 확인 (중복 저장 방지)
                 val exists = hospitalSpecialtyRepository.existsByHospitalIdAndSpecialtyId(savedHospital.id, specialty.id)
                 if (!exists) {
-                    HospitalSpecialty(specialty = specialty, hospital = savedHospital)
+                    // 중복이 아닌 경우 새로운 관계 객체 생성
+                    HospitalSpecialty(
+                        specialty = specialty, // 조회된 Specialty 객체
+                        hospital = savedHospital // 저장된 병원 객체
+                    )
                 } else {
-                    null // 이미 존재하면 저장 X
+                    null // 이미 존재하면 null 반환하여 이후에 제거한다
                 }
-            }.filterNotNull() // Null 제거
-
-            hospitalSpecialtyRepository.saveAll(specialtyEntities) // ✅ 중복 데이터 없이 저장!
+            }.filterNotNull() // null 제거하여 실제로 저장할 객체만 리스트로 유지
+            
+            // 생성된 병원-진료과 관계 리스트를 DB에 일괄 저장
+            hospitalSpecialtyRepository.saveAll(specialtyEntities) 
         }
+    }
+
+    private fun createOrUpdateDoctor(
+        doctorData: Map<String, String?>
+    ): Doctor? {
+        // 의사 ID 추출 (null이면 해당 데이터는 건너뜀)
+        val doctorId = doctorData["id"] as? String ?: throw IllegalArgumentException("의사 ID가 누락되었습니다")
+            
+        // 의사 이름 추출 (null이면 해당 데이터는 건너뜀)
+        val doctorName = doctorData["name"] as? String ?: throw IllegalArgumentException("의사 이름이 누락되었습니다")
         
+        // 프로필 이미지 URL (선택 값)
+        val profileImage = doctorData["profileImage"]
 
-        // ✅ 병원의 의사 정보 저장 (새로운 추가)
-        if (!doctors.isNullOrEmpty()) {
-            doctors.forEach { doctorData ->
-                val doctorId = doctorData["id"] as? String ?: return@forEach
-                val doctorName = doctorData["name"] as? String ?: return@forEach
-                val profileImage = doctorData["profileImage"] as? String
-                val specialtyNames = (doctorData["specialty"] as? String)?.split(", ") ?: emptyList() // ✅ 여러 개의 진료과 처리
-                val careerNames = (doctorData["career"] as? String)
-                    ?.split(", ")
-                    ?.map { it.trim() }
-                    ?.filter { it.isNotEmpty() }
-                    ?: emptyList()
-                val licenseNames = (doctorData["educationLicense"] as? String)
-                    ?.split(", ")
-                    ?.map { it.trim() }
-                    ?.filter { it.isNotEmpty() }
-                    ?: emptyList()
-                
-                // 의사 정보 저장 (기존 정보가 있으면 업데이트, 없으면 새로 저장)
-                val existingDoctor = doctorRepository.findById(doctorId).orElse(null)
-                val doctor = if (existingDoctor != null) {
-                    existingDoctor.copy(
-                        name = doctorName,
-                        profileImage = profileImage ?: existingDoctor.profileImage
-                    )
-                } else {
-                    Doctor(
-                        id = doctorId,
-                        name = doctorName,
-                        profileImage = profileImage
-                    )
-                }
-
-                // 의사 정보를 doctorRepository에 저장
-                val savedDoctor = doctorRepository.save(doctor)
-
-                // ✅ 의사와 진료과 관계 (N:M) 설정 (✅ 수정된 부분)
-                if (specialtyNames.isNotEmpty()) {
-                    val doctorSpecialties = specialtyNames.distinct().mapNotNull { specialtyName -> 
-                        val specialty = specialtyRepository.findByName(specialtyName)
-                            ?: return@mapNotNull null
-
-                        //  -이미 존재하는 의사-진료과 관계인지 확인
-                        val exists = doctorSpecialtyRepository.existsByDoctorIdAndSpecialtyId(savedDoctor.id, specialty.id)
-                        if (!exists) {
-                            DoctorSpecialty(doctor = savedDoctor, specialty = specialty)
-                        } else {
-                            null // 이미 존재하면 저장하지 않음
-                        }
-                    }.filterNotNull() // Null 값 제거
-
-                    doctorSpecialtyRepository.saveAll(doctorSpecialties) // ✅ 중복 데이터 없이 저장
-                }          
-                
-                // 의사와 경력 관계 (N:M) 설정
-                if (!careerNames.isNullOrEmpty()) {
-                    val doctorCareers = careerNames.distinct().mapNotNull { careerName ->
-                        val career = careerRepository.findByName(careerName)
-                            ?: careerRepository.save(Career(name = careerName))
-
-                        // 의사-경력 관계가 이미 존재하는지 확인
-                        val exists = doctorCareerRepository.existsByDoctorIdAndCareerId(savedDoctor.id, career.id!!)
-                        if (!exists) {
-                            DoctorCareer(doctor = savedDoctor, career = career)
-                        } else {
-                            null // 이미 존재하면 저장하지 않음
-                        }
-                    }.filterNotNull() // Null 값 제거
-
-                    doctorCareerRepository.saveAll(doctorCareers)
-                }
-
-                // ✅ 의사와 자격면허 관계 (N:M) 설정
-                if (licenseNames.isNotEmpty()) {
-                    val doctorLicenses = licenseNames.mapNotNull { licenseName ->
-                        val license = educationLicenseRepository.findByName(licenseName)
-                            ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
-
-                        // 의사-자격면허 관계가 이미 존재하는지 확인
-                        val exists = doctorEducationLicenseRepository.existsByDoctorIdAndEducationLicenseId(savedDoctor.id, license.id!!)
-                        if (!exists) {
-                            DoctorEducationLicense(doctor = savedDoctor, educationLicense = license)
-                        } else {
-                            null // 이미 존재하면 저장하지 않음
-                        }
-                    }.filterNotNull() // Null 값을 제거
-
-                    doctorEducationLicenseRepository.saveAll(doctorLicenses) // ✅ 중복 데이터 없이 저장
-                }
-
-
-                // ✅ 병원-의사 관계 중복 방지
-                val existsHospitalDoctor = hospitalDoctorRepository.existsByHospitalIdAndDoctorId(savedHospital.id, savedDoctor.id)
-                if (!existsHospitalDoctor) {
-                    val hospitalDoctor = HospitalDoctor(hospital = savedHospital, doctor = savedDoctor)
-                    hospitalDoctorRepository.save(hospitalDoctor)
-                }
-            }
+        // 의사 정보 저장 (기존 정보가 있으면 업데이트, 없으면 새로 저장)
+        val existingDoctor = doctorRepository.findById(doctorId).orElse(null) // 기존 의사 정보 조회
+        // 기존 의사가 존재할 경우 이름과 프로필 이미지만 업데이트
+        val doctor = if (existingDoctor != null) {
+            existingDoctor.copy(
+                name = doctorName, // 새로 받은 이름으로 덮어쓰기
+                profileImage = profileImage ?: existingDoctor.profileImage // 새 이미지가 있으면 갱신, 없으면 기존 유지
+            )
+        } else {
+            // 기존 의사가 존재하지 않는 경우 새 Doctor 객체 생성
+            Doctor(
+                id = doctorId, // 의사 ID 설정
+                name = doctorName, // 의사 이름 설정
+                profileImage = profileImage // 프로필 이미지 설정
+            )
         }
 
+        // 의사 정보를 doctorRepository에 저장
+        return doctorRepository.save(doctor)
+    }
+    
+    // 의사와 진료과의 관계(DoctorSpecialty)를 저장
+    private fun saveDoctorSpecialties(
+        savedDoctor: Doctor, // 저장된 의사 객체
+        specialtyNames: List<String> // 진료과 이름 리스트
+    ) {
+        if (specialtyNames.isNotEmpty()) { // 진료과 이름 리스트가 비어있지 않은 경우에만 처리
+            val doctorSpecialties = specialtyNames
+                .distinct() // 중복된 진료과 이름 제거
+                .mapNotNull { specialtyName -> 
+                // 진료과 이름을 기준으로 Specialty 엔티티 조회
+                val specialty = specialtyRepository.findByName(specialtyName)
+                    ?: return@mapNotNull null // 존재하지 않으면 해당 항목은 건너뛴다
+
+                //  해당 의사-진료과 관계가 이미 존재하는지 확인
+                val exists = doctorSpecialtyRepository.existsByDoctorIdAndSpecialtyId(
+                    savedDoctor.id, 
+                    specialty.id
+                )
+
+                if (!exists) {
+                    // 중복되지 않은 경우에만 DoctorSpecialty 객체 생성
+                    DoctorSpecialty(
+                        doctor = savedDoctor, // 저장된 의사 객체
+                        specialty = specialty // 조회된 진료과 객체
+                    )
+                } else {
+                    null // 이미 존재하는 관계는 저장하지 않음
+                }
+            }.filterNotNull() // null 제거
+            // 생성된 의사-진료과 관계 리스트를 DB에 일괄 저장
+            doctorSpecialtyRepository.saveAll(doctorSpecialties) 
+        }          
+    }
+    
+    // 의사와 경력의 관계(DoctorCareer)를 저장
+    private fun saveDoctorCareers(
+        savedDoctor: Doctor,
+        careerNames: List<String>
+    ) {
+        if (!careerNames.isNullOrEmpty()) { // 경력 이름 리스트가 null이 아니고 비어있지 않은 경우
+            val doctorCareers = careerNames
+                .distinct() // 중복된 경력 이름 제거
+                .mapNotNull { careerName ->
+                // 경력 이름을 기준으로 Career 엔티티 조회
+                // 존재하지 않으면 새로 생성하여 저장
+                val career = careerRepository.findByName(careerName) 
+                    ?: careerRepository.save(Career(name = careerName))
+
+                // 해당 의사-경력 관계가 이미 존재하는지 확인
+                val exists = doctorCareerRepository.existsByDoctorIdAndCareerId(
+                    savedDoctor.id, 
+                    career.id!!
+                )
+
+                if (!exists) {
+                    // 중복되지 않은 경우에만 DoctorCareer 객체 생성
+                    DoctorCareer(
+                        doctor = savedDoctor, // 저장된 의사 객체
+                        career = career // 조회 또는 생성된 경력 객체
+                    )
+                } else {
+                    null // 이미 존재하는 관계는 저장하지 않음
+                }
+            }.filterNotNull() // Null 값 제거
+
+            // 생성된 의사-경력 관계 리스트를 DB에 일괄 저장
+            doctorCareerRepository.saveAll(doctorCareers)
+        }
+    }
+
+    // 의사와 자격면허의 관계(DoctorEducationLicense)를 저장
+    private fun saveDoctorEducationLicenses(
+        savedDoctor: Doctor,
+        licenseNames: List<String>
+    ) {
+        // 의사와 자격면허 관계 (N:M) 설정
+        if (licenseNames.isNotEmpty()) { // 자격면허 이름 리스트가 비어있지 않은 경우에만 처리
+            val doctorLicenses = licenseNames
+                .mapNotNull { licenseName ->
+                // 자격면허 이름을 기준으로 EducationLicense 엔티티 조회
+                // 존재하지 않으면 새로 생성하여 저장
+                val license = educationLicenseRepository.findByName(licenseName)
+                    ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
+
+                // 해당 의사-자격면허 관계가 이미 존재하는지 확인
+                val exists = doctorEducationLicenseRepository
+                    .existsByDoctorIdAndEducationLicenseId(savedDoctor.id, license.id!!)
+
+                if (!exists) {
+                    // 중복되지 않은 경우에만 DoctorEducationLicense 객체 생성
+                    DoctorEducationLicense(
+                        doctor = savedDoctor,  // 저장된 의사 객체
+                        educationLicense = license // 조회 또는 생성된 자격면허 객체
+                    )
+                } else {
+                    null // 이미 존재하는 관계는 저장하지 않음
+                }
+            }.filterNotNull() // null 값을 제거
+
+            // 생성된 의사-자격면허 관계 리스트를 DB에 일괄 저장
+            doctorEducationLicenseRepository.saveAll(doctorLicenses) 
+        }
+    }
+
+    // 병원과 의사 관계(HospitalDoctor)를 저장
+    private fun linkDoctorToHospital(
+        savedDoctor: Doctor,
+        savedHospital: Hospital
+    ) {
+        // 해당 병원-의사 관계가 이미 존재하는지 확인
+        val existsHospitalDoctor = hospitalDoctorRepository.existsByHospitalIdAndDoctorId(savedHospital.id, savedDoctor.id)
+        if (!existsHospitalDoctor) {
+            // 존재하지 않을 경우에만 새로운 관계 새성
+            val hospitalDoctor = HospitalDoctor(
+                hospital = savedHospital, // 현재 저장된 병원 엔티티
+                doctor = savedDoctor // 현재 저장된 의사 엔티티
+            )
+
+            // 병원-의사 관계 저장
+            hospitalDoctorRepository.save(hospitalDoctor)
+        }
+    }
+
+    // 병원에 소속된 의사 정보 전체를 저장하고 관계를 연결하는 함수
+    private fun saveDoctorsForHospital(
+        doctors: List<Map<String, String?>>,
+        savedHospital: Hospital
+    ) {
+        doctors.forEach { doctorData ->
+            val savedDoctor = createOrUpdateDoctor(doctorData)
+
+            // null인 경우 처리 중단
+            if (savedDoctor == null) return@forEach
+
+            // 진료과 이름들 (문자열 → 리스트로 변환, 예: "내과, 정형외과"))
+            val specialtyNames = (doctorData["specialty"] as? String)
+                ?.split(", ") // ", " 기준으로 나누기
+                ?: emptyList() // 값이 없으면 빈 리스트
+            // 의사와 진료과의 관계(DoctorSpecialty)를 저장
+            saveDoctorSpecialties(savedDoctor, specialtyNames)
+
+            // 경력 정보 리스트 (쉼표로 구분된 문자열을 리스트로 변환하여 공백 제거)
+            val careerNames = (doctorData["career"] as? String)
+                ?.split(", ") // ", " 기준으로 나누기
+                ?.map { it.trim() } // 앞뒤 공백 제거
+                ?.filter { it.isNotEmpty() } // 빈 문자열 제거
+                ?: emptyList() // 값이 없으면 빈 리스트
+            // 의사와 경력의 관계(DoctorCareer)를 저장
+            saveDoctorCareers(savedDoctor, careerNames)
+
+            // 자격면허 리스트 (쉼표로 구분된 문자열을 리스트로 변환하여 공백 제ㅓ거)
+            val licenseNames = (doctorData["educationLicense"] as? String)
+                ?.split(", ") // ", " 기준으로 나누기
+                ?.map { it.trim() } // 앞뒤 공백 제거 
+                ?.filter { it.isNotEmpty() } // 빈 문자열 제거
+                ?: emptyList() // 값이 없으면 빈 리스트
+            saveDoctorEducationLicenses(savedDoctor, licenseNames)    
+            
+            linkDoctorToHospital(savedDoctor, savedHospital)
+        }
+    }
+
+    // 병원 부가 정보 저장 및 병원과의 관계설정
+    private fun saveHospitalAdditionalInfo(
+        savedHospital: Hospital, // 저장된 병원 객체
+        additionalInfo: Map<String, Any> // 부가 정보 Map
+    ) {
+        // Map으로부터 각 필드를 추출하여 AdditionalInfo 엔티티 생성
+        val additionalInfoEntity = AdditionalInfo(
+            open24Hours = additionalInfo["open24Hours"] as? Boolean ?: false, // 24시간 운영 여부
+            emergencyTreatment = additionalInfo["emergencyTreatment"] as? Boolean ?: false, // 응급 진료 여부
+            maleFemaleDoctorChoice = additionalInfo["maleFemaleDoctorChoice"] as? Boolean ?: false, // 남녀 전문의 선택 가능 여부
+            networkHospital = additionalInfo["networkHospital"] as? Boolean ?: false, // 네트워크 병원 여부
+            freeCheckup = additionalInfo["freeCheckup"] as? Boolean ?: false, // 무료 검진 여부
+            nearSubway = additionalInfo["nearSubway"] as? Boolean ?: false, // 역세권 여부
+            openAllYear = additionalInfo["openAllYear"] as? Boolean ?: false, // 연중무휴 여부
+            openOnSunday = additionalInfo["openOnSunday"] as? Boolean ?: false, // 일요일 진료 여부 
+            nightShift = additionalInfo["nightShift"] as? Boolean ?: false, // 야간 진료 여부
+            collaborativeCare = additionalInfo["collaborativeCare"] as? Boolean ?: false, // 협진 시스템 여부
+            noLunchBreak = additionalInfo["noLunchBreak"] as? Boolean ?: false // 점심시간 진료 여부
+        )
+
+        // 생성한 추가 정보 엔티티를 DB에 저장
+        val savedAdditionalInfo = additionalInfoRepository.save(additionalInfoEntity)
+
+        // 병원 ID와 병원 부가 정보를 연결하여 HospitalAdditionalInfo 엔티티에 저장
+        val hospitalAdditionalInfo = HospitalAdditionalInfo(
+            id = savedHospital.id, // 병원 ID를 식별자로 사용
+            hospital = savedHospital, // 병원 엔티티 참조
+            additionalInfo = savedAdditionalInfo // 저장된 부가 정보 참조
+        )
+
+        // 병원-추가 정보 관계 저장
+        hospitalAdditionalInfoRepository.save(hospitalAdditionalInfo)
+    }
+
+    @Transactional
+    fun saveHospital(
+        id: String, // 병원 ID (예: H0000123456)
+        name: String, // 병원명
+        phoneNumber: String?, // 병원 홈페이지 URL (선택적 정보)
+        homepage: String?, // 병원 홈페이지 URL (선택적 정보)
+        address: String, // 병원 주소
+        operatingHours: String?, // 병원 운영 시간 
+        specialties: List<String>?, // 병원에서 운영하는 진료과 리스트
+        url: String?, // 병원 상세 정보 페이지 URL
+        additionalInfo: Map<String, Any>?, // 병원의 부가 정보
+        doctors: List<Map<String, String?>>?, // 병원에 소속된 의사 정보 리스트
+        hospitalImages: List<Image> // 병원과 연결된 이미지 리스트
+    ): Hospital {
+        // 병원 객체 생성 또는 업데이트 후 저장
+        val savedHospital = createOrUpdateHospital(
+            id = id,
+            name = name,
+            phoneNumber = phoneNumber,
+            homepage = homepage,
+            address = address,
+            operatingHours = operatingHours,
+            url = url
+        )
+
+        // 병원의 진료과 정보 저장 (중복 방지 포함)
+        saveHospitalSpecialties(savedHospital, specialties)
+
+        // 병원의 의사 정보 저장 (새로운 의사 데이터 추가)
+        if (!doctors.isNullOrEmpty()) {
+            saveDoctorsForHospital(doctors, savedHospital)   
+        }
+
+        // 병원 이미지가 존재할 경우 병원-이미지 관계 저장 수행
         if (hospitalImages.isNotEmpty()) {
+            // 이미지 정보와 병원 정보를 연계하여 저장
             saveHospitalImages(savedHospital, hospitalImages)
         }
 
-        // ✅ 추가 정보가 제공되었으면 AdditionalInfo 저장
+        // 병원에 대한 추가 정보가 제공된 경우 처리
         if (additionalInfo != null) {
-            val additionalInfoEntity = AdditionalInfo(
-                open24Hours = additionalInfo["open24Hours"] as? Boolean ?: false,
-                emergencyTreatment = additionalInfo["emergencyTreatment"] as? Boolean ?: false,
-                maleFemaleDoctorChoice = additionalInfo["maleFemaleDoctorChoice"] as? Boolean ?: false,
-                networkHospital = additionalInfo["networkHospital"] as? Boolean ?: false,
-                freeCheckup = additionalInfo["freeCheckup"] as? Boolean ?: false,
-                nearSubway = additionalInfo["nearSubway"] as? Boolean ?: false,
-                openAllYear = additionalInfo["openAllYear"] as? Boolean ?: false,
-                openOnSunday = additionalInfo["openOnSunday"] as? Boolean ?: false,
-                nightShift = additionalInfo["nightShift"] as? Boolean ?: false,
-                collaborativeCare = additionalInfo["collaborativeCare"] as? Boolean ?: false,
-                noLunchBreak = additionalInfo["noLunchBreak"] as? Boolean ?: false
-            )
-
-            // 병원 부가 정보를 데이터베이스에 저장
-            val savedAdditionalInfo = additionalInfoRepository.save(additionalInfoEntity)
-
-            // 병원 ID와 병원 부가 정보를 연결하여 HospitalAdditionalInfo 엔티티에 저장
-            val hospitalAdditionalInfo = HospitalAdditionalInfo(
-                id = savedHospital.id,
-                hospital = savedHospital,
-                additionalInfo = savedAdditionalInfo
-            )
-
-            hospitalAdditionalInfoRepository.save(hospitalAdditionalInfo)
+            saveHospitalAdditionalInfo(savedHospital, additionalInfo)
         }
 
-        return savedHospital
+        return savedHospital // 최종적으로 저장된 병원 엔티티 반환
     }
 
     // 주소를 기반으로 위도/경도를 조회 (카카오맵 API 사용)
@@ -340,42 +484,6 @@ class HospitalService(
         return geometryFactory.createPoint(Coordinate(longitude, latitude))
     }
 
-    @Transactional
-    fun deleteAllHospitalData() {
-        val hospitals = hospitalRepository.findAll()
-
-        hospitals.forEach { hospital ->
-            hospital.specialties.clear()
-            hospital.doctors.clear()
-            hospital.favoritedByUsers.clear()
-        }
-
-        hospitalRepository.saveAll(hospitals) // 변경된 상태를 반영
-
-        hospitalDoctorRepository.deleteAll()
-        hospitalSpecialtyRepository.deleteAll()
-        hospitalAdditionalInfoRepository.deleteAll()
-        additionalInfoRepository.deleteAll()
-        userFavoriteHospitalRepository.deleteAll()
-
-        hospitalRepository.deleteAll()
-    }
-
-    // 주어진 병원 ID로 병원 정보를 조회
-    fun getHospitalById(hospitalId: String): Hospital? {
-        // hospitalRepository에서 병원 ID로 병원 정보를 찾고, 없으면 null 반환
-        return hospitalRepository.findById(hospitalId).orElse(null)
-    }
-    
-    // 병원 정보 업데이트
-    fun updateHospital(hospital: Hospital): Hospital {
-        try {
-            return hospitalRepository.save(hospital) // 저장 시 낙관적 잠금(Optimistic Locking) 활성화
-        } catch (e: OptimisticLockingFailureException) {
-            throw e // 예외가 발생하면 다시 던져서 controller에서 처리할 수 있도록 함
-        }
-    }
-    
     // 모든 병원 정보를 페이지네이션으로 조회
     fun getAllHospitals(
         pageable: Pageable // 페이지네이션 정보를 포함한 객체
@@ -383,8 +491,8 @@ class HospitalService(
         return hospitalRepository.findAll(pageable)
     }
 
-    // 병원명을 기준으로 병원 검색
-    fun searchHospitalsByName(
+     // 병원명을 기준으로 병원 검색
+     fun searchHospitalsByName(
         keyword: String, // 검색할 병원명
         pageable: Pageable // 페이지네이션 정보를 포함한 객체
     ): Page<Hospital> {

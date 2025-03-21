@@ -36,17 +36,12 @@ class DoctorService(
     private val careerRepository: CareerRepository, // 경력 정보를 저장/조회하는 레포지토리
     
 ) {
-    @Transactional
-    fun saveDoctorWithDetails(
+    // 의사 정보를 생성하거나 기존 정보 업데이트
+    private fun createOrUpdateDoctor(
         id: String, // 의사 ID
         name: String, // 의사 이름
-        profileImage: String?, // 의사 프로필 이미지
-        educationLicenses: List<String>?, // 자격면허 ID 리스트
-        hospitalId: String?, // 의사가 소속된 병원 ID
-        specialtyNames: List<String>?, // 진료과 이름 리스트 (예: ["내과", "정형외과"])
-        careerNames: List<String>?, // 의사 경력 이름 리스트 (예: ["서울대병원 수련", "삼성서울병원 교수"])
-        educationLicenseNames: List<String>? // 의사 자격면허 이름 리스트 (예: ["전문의", "의사면허"])
-    ): Doctor {    
+        profileImage: String? // 의사 프로필 이미지
+    ): Doctor {
         // 기존 의사 정보가 이미 존재하는지 확인
         val existingDoctor = doctorRepository.findById(id).orElse(null)
 
@@ -66,8 +61,14 @@ class DoctorService(
         }
 
         // 의사 정보 저장 또는 업데이트
-        val savedDoctor = doctorRepository.save(doctor)
+        return doctorRepository.save(doctor)
+    }
 
+    // 의사와 진료과 간의 관계(DoctorSpecialty)를 저장
+    private fun saveDoctorSpecialties(
+        savedDoctor: Doctor, // 저장된 Doctor 객체
+        specialtyNames: List<String>? // 진료과 이름 리스트 (예: ["내과", "정형외과"])
+    ) {
         // 의사와 진료과(N:M) 관계 저장
         if (!specialtyNames.isNullOrEmpty()) { // 진료과 리스트가 null이 아니고 비어있지 않은 경우에만 처리
             val doctorSpecialties = specialtyNames.mapNotNull { specialtyName ->
@@ -85,8 +86,10 @@ class DoctorService(
             // 생성된 의사-진료과 관계 리스트를 DB에 일괄 저장
             doctorSpecialtyRepository.saveAll(doctorSpecialties)
         }
-        
-        // 의사와 경력(N:M) 관계 저장
+    }
+
+    // 의사와 경력(N:M) 관계 저장
+    private fun saveDoctorCareers(savedDoctor: Doctor, careerNames: List<String>?) {
         if (!careerNames.isNullOrEmpty()) { // 경력 리스트가 null이 아니고 비어있지 않은 경우에만 처리
             val doctorCareers = careerNames.mapNotNull { careerName ->
                 // 경력 이름을 기준으로 Career 엔티티 조회
@@ -114,8 +117,10 @@ class DoctorService(
             // 생성된 의사-경력 관계 리스트를 DB에 일괄 저장
             doctorCareerRepository.saveAll(doctorCareers)  
         }
+    }
 
-        // 의사와 자격면허(N:M) 관계 저장
+    // 의사와 자격면허(N:M) 관계 저장
+    private fun saveDoctorEducationLicenses(savedDoctor: Doctor, educationLicenseNames: List<String>?) {    
         if (!educationLicenseNames.isNullOrEmpty()) { // 자격면허 리스트가 null이 아니고 비어있지 않은 경우에만 처리
             val doctorLicenses = educationLicenseNames
                 .distinct() // 중복된 자격면허 이름 제거
@@ -144,8 +149,10 @@ class DoctorService(
             // 생성된 의사-자격면허 관계 리스트를 DB에 일괄 저장
             doctorEducationLicenseRepository.saveAll(doctorLicenses)
         }
+    }
 
-        // 병원과 의사(N:M) 연결
+    // 병원과 의사(N:M) 연결
+    private fun linkDoctorToHospital(savedDoctor: Doctor, hospitalId: String?) {
         if (hospitalId != null) { // 병원 ID가 null이 아닌 경우에만 처리 
             // 병원 ID를 기준으로 Hospital 엔티티 조회
             val hospital = hospitalRepository.findById(hospitalId).orElse(null)
@@ -160,11 +167,40 @@ class DoctorService(
                 hospitalDoctorRepository.save(hospitalDoctor)
             }
         }
+    }
+    
+    @Transactional
+    fun saveDoctorWithDetails(
+        id: String, // 의사 ID
+        name: String, // 의사 이름
+        profileImage: String?, // 의사 프로필 이미지
+        educationLicenses: List<String>?, // 자격면허 ID 리스트
+        hospitalId: String?, // 의사가 소속된 병원 ID
+        specialtyNames: List<String>?, // 진료과 이름 리스트 (예: ["내과", "정형외과"])
+        careerNames: List<String>?, // 의사 경력 이름 리스트 (예: ["서울대병원 수련", "삼성서울병원 교수"])
+        educationLicenseNames: List<String>? // 의사 자격면허 이름 리스트 (예: ["전문의", "의사면허"])
+    ): Doctor {    
+        // 의사 정보 생성 또는 기존 정보 업데이트 후 저장
+        val savedDoctor = createOrUpdateDoctor(id, name, profileImage)
 
-        // 최종적으로 저장된 의사 객체 반환
+        // 의사와 진료과 간의 관계 저장 (DoctorSpecialty)
+        saveDoctorSpecialties(savedDoctor, specialtyNames)
+
+        // 의사와 경력 간의 관계 저장 (DoctorCareer)
+        // 경력이 없으면 새로 생성하고, 중복은 방지함
+        saveDoctorCareers(savedDoctor, careerNames)
+
+        // 의사와 자격면허 간의 관계 저장 (DoctorEducationLicense)
+        // 자격면허가 없으면 생성하고, 중복은 방지함
+        saveDoctorEducationLicenses(savedDoctor, educationLicenseNames)
+
+        // 병원-의사 관계 저장 (HospitalDoctor)
+        // 병원 ID가 유효한 경우에만 연결
+        linkDoctorToHospital(savedDoctor, hospitalId)
+
+        // 최종 저장된 의사 객체 반환
         return savedDoctor
     }
-
 
     // 모든 의사 정보를 페이지네이션으로 조회
     fun getAllDoctors(pageable: Pageable): Page<Doctor> {
