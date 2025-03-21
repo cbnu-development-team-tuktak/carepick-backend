@@ -29,16 +29,21 @@ import com.fasterxml.jackson.module.kotlin.readValue // JSON 문자열을 객체
 @RestController
 @RequestMapping("/api/crawl/hospital")
 class HospitalCrawlController(
-    private val hospitalCrawler: HospitalCrawler, // 병원 크롤러q
-    private val hospitalImageCrawler: HospitalImageCrawler, 
+    // 크롤러
+    private val hospitalCrawler: HospitalCrawler, // 병원 크롤러
+    private val hospitalImageCrawler: HospitalImageCrawler, // 병원 이미지 크롤러  
     private val doctorCrawler: DoctorCrawler, // 의사 크롤러
+
+    // 서비스
     private val hospitalService: HospitalService, // 병원 서비스
     private val doctorService: DoctorService, // 의사 서비스
+
+    // 레포지토리 
+    private val specialtyRepository: SpecialtyRepository // 진료과 정보 관리
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 관계 관리
     private val doctorRepository: DoctorRepository, // 의사 정보 관리
     private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 관리
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원 추가 정보 관리
-    private val specialtyRepository: SpecialtyRepository // 진료과 정보 관리
 ) {
 
     private val objectMapper = jacksonObjectMapper() // JSON 변환 객체 생성
@@ -171,9 +176,9 @@ class HospitalCrawlController(
         }
     }
 
-
-
+    // 주어진 병원 URL에서 병원 ID를 추출
     private fun extractHospitalIdFromUrl(url: String): String {
+        // URL의 마지막 '/' 이후에 나오는 문자열을 반환 (예: .../H001234567 → H0001234567)
         return url.substringAfterLast("/")
     }
 }
