@@ -10,7 +10,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore // JSON 변환 시 특정 필
 @Table(
     name = "doctor_careers",
     uniqueConstraints = [
-        UniqueConstraint(name = "UK_doctor_career", columnNames = ["doctor_id", "career_id"]) // 의사와 경력의 조합에 대한 유니크 제약
+        // 동일한 의사(doctor_id)에게 같은 경력(career_id)이 중복으로 등록하지 않도록 제한
+        UniqueConstraint(name = "UK_doctor_career", columnNames = ["doctor_id", "career_id"]) 
     ]    
 )
 data class DoctorCareer(

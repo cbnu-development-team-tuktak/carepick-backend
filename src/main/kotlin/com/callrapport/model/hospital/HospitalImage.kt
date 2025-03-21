@@ -8,8 +8,9 @@ import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 @Entity
 @Table(
     name = "hospital_images",
+    // 동일한 병원(hospital_id)에게 같은 이미지(image_id)가 중복으로 등록되지 않도록 제한
     uniqueConstraints = [
-        UniqueConstraint(name = "UK_hospital_image", columnNames = ["hospital_id", "image_id"]) // ✅ 병원-이미지 관계 중복 방지
+        UniqueConstraint(name = "UK_hospital_image", columnNames = ["hospital_id", "image_id"])
     ]
 )
 data class HospitalImage(

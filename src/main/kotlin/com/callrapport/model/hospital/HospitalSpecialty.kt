@@ -12,7 +12,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference // 순환 참조 방�
 @Entity
 @Table(
     name = "hospital_specialties",
-    uniqueConstraints = [ // 병원 ID + 진료과 ID 조합이 중복되지 않도록 설정
+    // 동일한 병원(hospital_id)에게 같은 진료과(specialty_id)가 중복으로 등록하지 않도록 제한
+    uniqueConstraints = [
         UniqueConstraint(columnNames = ["hospital_id", "specialty_id"])
     ]
 )

@@ -9,8 +9,9 @@ import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 @Entity
 @Table(
     name = "hospital_doctors",
+    // 동일한 병원(hospital_id)에게 같은 의사(doctor_id)가 중복으로 등록하지 않도록 제한
     uniqueConstraints = [
-        UniqueConstraint(name = "UK_hospital_doctor", columnNames = ["hospital_id", "doctor_id"]) // ✅ 병원-의사 관계 중복 방지
+        UniqueConstraint(name = "UK_hospital_doctor", columnNames = ["hospital_id", "doctor_id"]) 
     ]
 )
 data class HospitalDoctor(

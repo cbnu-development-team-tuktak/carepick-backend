@@ -10,9 +10,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore // 특정 필드를 JSON 변�
 @Table(
     name = "doctor_education_licenses",
     uniqueConstraints = [
+        // 동일한 의사(doctor_id)에 대해 같은 자격/학력(education_licenses_id)을 중복으로 등록하지 않도록 제한
         UniqueConstraint(
-            name = "UK_doctor_education_license", // ✅ 의사-자격면허 관계 중복 방지
-            columnNames = ["doctor_id", "education_licenses_id"]
+            name = "UK_doctor_education_license", 
+            columnNames = ["doctor_id", "education_licenses_id"] 
         )
     ]
 ) 
