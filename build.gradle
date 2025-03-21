@@ -32,6 +32,9 @@ dependencies {
 
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.0")
 
+    implementation("org.hibernate.orm:hibernate-spatial:6.6.5.Final")
+
+
     // Spring WebFlux (비동기 처리를 위한 WebClient, Reactor 지원)
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 

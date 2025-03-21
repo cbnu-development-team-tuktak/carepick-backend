@@ -36,6 +36,8 @@ import org.locationtech.jts.geom.GeometryFactory // 공간 데이터 객체 생�
 import org.locationtech.jts.geom.Point // 병원 위치를 저장하는 Point 타입
 import org.locationtech.jts.geom.PrecisionModel // 좌표 정밀도 설정
 
+import com.callrapport.component.map.Geolocation
+
 @Service
 class HospitalService(
     // 의사 관련 레포지토리
@@ -59,7 +61,10 @@ class HospitalService(
     private val imageRepository: ImageRepository, // 이미지 저장소
 
     // 사용자 관련 레포지토리
-    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository // 즐겨찾는 병원 저장소  
+    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository, // 즐겨찾는 병원 저장소  
+
+    // 좌표 변환을 위한 컴포넌트
+    private val geolocation: Geolocation
 ) {
     // 병원과 연관된 이미지들을 저장하고, 병원-이미지 관계(HospitalImage)를 설정한다. 
     @Transactional
@@ -391,6 +396,61 @@ class HospitalService(
         hospitalAdditionalInfoRepository.save(hospitalAdditionalInfo)
     }
 
+    // 주소를 위도/경도로 변환 (네이버 Geolocation API 사용)
+    private fun getCoordinatesFromAddress(
+        address: String
+    ): Pair<Double, Double>? {
+        return try {
+            // 비동기 방식의 WebClient 호출 결과를 block()을 통해 동기 방식으로 받음
+            val response = geolocation.getGeocode(address).block() 
+
+            // 응답받은 JSON 문자열을 Jackson의 ObjectMapper를 이용해 파싱
+            val jsonNode = ObjectMapper().readTree(response)
+            
+            // 주소 결과 리스트 추출
+            val addresses = jsonNode["addresses"]
+            if (addresses != null && addresses.isArray && addresses.size() > 0) {
+                // 첫 번째 주소 결과에서 위도(y)와 경도(x) 추출
+                val firstResult = addresses[0]
+                val latitude = firstResult["y"]?.asDouble() ?: return null // 위도
+                val longitude = firstResult["x"]?.asDouble() ?: return null // 경도
+
+                // 위도, 경도를 쌍으로 반환
+                Pair(latitude, longitude)
+            } else {
+                // 주소 반환 결과가 없는 경우 로그 출력 후 null 반환
+                println("❌ address convertion to coordinates failed: no result")
+                null
+            }
+        } catch (e: Exception) {
+            // 예외 발생 시 로그 출력 후 null 반환
+            println("❌ address convertion exception occured: ${e.message}")
+            null
+        }
+    }
+
+    fun createPoint(latitude: Double, longitude: Double): Point {
+        val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+        val point = geometryFactory.createPoint(Coordinate(longitude, latitude))
+        point.srid = 4326 // Kotlin에서 unresolved reference가 발생한다면 setSRID() 사용
+        return point
+    }
+    
+    
+
+    // 주소를 기반으로 좌표를 조회한 후, 병원 엔티티에 위치 정보를 설정하고 저장
+    private fun setHospitalLocationFromAddress(savedHospital: Hospital, address: String) {
+        val coordinates = getCoordinatesFromAddress(address)
+        if (coordinates != null) {
+            val (latitude, longitude) = coordinates
+            val point = createPoint(latitude, longitude)
+            savedHospital.location = point
+            hospitalRepository.save(savedHospital) // 좌표까지 포함한 병원 정보 저장
+        } else {
+            println("⚠️ Failed to set location for hospital: ${savedHospital.id} - coordinate convertion failed")
+        }
+    }
+
     @Transactional
     fun saveHospital(
         id: String, // 병원 ID (예: H0000123456)
@@ -416,6 +476,9 @@ class HospitalService(
             url = url
         )
 
+        // 병원의 위치 정보 설정 
+        setHospitalLocationFromAddress(savedHospital, address)
+
         // 병원의 진료과 정보 저장 (중복 방지 포함)
         saveHospitalSpecialties(savedHospital, specialties)
 
@@ -436,52 +499,6 @@ class HospitalService(
         }
 
         return savedHospital // 최종적으로 저장된 병원 엔티티 반환
-    }
-
-    // 주소를 기반으로 위도/경도를 조회 (카카오맵 API 사용)
-    fun getCoordinatesFromAddress(address: String): Pair<Double, Double>? {
-        val apiKey = "b66445a2658c58be46ba36fef5748c4f" // REST API 키 사용
-        val restTemplate = RestTemplate() // RestTemplate 인스턴스 생성
-
-        // 카카오맵 API의 주소 검색 엔드포인트 URL 생성
-        val url = UriComponentsBuilder.fromHttpUrl("https://dapi.kakao.com/v2/local/search/address.json")
-            .queryParam("query", address) // query 파라미터에 변환할 주소 추가
-            .build()
-            .toUriString()        
-
-        return try {
-            // HTTP 요청 헤더 설정 
-            val headers = org.springframework.http.HttpHeaders()
-            headers.set("Authorization", "KakaoAK $apiKey") // 인증 키 추가
-            val entity = HttpEntity<String>(headers)
-
-            // REST API 호출 (GET 요청)
-            val response: ResponseEntity<String> = restTemplate.exchange(url, HttpMethod.GET, entity, String::class.java)
-            
-            // JSON 데이터 파싱
-            val objectMapper = ObjectMapper()
-            val jsonNode: JsonNode = objectMapper.readTree(response.body)
-            val documents = jsonNode["documents"]
-
-            if (documents != null && documents.isArray && documents.size() > 0) {
-                val location = documents[0]
-                val latitude = location["y"]?.asDouble() ?: return null // 위도 (y 값)
-                val longitude = location["x"]?.asDouble() ?: return null // 경도 (x 값)
-                Pair(latitude, longitude)
-            } else {
-                println("get coordinates failed: no result")
-                null
-            }
-        } catch (e: Exception) {
-            println("get coordinates failed: ${e.message}")
-            null
-        }
-    }
-    
-    // 위도와 경도를 기반으로 Point 객체를 생성하는 함수
-    fun createPoint(latitude: Double, longitude: Double): Point {
-        val geometryFactory = GeometryFactory(PrecisionModel(), 4326) // SRID 4326 (WGS 84) 사용
-        return geometryFactory.createPoint(Coordinate(longitude, latitude))
     }
 
     // 모든 병원 정보를 페이지네이션으로 조회
