@@ -1,18 +1,22 @@
 package com.callrapport.controller
 
-import com.callrapport.model.common.Specialty
-import com.callrapport.repository.common.SpecialtyRepository
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+// 엔티티 import
+import com.callrapport.model.common.Specialty // 진료과 엔티티
+// 레포지토리 import
+import com.callrapport.repository.common.SpecialtyRepository // 진료과 정보를 저장/조회하는 JPA 레포지토리
+import org.springframework.http.ResponseEntity // HTTP 응답을 표현하는 클래스  
+import org.springframework.web.bind.annotation.* // Rest 컨트롤러 및 매핑 어노테이션
 
 @RestController
 @RequestMapping("/api/specialties")
 class SpecialtyEntityController(
-    private val specialtyRepository: SpecialtyRepository
+    private val specialtyRepository: SpecialtyRepository // 진료과 레포지토리
 ) {
     // 초기 진료과 데이터를 저장
+    // 예: http://localhost:8080/api/specialties/initialize 
     @GetMapping("/initialize")
     fun initializeSpecialties(): ResponseEntity<Map<String, Any>> {
+        // 초기 진료과 리스트 정리 (진료과 ID + 이름)
         val specialties = listOf(
             Specialty("PF000", "가정의학과"),
             Specialty("PM000", "내과"),
@@ -44,21 +48,24 @@ class SpecialtyEntityController(
             Specialty("PC000", "흉부외과")
         )
 
-        // 중복 저장 방지
+        // 이미 DB에 존재하는 진료과는 제외하고 저장
         val savedSpecialties = specialties.filterNot { specialtyRepository.existsById(it.id) }
         specialtyRepository.saveAll(savedSpecialties)
 
+        // 성공 응답 반환
         return ResponseEntity.ok(
             mapOf(
-                "status" to "Specialties initialized successfully",
-                "totalSaved" to savedSpecialties.size
+                "status" to "Specialties initialized successfully", // 상태 메시지
+                "totalSaved" to savedSpecialties.size // 새로 저장된 진료과 수
             )
         )
     }
 
-    // 전체 진료과 목록 조회 API
+    // 전체 진료과 목록 조회 
+    // 예: http://localhost:8080/api/specialties
     @GetMapping
     fun getAllSpecialties(): ResponseEntity<List<Specialty>> {
+        // DB에 저장된 모든 진료과 목록 조회 및 반환
         return ResponseEntity.ok(specialtyRepository.findAll())
     }
 }
