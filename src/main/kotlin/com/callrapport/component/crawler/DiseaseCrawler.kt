@@ -1,7 +1,7 @@
 package com.callrapport.component.crawler
 
-import com.callrapport.component.crawler.WebCrawler 
-import com.callrapport.component.extractor.DiseaeseInfoExtractor
+import com.callrapport.component.crawler.WebCrawler // Selenium 기반의 WebDriver 생성기
+import com.callrapport.component.extractor.DiseaeseInfoExtractor // HTML 문서에서 질병 정보 추출
 
 // Jsoup 관련 라이브러리 (HTML 파싱 및 데이터 추출)
 import org.jsoup.Jsoup // HTML 문서 다운로드 및 파싱
@@ -15,17 +15,17 @@ import org.openqa.selenium.support.ui.WebDriverWait // 웹 페이지 로딩을 �
 import org.openqa.selenium.support.ui.ExpectedConditions // 특정 조건이 만족할 때까지 대기하는 기능
 
 // Spring 및 JSON 관련 라이브러리
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Component // Spring Bean으로 등록하기 위한 어노테이션
 
 // 기타 유틸리티 라이브러리
-import java.time.Duration 
+import java.time.Duration // WebDriver 대기 시간 설정
 
 @Component
 class DiseaseCrawler(
-    private val webCrawler: WebCrawler,
-    private val diseaseInfoExtractor: DiseaeseInfoExtractor
+    private val webCrawler: WebCrawler, // Selenium WebDriver를 생성하는 클래스
+    private val diseaseInfoExtractor: DiseaseInfoExtractor // HTML에서 질병 정보를 추출하는 클래스 
 ) {
-    // 질병 정보로 이동하는 링크들을 수집하는 함수
+    // 질병 정보로 이동하는 링크들을 수집
     fun crawlDiseaseLinks(): List<Pair<String, String>> {
         val driver = webCrawler.createWebDriver() // WebDriver 생성
         val diseaseLinks = mutableListOf<Pair<String, String>>() // 질병 링크를 저장할 리스트
@@ -94,44 +94,46 @@ class DiseaseCrawler(
         }
     }
 
-    // 단일 질병 정보를 크롤링하는 함수
-    // 컨트롤러와 일치하도록 메서드 이름을 crawlDiseaseInfos로 사용합니다.
+    // 단일 질병 정보를 크롤링
     fun crawlDiseaseInfos(name: String, url: String): Map<String, String?> {
         return try {
             val doc: Document = Jsoup.connect(url).get()
 
             mapOf(
-                "name" to name,
-                "overview" to diseaseInfoExtractor.extractOverview(doc),
-                "definition" to diseaseInfoExtractor.extractDefinition(doc),
-                "type" to diseaseInfoExtractor.extractType(doc),
-                "cause" to diseaseInfoExtractor.extractCause(doc),
-                "symptoms" to diseaseInfoExtractor.extractSymptoms(doc),
-                "diagnosis" to diseaseInfoExtractor.extractDiagnosis(doc),
-                "progress" to diseaseInfoExtractor.extractProgress(doc),
-                "pathophysiology" to diseaseInfoExtractor.extractPathophysiology(doc),
-                "treatment" to diseaseInfoExtractor.extractTreatment(doc),
-                "drug_treatment" to diseaseInfoExtractor.extractDrugTreatment(doc),
-                "non_drug_treatment" to diseaseInfoExtractor.extractNonDrugTreatment(doc),
-                "self_care" to diseaseInfoExtractor.extractSelfCare(doc),
-                "self_diagnosis" to diseaseInfoExtractor.extractSelfDiagnosis(doc),
-                "when_to_visit_hospital" to diseaseInfoExtractor.extractWhenToVisitHospital(doc),
-                "related_diseases" to diseaseInfoExtractor.extractRelatedDiseases(doc),
-                "related_symptoms" to diseaseInfoExtractor.extractRelatedSymptoms(doc),
-                "complications" to diseaseInfoExtractor.extractComplications(doc),
-                "custom_made_info" to diseaseInfoExtractor.extractCustomMadeInfo(doc),
-                "related_keywords" to diseaseInfoExtractor.extractRelatedKeywords(doc),
-                "prevention" to diseaseInfoExtractor.extractPrevention(doc),
-                "FAQ" to diseaseInfoExtractor.extractFAQ(doc),
-                "references" to diseaseInfoExtractor.extractReferences(doc),
-                "url" to url
+                "name" to name, // 질병명
+                "overview" to diseaseInfoExtractor.extractOverview(doc), // 질병 요약
+                "definition" to diseaseInfoExtractor.extractDefinition(doc), // 정의
+                "type" to diseaseInfoExtractor.extractType(doc), // 질병의 분류/유형
+                "cause" to diseaseInfoExtractor.extractCause(doc), // 원인
+                "symptoms" to diseaseInfoExtractor.extractSymptoms(doc), // 증상
+                "diagnosis" to diseaseInfoExtractor.extractDiagnosis(doc), // 진단 방법
+                "progress" to diseaseInfoExtractor.extractProgress(doc), // 경과/예후
+                "pathophysiology" to diseaseInfoExtractor.extractPathophysiology(doc), // 병태생리
+                "treatment" to diseaseInfoExtractor.extractTreatment(doc), // 전체적인 치료 정보
+                "drug_treatment" to diseaseInfoExtractor.extractDrugTreatment(doc), // 약물 치료
+                "non_drug_treatment" to diseaseInfoExtractor.extractNonDrugTreatment(doc), // 비약물 치료
+                "self_care" to diseaseInfoExtractor.extractSelfCare(doc), // 자가 관리법
+                "self_diagnosis" to diseaseInfoExtractor.extractSelfDiagnosis(doc), // 자가 진단
+                "when_to_visit_hospital" to diseaseInfoExtractor.extractWhenToVisitHospital(doc), // 병원에 방문해야 하는 경우
+                "related_diseases" to diseaseInfoExtractor.extractRelatedDiseases(doc), // 관련 질병
+                "related_symptoms" to diseaseInfoExtractor.extractRelatedSymptoms(doc), // 관련 증상
+                "complications" to diseaseInfoExtractor.extractComplications(doc), // 합병증
+                "custom_made_info" to diseaseInfoExtractor.extractCustomMadeInfo(doc), // 맞춤 정보
+                "related_keywords" to diseaseInfoExtractor.extractRelatedKeywords(doc), // 연관 키워드 
+                "prevention" to diseaseInfoExtractor.extractPrevention(doc), // 예방 방법
+                "FAQ" to diseaseInfoExtractor.extractFAQ(doc), // 자주 묻는 질문
+                "references" to diseaseInfoExtractor.extractReferences(doc), // 참고 문헌
+                "url" to url // 원본 페이지 URL
             )
         } catch (e: Exception) {
+            // 예외 발생시 에러 메시지를 콘소레 출력 (URL과 함께 표시)
             println("⚠️ Failed to crawl disease info from ${url}: ${e.message}")
+
+            // 오류 발생 시 최소 정보만 담은 Map 반환
             mapOf(
-                "name" to name,
-                "url" to url,
-                "error" to "⚠️ ${e.message}"
+                "name" to name, // 질병명
+                "url" to url, // 크롤링 시도한 원본 페이지 URL 
+                "error" to "⚠️ ${e.message}" // 발생한 예외 메시지를 포함한 오류 정보
             )
         }
     }
