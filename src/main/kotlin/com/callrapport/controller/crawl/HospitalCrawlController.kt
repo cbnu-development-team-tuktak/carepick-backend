@@ -39,7 +39,7 @@ class HospitalCrawlController(
     private val doctorService: DoctorService, // 의사 서비스
 
     // 레포지토리 
-    private val specialtyRepository: SpecialtyRepository // 진료과 정보 관리
+    private val specialtyRepository: SpecialtyRepository, // 진료과 정보 관리
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 관계 관리
     private val doctorRepository: DoctorRepository, // 의사 정보 관리
     private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 관리

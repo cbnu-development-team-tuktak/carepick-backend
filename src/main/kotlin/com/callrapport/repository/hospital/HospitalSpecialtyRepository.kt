@@ -21,5 +21,9 @@ interface HospitalSpecialtyRepository : JpaRepository<HospitalSpecialty, Long> {
         specialty: Specialty // 검색할 진료과 객체
     ): List<HospitalSpecialty> // 해당 진료과와 연관된 모든 HospitalSpecialty 목록
 
-    fun existsByHospitalIdAndSpecialtyId(hospitalId: String, specialtyId: String): Boolean
+    // 병원 ID와 진료과 ID 조합이 존재하는지 여부 확인 
+    fun existsByHospitalIdAndSpecialtyId(
+        hospitalId: String, // 병원 ID
+        specialtyId: String // 진료과 ID
+    ): Boolean // 해당 조합이 존재하면 true, 아니면 false
 }

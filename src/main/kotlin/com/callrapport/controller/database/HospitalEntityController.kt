@@ -39,7 +39,7 @@ class HospitalEntityController(
     fun searchHospitalsByAddress(
         @RequestParam keyword: String, // 검색 키워드 (주소 일부)
         pageable: Pageable // 페이징 정보
-    ): Page<Hospital> {
+    ): Page<HospitalDetailsResponse> {
         // 주소 기준 검색 후 DTO로 변환
         val hospitalPage = hospitalService.searchHospitalsByAddress(keyword, pageable)
         return hospitalPage.map { HospitalDetailsResponse.from(it) }
@@ -48,7 +48,9 @@ class HospitalEntityController(
     // 모든 병원 목록 조회 (DTO 반환)
     // 예: http://localhost:8080/api/hospitals?page=0&size=10
     @GetMapping
-    fun getAllHospitals(pageable: Pageable): Page<HospitalDetailsResponse> {
+    fun getAllHospitals(
+        pageable: Pageable // 페이징 정보
+    ): Page<HospitalDetailsResponse> {
         // 전체 병원 조회 후 DTO로 변환
         val hospitalPage = hospitalService.getAllHospitals(pageable)
         return hospitalPage.map { HospitalDetailsResponse.from(it) }

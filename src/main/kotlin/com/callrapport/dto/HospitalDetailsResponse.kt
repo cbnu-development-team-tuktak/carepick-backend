@@ -32,7 +32,7 @@ data class HospitalDetailsResponse(
                 // 병원에 연결된 진료과 목록이 존재할 경우
                 specialties = hospital.specialties
                     .takeIf { it.isNotEmpty() } // 비어 있지 않은 경우에만 수행
-                    ?.mapNotNull { it.specialty?.name } // specialty가 null이 아니면 name 추출, 
+                    ?.mapNotNull { it.specialty?.name }, // specialty가 null이 아니면 name 추출, 
 
                 // 병원에 연결된 의사 목록이 존재할 경우
                 doctors = hospital.doctors

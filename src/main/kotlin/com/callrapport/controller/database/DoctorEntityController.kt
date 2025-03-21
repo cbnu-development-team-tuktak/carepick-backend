@@ -33,7 +33,7 @@ class DoctorEntityController(
     // 전체 의사 목록 조회
     @GetMapping
     fun getAllDoctors(pageable: Pageable): Page<DoctorDetailsResponse> {
-        val doctorPage = do ctorService.getAllDoctors(pageable) // 모든 의사 엔티티 페이지 조회 
+        val doctorPage = doctorService.getAllDoctors(pageable) // 모든 의사 엔티티 페이지 조회 
         val dtoList = doctorPage.content.map { DoctorDetailsResponse.from(it) } // 엔티티 → DTO 변환
         return PageImpl(dtoList, pageable, doctorPage.totalElements) // PageImpl로 DTO 리스트 구성
     }

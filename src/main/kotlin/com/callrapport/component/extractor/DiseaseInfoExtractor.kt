@@ -7,7 +7,7 @@ import org.jsoup.nodes.Document // 웹 페이지의 전체 HTML 문서를 표현
 import org.springframework.stereotype.Component // Spring의 컴포넌트로 등록
 
 @Component
-class DiseaeseInfoExtractor {
+class DiseaseInfoExtractor {
     // 질병의 기본 정보 추출
 
     // 개요 정보 추출

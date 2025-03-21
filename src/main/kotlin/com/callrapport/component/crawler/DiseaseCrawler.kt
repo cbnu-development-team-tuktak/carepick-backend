@@ -1,7 +1,7 @@
 package com.callrapport.component.crawler
 
 import com.callrapport.component.crawler.WebCrawler // Selenium 기반의 WebDriver 생성기
-import com.callrapport.component.extractor.DiseaeseInfoExtractor // HTML 문서에서 질병 정보 추출
+import com.callrapport.component.extractor.DiseaseInfoExtractor // HTML 문서에서 질병 정보 추출
 
 // Jsoup 관련 라이브러리 (HTML 파싱 및 데이터 추출)
 import org.jsoup.Jsoup // HTML 문서 다운로드 및 파싱

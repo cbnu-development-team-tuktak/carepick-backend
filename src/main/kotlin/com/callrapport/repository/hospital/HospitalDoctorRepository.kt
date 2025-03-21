@@ -15,5 +15,9 @@ interface HospitalDoctorRepository : JpaRepository<HospitalDoctor, Long> {
         hospital: Hospital // 검색할 병원 객체
     ): List<HospitalDoctor> // 해당 병원과 연관된 모든 HospitalDoctor 목록
 
-    fun existsByHospitalIdAndDoctorId(hospitalId: String, doctorId: String): Boolean
+    // 병원 ID와 의사 ID 조합이 존재하는지 여부 확인
+    fun existsByHospitalIdAndDoctorId(
+        hospitalId: String, // 병원 ID
+        doctorId: String // 의사 ID
+    ): Boolean // 해당 조합이 존재하면 true, 아니면 false
 }
