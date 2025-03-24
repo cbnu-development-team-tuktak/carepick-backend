@@ -34,6 +34,7 @@ dependencies {
 
     implementation("org.hibernate.orm:hibernate-spatial:6.6.5.Final")
 
+    implementation("org.jgrapht:jgrapht-core:1.5.1")
 
     // Spring WebFlux (비동기 처리를 위한 WebClient, Reactor 지원)
     implementation("org.springframework.boot:spring-boot-starter-webflux")
