@@ -1,7 +1,8 @@
 package com.callrapport.controller.common
 
-// Spring Web 관련 import 
+// Spring 관련 import 
 import org.springframework.web.bind.annotation.* // REST 컨트롤러, 매핑, 요청 파라미터 어노테이션 등
+import org.springframework.http.ResponseEntity // HTTP 응답을 표현하는 클래스  
 
 // 저장소 관련 import
 import com.callrapport.repository.common.StopwordRepository
@@ -16,6 +17,7 @@ class StopwordEntityController(
 ) {
     // 초기 불용어 데이터를 저장
     // 예: http://localhost:8080/api/stopwords/initialize
+    @GetMapping("/initialize")
     fun initializeStopwords(): ResponseEntity<Map<String, Any>> {
         val stopwords = listOf(
             // 일반 연결어 및 설명어
@@ -65,8 +67,16 @@ class StopwordEntityController(
             Stopword(word = "생기다", pos = "동사"),
             Stopword(word = "확인되다", pos = "동사"),
             Stopword(word = "가능하다", pos = "형용사"),
-            Stopword(word = "있다", pos = "동사"),
-            Stopword(word = "없다", pos = "형용사"),
+            Stopword(word = "있습니다", pos = "동사"),
+            Stopword(word = "있다", pos = "동사"),        
+            Stopword(word = "없다", pos = "동사"),
+            Stopword(word = "나타나다", pos = "동사"),
+            Stopword(word = "나타날", pos = "동사"),
+            Stopword(word = "나타난다", pos = "동사"),
+            Stopword(word = "곤란", pos = "명사"),        
+            Stopword(word = "장기", pos = "명사"),
+            Stopword(word = "중요", pos = "형용사"),
+            Stopword(word = "가능하다", pos = "형용사"),
 
             // 불필요한 수식어
             Stopword(word = "보통", pos = "부사"),
@@ -109,7 +119,7 @@ class StopwordEntityController(
     // 전체 불용어 목록 조회
     // 예: http://localhost:8080/api/stopwords
     @GetMapping
-    fun getAllStopwords(): ResponseEntity<List<Stopwords>> {
+    fun getAllStopwords(): ResponseEntity<List<Stopword>> {
         // DB에 저장된 모든 불용어 목록 조회 및 반환
         return ResponseEntity.ok(stopwordRepository.findAll())
     }
