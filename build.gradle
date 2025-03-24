@@ -34,7 +34,10 @@ dependencies {
 
     implementation("org.hibernate.orm:hibernate-spatial:6.6.5.Final")
 
+    // 그래프 알고리즘 라이브러리 (TextRank에서 단어 그래프 구성 및 PageRank 계산용)
     implementation("org.jgrapht:jgrapht-core:1.5.1")
+    // 형태소 분석기 (Twitter 형태소 분석 기반, Kotlin/Java에서 한국어 명사/동사 등 추출)
+    implementation("org.openkoreantext:open-korean-text:2.1.0") 
 
     // Spring WebFlux (비동기 처리를 위한 WebClient, Reactor 지원)
     implementation("org.springframework.boot:spring-boot-starter-webflux")
