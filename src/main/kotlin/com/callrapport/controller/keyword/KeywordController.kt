@@ -12,36 +12,52 @@ import com.callrapport.component.keyword.KeywordExtractor
 class KeywordController (
     private val keywordExtractor: KeywordExtractor // 키워드 추출 컴포넌트
 ) {
-    // 동의어 사전 (예시)
+    // 동의어 사전
     private val synonymDictionary = mapOf(
-        "두통" to "머리",
-        "어지러움" to "머리",
-        "멀미" to "머리",
-        "고혈압" to "고혈압 증상",
-        "호흡곤란" to "숨 가쁨",
-        "두근거림" to "심장 두근거림"
+        "머리" to listOf("두통", "어지러움", "멀미")
     )
 
-    // 동의어 교체 함수
-    private fun replaceWithSynonyms(text: String): String {
-        var updatedText = text
-        synonymDictionary.forEach { (key, value) ->
-            updatedText = updatedText.replace(key, value)
+    // 동의어 교체
+    private fun replaceWithSynonyms(
+        text: String // 텍스트 내에서 동의어를 교체할 대상 텍스트
+    ): String { // 동의어 교체 후 수정된 텍스트
+        var updatedText = text // 입력할 텍스트를 처리할 변수로 복사
+
+        // 동의어 사전에서 각 동의어 그룹을 순회
+        synonymDictionary.forEach { (synonym, words) ->
+            // 동의어 목록에 있는 각 단어를 동의어로 바꿈
+            words.forEach { word ->
+                // 텍스트 내에서 해당 단어를 동의어로 치환
+                updatedText = updatedText.replace(word, synonym)
+            }
         }
-        return updatedText
+        return updatedText // 최종적으로 동의어로 교체된 텍스트를 반환
     }
 
+    // 코사인 유사도 계산
     private fun cosineSimilarity(vec1: List<Double>, vec2: List<Double>): Double {
+        // 두 벡터의 내적 계산 (각 대응되는 원소들의 곱을 합산)
         val dotProduct = vec1.zip(vec2).sumOf { it.first * it.second }
+
+        // 첫 번째 벡터의 크기 계산 (벡터의 각 원소 제곱합의 제곱근)
         val magnitude1 = Math.sqrt(vec1.sumOf { it * it })
+        
+        // 두 번째 벡터의 크기 계산 (벡터의 각 원소 제곱합의 제곱근)
         val magnitude2 = Math.sqrt(vec2.sumOf { it * it })
-    
+        
+        // 두 벡터의 크기가 0인 경우 유사도를 0으로 반환
+        // 그렇지 않으면 코사인 유사도 계산 (내적 / 크기1 * 크기2)
         return if (magnitude1 == 0.0 || magnitude2 == 0.0) 0.0
                else dotProduct / (magnitude1 * magnitude2)
     }
 
-    private fun toVector(allKeywords: List<String>, docKeywords: List<String>): List<Double> {
+    // 키워드 목록을 벡터로 변환
+    private fun toVector(
+        allKeywords: List<String>, // 전체 키워드 목록 (문서에서 나타날 수 있는 모든 키워드)
+        docKeywords: List<String> // 특정 문서에서 추출한 키워드 목록
+    ): List<Double> { // 각 키워드가 문서에 몇 번 나타나는지에 대한 벡터 목록
         return allKeywords.map { keyword ->
+            // 각 키워드에 대해 문서에서 해당 키워드가 등장하는 횟수를 계산
             docKeywords.count { it == keyword }.toDouble()
         }
     }
@@ -50,54 +66,55 @@ class KeywordController (
     // 예: http://localhost:8080/api/keywords/compare/multi/text_rank
     @GetMapping("/compare/multi/text_rank")
     fun compareMultiTextsByTextRank(): ResponseEntity<Map<String, Any>> {
-        val inputText = "머리가 아프고, 호흡하기가 어려워. 가슴이 답답해." // 사용자가 입력한 문장
+        // 사용자가 입력한 문장 (예시)
+        val inputText = "머리가 아프고, 호흡하기가 어려워. 가슴이 답답해." 
+        // 입력 문장에 대해 동의어 교체 처리
         val updatedInputText = replaceWithSynonyms(inputText)
-        // 여러 질병에 대한 문장들
+        
+        // 여러 질병에 대한 문장들 (질병별 증상 예시)
         val diseaseTextList = listOf(
-            // 고혈압
-            "고혈압은 표적 장기 손상으로 이어질 수 있습니다. 두통과 두근거림이 발생할 수 있습니다.",
-            // 골절
-            """
-                뼈가 부러지면 극심한 통증이 나타나며, 함께 나타나는 주요 증상은 다음과 같습니다.
-
-                통증 및 압통: 골절 부위의 부기(종창), 근육 경련, 골막의 손상에 의해 통증이 발생하고, 골절 부위를 압박하거나 움직일 때 더욱 심해집니다.
-                정상 기능의 상실: 골절된 부위가 비정상적으로 흔들리고 주위 관절이 아파서 움직이지 못합니다.
-                골절로 인한 변형: 팔, 다리의 모양이 변합니다.
-                부종: 체액과 혈액이 손상 부위로 스며들어 팔, 다리가 붓습니다.
-                그 외에 감각 손상, 근육 경련, 마비 등이 올 수 있습니다.
-            """,
-            // 구내염
-            """
-                대부분의 원발성 감염에서는 증상이 없거나 매우 경미하여 병에 걸린지 모르고 지나가는 경우가 많고, 단 10% 정도에서 감염 후 약 1주일 정도의 잠복기를 걸쳐 전신쇠약이나 근육통 같은 증상이 나타납니다. 이어 1~3일 후에 피부와 점막에 소수포성 발진이 나타나는데, 구강 내의 혀, 입술, 잇몸, 볼점막과 구개에 1~2 mm 크기의 작은 물집이 발생하고 바로 터져서 얕고 통증을 동반한 작고 불규칙한 궤양을 형성합니다. 궤양은 노란빛을 띠는 회색의 위막으로 덮여 있고 가장자리로 홍반성 테두리를 보입니다. 대게 2주 내에 반흔 없이 치유됩니다.
-            """
+            // 고혈압 관련 증상 문장
+            "고혈압은 두통, 가슴 두근거림, 호흡곤란을 유발하는 질병입니다.",
+            // 골절 관련 증상 문장
+            "골절은 통증, 부종, 변형을 유발하는 질병입니다.",
+            // 구내염 관련 증상 문장
+            "구내염은 발진, 통증, 궤양을 유발하는 질병입니다."
         )
 
         // 각 질병 문장과의 유사도 계산
         val similarities = diseaseTextList.mapIndexed { index, diseaseText ->
-            // 동의어 교체 후 처리
+            // 질병 문장에 대해서도 동의어 교체 처리
             val updatedDiseaseText = replaceWithSynonyms(diseaseText)
 
+            // 입력 테스트와 질병 문장의 키워드 추출 (TextRank)
             val keywords1 = keywordExtractor.extractByTextRank(inputText, topN = 30).toSet()
             val keywords2 = keywordExtractor.extractByTextRank(updatedDiseaseText, topN = 30).toSet()
-
+            
+            // 두 문장의 키워드를 합친 전체 키워드 목록
             val allKeywords = (keywords1 + keywords2).toSet().toList()
 
+            // 두 문장의 키워드 벡터를 변환
             val vec1 = toVector(allKeywords, keywords1.toList())
             val vec2 = toVector(allKeywords, keywords2.toList())
 
+            // Cosine 유사도를 계산하여 두 문장의 유사도 구하기
             val similarity = cosineSimilarity(vec1, vec2)
 
             // (문장 번호, 유사도) 튜플로 반환
             Pair(index + 1, similarity)
         }
 
-        // 결과 반환: 각 질병 문장과의 유사도 점수 및 키워드 목록
+        // 각 질병 문장과의 유사도 점수 및 키워드 목록를 반환
         return ResponseEntity.ok(
             mapOf(
+                // 사용자가 입력한 문장
                 "input_text" to inputText,
-                "similarities" to similarities, // 각 질병 문장과의 유사도
-                "text1_keywords" to keywordExtractor.extractByTextRank(inputText, topN = 30), // 입력 문장의 키워드
-                "disease_keywords" to diseaseTextList.map { replaceWithSynonyms(it).let { keywordExtractor.extractByTextRank(it, topN = 30) } } // 질병 문장들의 키워드
+                // 각 질병 문장과의 유사도 점수 리스트
+                "similarities" to similarities, 
+                // 입력 문장의 키워드
+                "input_text_keywords" to keywordExtractor.extractByTextRank(inputText, topN = 30), 
+                // 각 질병 문장의 키워드
+                "disease_keywords" to diseaseTextList.map { replaceWithSynonyms(it).let { keywordExtractor.extractByTextRank(it, topN = 30) } } 
             )
         )
     }
