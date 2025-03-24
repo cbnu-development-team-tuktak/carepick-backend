@@ -12,24 +12,23 @@ import com.callrapport.component.keyword.KeywordExtractor
 class KeywordController (
     private val keywordExtractor: KeywordExtractor // 키워드 추출 컴포넌트
 ) {
-    // 테스트용 문장
-    private val sampleText = """
-        고혈압은 표적 장기 손상(심장, 뇌, 망막 혈관 및 말초 혈관 등 중요 장기의 고혈압에 의한 손상) 전까지는 
-        특별한 증세가 없는 것이 보통이지만, 간혹 두통, 두근거림, 호흡곤란 등이 나타날 수 있습니다.
-    """.trimIndent()
+    // 동의어 사전 (예시)
+    private val synonymDictionary = mapOf(
+        "두통" to "머리",
+        "어지러움" to "머리",
+        "멀미" to "머리",
+        "고혈압" to "고혈압 증상",
+        "호흡곤란" to "숨 가쁨",
+        "두근거림" to "심장 두근거림"
+    )
 
-    // TextRank 기반 키워드 추출 결과 확인
-    // 예: http://localhost:8080/api/keywords/textrank
-    @GetMapping("/textrank")
-    fun testTextRank(): ResponseEntity<Map<String, Any>> {
-        val keywords = keywordExtractor.extractByTextRank(sampleText, topN = 10)
-
-        return ResponseEntity.ok(
-            mapOf(
-                "method" to "TextRank",
-                "keywords" to keywords
-            )
-        )
+    // 동의어 교체 함수
+    private fun replaceWithSynonyms(text: String): String {
+        var updatedText = text
+        synonymDictionary.forEach { (key, value) ->
+            updatedText = updatedText.replace(key, value)
+        }
+        return updatedText
     }
 
     private fun cosineSimilarity(vec1: List<Double>, vec2: List<Double>): Double {
@@ -46,71 +45,13 @@ class KeywordController (
             docKeywords.count { it == keyword }.toDouble()
         }
     }
-    
 
-    // 서로 다른 두 문장의 키워드를 비교하여 문장 내용 유사도 확인 (TextRank 기반)
-    // 예: http://localhost:8080/api/keywords/compare/text_rank
-    @GetMapping("/compare/text_rank")
-    fun compareTwoTextsByTextRank(): ResponseEntity<Map<String, Any>> {
-        val text1 = "고혈압은 표적 장기 손상으로 이어질 수 있습니다. 두통과 두근거림이 발생할 수 있습니다."
-        val text2 = "나는 호흡곤란이 있고 두통이 있어."
-    
-        val keywords1 = keywordExtractor.extractByTextRank(text1, topN = 10).toSet()
-        val keywords2 = keywordExtractor.extractByTextRank(text2, topN = 10).toSet()
-    
-        val allKeywords = (keywords1 + keywords2).toSet().toList() // 전체 단어 사전
-
-        val vec1 = toVector(allKeywords, keywords1.toList())
-        val vec2 = toVector(allKeywords, keywords2.toList())
-
-        val similarity = cosineSimilarity(vec1, vec2)
-
-        return ResponseEntity.ok(
-            mapOf(
-                "text1_keywords" to keywords1,
-                "text2_keywords" to keywords2,
-                "similarity" to similarity
-            )
-        )
-    }
-
-    // 서로 다른 두 문장의 키워드를 비교하여 문장 내용 유사도 확인 (TF-IDF 기반)
-    // 예: http://localhost:8080/api/keywords/compare/tf_idf
-    @GetMapping("/compare/tf_idf")
-    fun compareTwoTextsTfIdf(): ResponseEntity<Map<String, Any>> {
-        val text1 = "고혈압은 표적 장기 손상으로 이어질 수 있습니다. 두통과 두근거림이 발생할 수 있습니다."
-        val text2 = "나는 호흡곤란이 있고 두통이 있어."
-        
-        // TF-IDF 기반 키워드 추출
-        val keywords1 = keywordExtractor.extractByTfIdf(text1, topN = 30).toSet()
-        val keywords2 = keywordExtractor.extractByTfIdf(text2, topN = 30).toSet()
-        
-        // 전체 단어 사전 생성 (두 문장의 키워드 합집합)
-        val allKeywords = (keywords1 + keywords2).toSet().toList()
-
-        // 두 문장의 키워드를 벡터로 변환
-        val vec1 = toVector(allKeywords, keywords1.toList())
-        val vec2 = toVector(allKeywords, keywords2.toList())
-
-        // Cosine 유사도로 두 문장의 유사도 계산
-        val similarity = cosineSimilarity(vec1, vec2)
-
-        // 결과 반환
-        return ResponseEntity.ok(
-            mapOf(
-                "text1_keywords" to keywords1,
-                "text2_keywords" to keywords2,
-                "similarity" to similarity
-            )
-        )
-    }
-
-    // 서로 다른 한 문장을 여러 질병 문장과 비교하여 가장 일치하는 문장 번호 확인 (TextRank 기반)
+    // 여러 문장과 비교 (TextRank 기반)
     // 예: http://localhost:8080/api/keywords/compare/multi/text_rank
     @GetMapping("/compare/multi/text_rank")
     fun compareMultiTextsByTextRank(): ResponseEntity<Map<String, Any>> {
-        val text1 = "머리가 아프고, 호흡하기가 어려워. 가슴이 답답해." // 사용자가 입력한 문장
-
+        val inputText = "머리가 아프고, 호흡하기가 어려워. 가슴이 답답해." // 사용자가 입력한 문장
+        val updatedInputText = replaceWithSynonyms(inputText)
         // 여러 질병에 대한 문장들
         val diseaseTextList = listOf(
             // 고혈압
@@ -133,8 +74,11 @@ class KeywordController (
 
         // 각 질병 문장과의 유사도 계산
         val similarities = diseaseTextList.mapIndexed { index, diseaseText ->
-            val keywords1 = keywordExtractor.extractByTextRank(text1, topN = 10).toSet()
-            val keywords2 = keywordExtractor.extractByTextRank(diseaseText, topN = 10).toSet()
+            // 동의어 교체 후 처리
+            val updatedDiseaseText = replaceWithSynonyms(diseaseText)
+
+            val keywords1 = keywordExtractor.extractByTextRank(inputText, topN = 30).toSet()
+            val keywords2 = keywordExtractor.extractByTextRank(updatedDiseaseText, topN = 30).toSet()
 
             val allKeywords = (keywords1 + keywords2).toSet().toList()
 
@@ -147,13 +91,14 @@ class KeywordController (
             Pair(index + 1, similarity)
         }
 
-        // 결과 반환: 각 질병 문장과의 유사도 점수
+        // 결과 반환: 각 질병 문장과의 유사도 점수 및 키워드 목록
         return ResponseEntity.ok(
             mapOf(
-                "input_text" to text1,
-                "similarities" to similarities // 각 질병 문장과의 유사도
+                "input_text" to inputText,
+                "similarities" to similarities, // 각 질병 문장과의 유사도
+                "text1_keywords" to keywordExtractor.extractByTextRank(inputText, topN = 30), // 입력 문장의 키워드
+                "disease_keywords" to diseaseTextList.map { replaceWithSynonyms(it).let { keywordExtractor.extractByTextRank(it, topN = 30) } } // 질병 문장들의 키워드
             )
         )
     }
-
 }

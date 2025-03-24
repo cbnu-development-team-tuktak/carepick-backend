@@ -31,11 +31,11 @@ class KeywordExtractor(
         // 토큰화
         val tokens = OpenKoreanTextProcessorJava.tokenize(normalized)
 
-        // 품사 분석 + 명사 추출
+        // 품사 분석 + 명사/형용사/동사 추출
         val tokenList = OpenKoreanTextProcessorJava.tokensToJavaKoreanTokenList(tokens)
         val filtered = tokenList
-            // 형태소의 품사가 명사(Noun)인 경우만 필터링
-            .filter { it.pos.toString() in listOf("Noun") } 
+            // 품사가 명사(Noun), 형용사(Adjective), 동사(Verb)인 경우만 필터링
+             .filter { it.pos.toString() in listOf("Noun") }
             
             // 필터링된 형태소에서 실제 텍스트(단어)만 추출
             .map { it.text }
