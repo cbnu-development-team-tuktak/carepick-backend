@@ -3,6 +3,9 @@ package com.callrapport.controller.test
 // 크롤러 import
 import com.callrapport.component.crawler.hospital.HospitalImageCrawler // 병원 이미지를 크롤링하는 컴포넌트
 
+// Service 관련 import
+import com.callrapport.service.DiseaseReasoningService // 질병 관련 GPT 서비스
+
 // Spring 관련 import
 import org.springframework.http.ResponseEntity // HTTP 응답 객체
 import org.springframework.web.bind.annotation.GetMapping // GET 요청 처리 어노테이션
@@ -10,10 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping // URL 매핑 어�
 import org.springframework.web.bind.annotation.RequestParam // 쿼리 파라미터 추출 어노테이션
 import org.springframework.web.bind.annotation.RestController // REST 컨트롤러 선언
 
+import reactor.core.publisher.Mono
+
 @RestController
 @RequestMapping("/api/test")
 class TestController(
-    private val hospitalImageCrawler: HospitalImageCrawler // 병원 이미지 크롤러
+    private val hospitalImageCrawler: HospitalImageCrawler, // 병원 이미지 크롤러
+    private val diseaseReasoningService: DiseaseReasoningService // 증상 추출 서비스
 ) {
     // 병원명을 받아서 네이버 이미지 검색 결과에서 이미지 URL 리스트를 반환
     // ex) http://localhost:8080/api/test/place/images?hospitalName=베이드의원
@@ -40,5 +46,15 @@ class TestController(
                 "imageSources" to imageSources // 크롤링된 이미지 URL 리스트
             )
         )
+    }
+
+    // 증상 추출 테스트
+    // ex) http://localhost:8080/api/test/symptoms
+    @GetMapping("/symptoms")
+    fun testSymptomsExtraction(): ResponseEntity<Mono<String>> {
+        // 증상 추출 테스트 함수 호출
+        val result = diseaseReasoningService.testExtractSymptoms() 
+        // 결과를 HTTP 200 OK로 감싸서 반환
+        return ResponseEntity.ok(result)
     }
 }
