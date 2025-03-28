@@ -51,9 +51,21 @@ class TestController(
     // 증상 추출 테스트
     // ex) http://localhost:8080/api/test/symptoms
     @GetMapping("/symptoms")
-    fun testSymptomsExtraction(): ResponseEntity<Mono<String>> {
+    fun testSymptomsExtraction(
+    ): ResponseEntity<Mono<List<String>>> { // 증상 목록
         // 증상 추출 테스트 함수 호출
         val result = diseaseReasoningService.testExtractSymptoms() 
+        // 결과를 HTTP 200 OK로 감싸서 반환
+        return ResponseEntity.ok(result)
+    }
+
+    // 진료과 추출 테스트
+    // ex) http://localhost:8080/api/test/specialties
+    @GetMapping("/specialties")
+    fun testSpecialtiesExtraction(
+    ): ResponseEntity<Mono<List<String>>> { // 진료과 목록
+        // 진료과 추출 테스트 함수 호출
+        val result = diseaseReasoningService.testExtractSpecialties()
         // 결과를 HTTP 200 OK로 감싸서 반환
         return ResponseEntity.ok(result)
     }
