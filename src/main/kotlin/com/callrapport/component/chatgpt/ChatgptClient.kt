@@ -25,7 +25,7 @@ class ChatgptClient(
 
     // 클래스가 생성될 때 apiKey 로그 출력
     init {
-        println("[DEBUG] ChatGPT API Key = '${chatgptApiProperties.apiKey}'")
+        println("ChatGPT API Key = '${chatgptApiProperties.apiKey}'")
     }
 
     // 설정된 ChatGPT API 키 반환
@@ -45,7 +45,18 @@ class ChatgptClient(
             .bodyValue(request) // 요청 바디 설정
             .retrieve() // 응답 수신
             .bodyToMono(ChatGptResponse::class.java) // 응답을 ChatGptResponse로 매핑
-            .map { it.choices.firstOrNull()?.message?.content ?: "no response from chatgpt"} // 응답 메시지 추출
+            .map { response ->
+                // 사용된 토큰 수를 상세히 출력하여 API 사용량을 확인
+                println("ChatGPT Token Usage")
+                println("-------------------------------------------")
+                println("Prompt tokens: ${response.usage.promptTokens}") // 질문(prompt)에서 사용된 토큰 수 출력
+                println("Completion tokens: ${response.usage.completionTokens}") // ChatGPT 응답에서 사용된 토큰 수
+                println("Total tokens used: ${response.usage.totalTokens}") // 전체 사용된 토큰 수
+                println("-------------------------------------------")
+    
+                // 응답 메시지를 반환하며, 응답이 없을 경우 기본 메시지를 반환
+                response.choices.firstOrNull()?.message?.content ?: "no response from chatgpt"
+            }
     }
 
     // ChatGPT 요청 DTO
@@ -62,11 +73,19 @@ class ChatgptClient(
 
     // ChatGPT 응답 전체 구조
     data class ChatGptResponse(
-        val choices: List<Choice> // 응답 선택지 리스트
+        val choices: List<Choice>, // 응답 선택지 리스트
+        val usage: Usage // 토큰 사용량 정보
     )
 
     // 각 선택지 안의 메시지
     data class Choice(
         val message: ChatMessage // 응답 메시지 객체
+    )
+
+    // 토큰 사용량 정보
+    data class Usage(
+        @JsonProperty("prompt_tokens") val promptTokens: Int, // 프롬프트 사용 토큰 수
+        @JsonProperty("completion_tokens") val completionTokens: Int, // 응답 사용 토큰 수
+        @JsonProperty("total_tokens") val totalTokens: Int // 총 토큰 사용량
     )
 }
