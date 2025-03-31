@@ -4,7 +4,7 @@ package com.callrapport.controller.crawl
 import com.callrapport.component.crawler.DiseaseCrawler // 질병 정보를 크롤링하는 클래스
 
 // 서비스 관련 import
-import com.callrapport.service.DiseaseService // 질병 원본 데이터를 저장하는 서비스
+import com.callrapport.service.disease.DiseaseService // 질병 원본 데이터를 저장하는 서비스
 
 // Spring 관련 import
 import org.springframework.http.HttpStatus // HTTP 상태 코드 관련 클래스

@@ -4,7 +4,7 @@ package com.callrapport.controller.test
 import com.callrapport.component.crawler.hospital.HospitalImageCrawler // 병원 이미지를 크롤링하는 컴포넌트
 
 // Service 관련 import
-import com.callrapport.service.DiseaseReasoningService // 질병 관련 GPT 서비스
+import com.callrapport.service.disease.DiseaseReasoningService // 질병 관련 GPT 서비스
 
 // Spring 관련 import
 import org.springframework.http.ResponseEntity // HTTP 응답 객체

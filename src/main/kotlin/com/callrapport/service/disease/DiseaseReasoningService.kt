@@ -1,4 +1,4 @@
-package com.callrapport.service
+package com.callrapport.service.disease
 
 // Component 관련 import
 import com.callrapport.component.chatgpt.ChatgptClient // ChatGPT 호출 컴포넌트
