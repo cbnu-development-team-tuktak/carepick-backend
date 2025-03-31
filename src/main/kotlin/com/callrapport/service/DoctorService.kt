@@ -211,4 +211,9 @@ class DoctorService(
     fun searchDoctorsByName(keyword: String, pageable: Pageable): Page<Doctor> {
         return doctorRepository.searchByName(keyword, pageable)
     }
+
+    // 의사 ID를 기준으로 의사 검색
+    fun getDoctorById(id: String): Doctor? {
+        return doctorRepository.findById(id).orElse(null)
+    }
 }
