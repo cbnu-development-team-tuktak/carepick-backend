@@ -38,7 +38,7 @@ class HospitalCrawlController(
     private val hospitalService: HospitalService, // 병원 서비스
     private val doctorService: DoctorService, // 의사 서비스
 
-    // 레포지토리 
+    // 리포지토리 
     private val specialtyRepository: SpecialtyRepository, // 진료과 정보 관리
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 관계 관리
     private val doctorRepository: DoctorRepository, // 의사 정보 관리
@@ -49,6 +49,7 @@ class HospitalCrawlController(
     private val objectMapper = jacksonObjectMapper() // JSON 변환 객체 생성
 
     // 병원 목록(이름 + URL) 크롤링 API
+    // 예: http://localhost:8080/api/crawl/hospital/hospital-links
     @GetMapping("/hospital-links")
     fun crawlHospitalLinks(): ResponseEntity<List<Map<String, String>>> {
         return try {
@@ -64,11 +65,13 @@ class HospitalCrawlController(
             ResponseEntity(response, HttpStatus.OK)
         } catch (e: Exception) {
             // 오류 발생 시 로그 출력 및 HTTP 500 오류 코드 반환
-            ResponseEntity.status(500
-                ).body(listOf(mapOf("error" to "⚠️ ${e.message}")))
+            ResponseEntity.status(500)
+                .body(listOf(mapOf("error" to "⚠️ ${e.message}")))
         }
     }
 
+    // 병원 전체 데이터 저장 (이름, 상세정보, 의사 목록 포함)
+    // 예: http://localhost:8080/api/crawl/hospital/save-all
     @GetMapping("/save-all")
     fun saveAllHospitals(): ResponseEntity<String> {
         return try {

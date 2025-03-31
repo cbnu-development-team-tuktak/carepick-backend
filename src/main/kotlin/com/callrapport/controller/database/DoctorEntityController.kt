@@ -20,6 +20,7 @@ class DoctorEntityController(
     private val doctorService: DoctorService // 의사 데이터를 처리하는 서비스 
 ) {
     // 의사 이름으로 검색
+    // 예: http://localhost:8080/api/doctors/search?keyword=남호석&page=0&size=10
     @GetMapping("/search")
     fun searchDoctors(
         @RequestParam keyword: String, // 검색 키워드 (의사 이름)
@@ -31,10 +32,23 @@ class DoctorEntityController(
     }
 
     // 전체 의사 목록 조회
+    // 예: http://localhost:8080/api/doctors?page=0&size=10
     @GetMapping
     fun getAllDoctors(pageable: Pageable): Page<DoctorDetailsResponse> {
         val doctorPage = doctorService.getAllDoctors(pageable) // 모든 의사 엔티티 페이지 조회 
         val dtoList = doctorPage.content.map { DoctorDetailsResponse.from(it) } // 엔티티 → DTO 변환
         return PageImpl(dtoList, pageable, doctorPage.totalElements) // PageImpl로 DTO 리스트 구성
+    }
+
+    // 의사 ID를 단일 의사 정보 조회
+    // 예: http://localhost:8080/api/doctors/U0000206325
+    @GetMapping("/{id}")
+    fun getDoctorById(
+        @PathVariable id: String
+    ): DoctorDetailsResponse {
+        val doctor = doctorService.getDoctorById(id)
+            ?: throw NoSuchElementException("Doctor with ID '$id' was not found.")
+
+        return DoctorDetailsResponse.from(doctor)
     }
 }
