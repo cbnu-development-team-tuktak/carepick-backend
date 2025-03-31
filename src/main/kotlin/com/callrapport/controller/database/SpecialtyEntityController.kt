@@ -68,4 +68,13 @@ class SpecialtyEntityController(
         // DB에 저장된 모든 진료과 목록 조회 및 반환
         return ResponseEntity.ok(specialtyRepository.findAll())
     }
+
+    // 전체 진료과 데이터를 삭제
+    // 예: http://localhost:8080/api/specialties/delete
+    // @GetMapping("/delete")
+    // fun deleteAllSpecialties(): ResponseEntity<String> {
+    //     val count = specialtyRepository.count() // 삭제 전 개수 확인
+    //     specialtyRepository.deleteAll() // 전체 삭제 수행
+    //     return ResponseEntity.ok("✅ $count specialties have been deleted from the database.")
+    // }
 }
