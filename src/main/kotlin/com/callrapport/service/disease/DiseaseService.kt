@@ -105,16 +105,19 @@ class DiseaseService(
                 val suggestedSpecialties = diseaseReasoningService.extractSpecialties(raw.name, symptoms).block() ?: emptyList()
                 println("Extracted specialties for '${raw.name}': $suggestedSpecialties")
 
-                // 진료과 추출 결과가 비어 있는 경우
+                // 진료과 추출 결과가 비어 있는 경우 (ChatGPT가 아무 진료과도 추천하지 못한 경우)
                 if (suggestedSpecialties.isEmpty()) {
+                    // 상태를 FAILED로 변경하고, 다음 질병으로 넘어감
                     updateStatus(raw, DiseaseStatus.FAILED)
                     continue
                 }
 
+                // ChatGPT가 추천한 진료과들 중, 실제로 DB에 존재하는 진료과만 필터링
                 val validSpecialties = suggestedSpecialties.mapNotNull { specialtyRepository.findByName(it) }
 
-                // ✅ 하나도 저장된 진료과가 없다면 질병 저장하지 않음
+                // 유효한 진료과가 하나도 없을 경우 (추천한 진료과가 기존 진료과 DB에 등록되지 않았을 경우)
                 if (validSpecialties.isEmpty()) {
+                    // 해당 질병은 저장하지 않고, 처리 상태를 FAILED로 기록
                     println("❌ No registered specialties matched for '${raw.name}' → SKIP")
                     updateStatus(raw, DiseaseStatus.FAILED)
                     continue
