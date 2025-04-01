@@ -97,15 +97,18 @@ class DiseaseCrawlController(
     // 원본 질병 데이터를 기반으로 정제된 질병 데이터를 생성하는 API
     // ex) http://localhost:8080/api/crawl/disease/process-raw
     // !!! CHATGPT 토큰 소모되므로 꼭 신중하게 사용할 것
-    @GetMapping("/process-raw")
-    fun processRawDiseases(): ResponseEntity<String> {
-        return try {
-            diseaseService.generateCleanDiseasesFromRaw()
-            ResponseEntity.ok("All pending raw diseases have been processed successfully.")
-        } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("An error occurred while processing raw diseases: ${e.message}")
-        }
-    }
+    // @GetMapping("/process-raw")
+    // fun processRawDiseases(): ResponseEntity<String> {
+    //     return try {
+    //         // DiseaseService를 통해 원시 질병 데이터를 정제된 질병 데이터로 생성
+    //         diseaseService.generateCleanDiseasesFromRaw()
 
+    //         // 처리 성공 시, 200 OK 상태와 함께 성공 메시지 반환
+    //         ResponseEntity.ok("All pending raw diseases have been processed successfully.")
+    //     } catch (e: Exception) {
+    //         // 처리 도중 예외 발생 시, 500 Internal Server Error 상태와 함께 에러 메시지 반환
+    //         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    //             .body("An error occurred while processing raw diseases: ${e.message}")
+    //     }
+    // }
 }
