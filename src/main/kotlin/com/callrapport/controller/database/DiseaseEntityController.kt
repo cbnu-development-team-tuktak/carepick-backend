@@ -74,6 +74,20 @@ class DiseaseEntityController(
         return PageImpl(dtoList, pageable, diseasePage.totalElements) // Page 객체로 응답
     }
 
+    // 특정 가공 질병 데이터 조회
+    // 예: http://localhost:8080/api/diseases/processed/1
+    @GetMapping("/processed/{id}")
+    fun getDiseaseById(@PathVariable id: Long): ResponseEntity<DiseaseDetailsResponse> {
+        val disease = diseaseRepository.findById(id)
+
+        return if (disease.isPresent) {
+            val dto = DiseaseDetailsResponse.from(disease.get())
+            ResponseEntity.ok(dto)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+
     // 전체 가공된 질병 데이터 삭제
     // ex) http://localhost:8080/api/diseases/processed/delete
     // @GetMapping("/processed/delete")

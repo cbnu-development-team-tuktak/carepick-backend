@@ -216,4 +216,9 @@ class DoctorService(
     fun getDoctorById(id: String): Doctor? {
         return doctorRepository.findById(id).orElse(null)
     }
+
+    // 의사 ID를 기준으로 첫 번째 병원-의사 관계 조회
+    fun getFirstHospitalDoctorByDoctorId(doctorId: String): HospitalDoctor? {
+        return hospitalDoctorRepository.findFirstByDoctorId(doctorId)
+    }
 }

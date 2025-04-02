@@ -7,8 +7,15 @@ import com.callrapport.model.disease.Symptom // Symptom: 개별 증상 정보를
 import org.springframework.data.jpa.repository.JpaRepository // JPA의 CRUD 기능 제공
 import org.springframework.stereotype.Repository // 레포지토리임을 나타내는 어노테이션
 
+import org.springframework.data.domain.Page // 페이지네이션을 지원하는 JPA의 기본 객체 (검색 결과를 페이지 단위로 관리)
+import org.springframework.data.domain.Pageable // 페이지네이션 요청을 처리하는 JPA 객체 (클라이언트가 요청한 페이지 정보 포함)
+
 @Repository
 interface SymptomRepository : JpaRepository<Symptom, Long> {
+
+    // 모든 증상 정보를 페이지네이션으로 조회
+    override fun findAll(pageable: Pageable): Page<Symptom>
+
     // 증상명으로 증상 정보 조회
     fun findByName(
         name: String // 증상명 (예: 기침, 복통 등)

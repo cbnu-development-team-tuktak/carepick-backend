@@ -27,7 +27,10 @@ class DoctorEntityController(
         pageable: Pageable // 페이지 번호, 사이즈, 정렬 정보 등
     ): Page<DoctorDetailsResponse> {
         val doctorPage = doctorService.searchDoctorsByName(keyword, pageable) // 의사 엔티티 페이지 
-        val dtoList = doctorPage.content.map { DoctorDetailsResponse.from(it) } // 엔티티 → DTO 변환
+        val dtoList = doctorPage.content.map { doctor ->
+            val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id) // 소속 병원 조회
+            DoctorDetailsResponse.from(doctor, hospitalDoctor) // 엔티티 → DTO 변환
+        }
         return PageImpl(dtoList, pageable, doctorPage.totalElements) // PageImpl로 DTO 리스트 구성
     }
 
@@ -36,11 +39,14 @@ class DoctorEntityController(
     @GetMapping
     fun getAllDoctors(pageable: Pageable): Page<DoctorDetailsResponse> {
         val doctorPage = doctorService.getAllDoctors(pageable) // 모든 의사 엔티티 페이지 조회 
-        val dtoList = doctorPage.content.map { DoctorDetailsResponse.from(it) } // 엔티티 → DTO 변환
+        val dtoList = doctorPage.content.map { doctor ->
+            val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id) // 소속 병원 조회
+            DoctorDetailsResponse.from(doctor, hospitalDoctor) // 엔티티 → DTO 변환
+        }
         return PageImpl(dtoList, pageable, doctorPage.totalElements) // PageImpl로 DTO 리스트 구성
     }
 
-    // 의사 ID를 단일 의사 정보 조회
+    // 의사 ID로 단일 의사 정보 조회
     // 예: http://localhost:8080/api/doctors/U0000206325
     @GetMapping("/{id}")
     fun getDoctorById(
@@ -48,7 +54,9 @@ class DoctorEntityController(
     ): DoctorDetailsResponse {
         val doctor = doctorService.getDoctorById(id)
             ?: throw NoSuchElementException("Doctor with ID '$id' was not found.")
+        
+        val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(id) // 소속 병원 조회
 
-        return DoctorDetailsResponse.from(doctor)
+        return DoctorDetailsResponse.from(doctor, hospitalDoctor)
     }
 }
