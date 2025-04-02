@@ -55,4 +55,13 @@ class HospitalEntityController(
         val hospitalPage = hospitalService.getAllHospitals(pageable)
         return hospitalPage.map { HospitalDetailsResponse.from(it) }
     }
+
+    // 병원 ID로 단일 병원 조회
+    @GetMapping("/{id}")
+    fun getHospitalById(
+        @PathVariable id: String
+    ): HospitalDetailsResponse {
+        val hospital = hospitalService.getHospitalById(id)
+        return HospitalDetailsResponse.from(hospital)
+    }
 }

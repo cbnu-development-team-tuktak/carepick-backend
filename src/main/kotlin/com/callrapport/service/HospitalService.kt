@@ -523,4 +523,10 @@ class HospitalService(
     ): Page<Hospital> {
         return hospitalRepository.searchByAddress(keyword, pageable)
     }
+
+    // 병원 ID로 병원 정보 조회
+    fun getHospitalById(id: String): Hospital {
+        return hospitalRepository.findById(id)
+            .orElseThrow { NoSuchElementException("해당 ID의 병원이 존재하지 않습니다: $id") }
+    }
 }
