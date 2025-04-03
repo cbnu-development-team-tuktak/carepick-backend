@@ -65,6 +65,13 @@ class DiseaseEntityController(
         return ResponseEntity.ok("All $count raw disease records have been deleted.")
     }
 
+    // 전체 가공된 질병 데이터의 개수 반환 
+    @GetMapping("/processed/count")
+    fun getDiseasesCount(): ResponseEntity<Map<String, Long>> {
+        val count = diseaseService.countAllDiseases()  // 전체 질병 개수 조회
+        return ResponseEntity.ok(mapOf("count" to count))
+    }
+
     // 전체 가공된 질병 데이터를 페이지네이션으로 조회
     // 예: http://localhost:8080/api/diseases/processed?page=0&size=219
     @GetMapping("/processed")

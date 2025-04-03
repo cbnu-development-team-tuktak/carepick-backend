@@ -221,4 +221,9 @@ class DoctorService(
     fun getFirstHospitalDoctorByDoctorId(doctorId: String): HospitalDoctor? {
         return hospitalDoctorRepository.findFirstByDoctorId(doctorId)
     }
+
+    // 전체 의사 개수를 반환하는 함수
+    fun countAllDoctors(): Long {
+        return doctorRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
+    }
 }

@@ -529,4 +529,9 @@ class HospitalService(
         return hospitalRepository.findById(id)
             .orElseThrow { NoSuchElementException("해당 ID의 병원이 존재하지 않습니다: $id") }
     }
+
+    // 전체 병원 개수를 반환하는 함수
+    fun countAllHospitals(): Long {
+        return hospitalRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
+    }
 }
