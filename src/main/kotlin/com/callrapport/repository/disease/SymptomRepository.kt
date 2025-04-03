@@ -10,6 +10,9 @@ import org.springframework.stereotype.Repository // 레포지토리임을 나타
 import org.springframework.data.domain.Page // 페이지네이션을 지원하는 JPA의 기본 객체 (검색 결과를 페이지 단위로 관리)
 import org.springframework.data.domain.Pageable // 페이지네이션 요청을 처리하는 JPA 객체 (클라이언트가 요청한 페이지 정보 포함)
 
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+
 @Repository
 interface SymptomRepository : JpaRepository<Symptom, Long> {
 
@@ -32,4 +35,7 @@ interface SymptomRepository : JpaRepository<Symptom, Long> {
         end: String,
         pageable: Pageable
     ): Page<Symptom>
+
+    @Query("SELECT COUNT(s) FROM Symptom s WHERE s.name >= :start AND s.name < :end")
+    fun countByNameRange(@Param("start") start: String, @Param("end") end: String): Long
 }

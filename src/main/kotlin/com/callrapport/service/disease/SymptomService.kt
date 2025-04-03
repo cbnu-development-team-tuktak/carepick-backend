@@ -35,6 +35,11 @@ class SymptomService(
         return symptomRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
     }
 
+    // 특정 초성 범위에 해당하는 증상 개수를 반환하는 메서드
+    fun countSymptomsByInitialRange(start: String, end: String): Long {
+        return symptomRepository.countByNameRange(start, end)
+    }
+
     // 증상 삭제
     fun deleteSymptom(id: Long): Boolean {
         val symptom = symptomRepository.findById(id).orElse(null)
