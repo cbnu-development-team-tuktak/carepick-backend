@@ -18,7 +18,13 @@ import org.springframework.web.bind.annotation.RestController
 class SymptomEntityController(
     private val symptomService: SymptomService
 ) {
-
+    // 증상 개수 조회
+    @GetMapping("/count")
+    fun getSymptomsCount(): ResponseEntity<Map<String, Long>> {
+        val count = symptomService.countAllSymptoms()  // 전체 증상 개수 조회
+        return ResponseEntity.ok(mapOf("count" to count))
+    }
+    
     // 전체 증상 목록 조회 (페이지 단위)
     // 예: http://localhost:8080/api/symptoms?page=0&size=10
     @GetMapping
@@ -36,5 +42,18 @@ class SymptomEntityController(
         val symptom = symptomService.getSymptomById(id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(SymptomDetailsResponse.from(symptom))
+    }
+
+    // 특정 초성 범위로 증상 목록 조회 (예: ㄱ → start=가, end=나)
+    // 예: GET /api/symptoms/filter?start=가&end=나&page=0&size=10
+    @GetMapping("/filter")
+    fun getSymptomsByInitialRange(
+        @RequestParam start: String,
+        @RequestParam end: String,
+        pageable: Pageable
+    ): ResponseEntity<Page<SymptomDetailsResponse>> {
+        val page = symptomService.getSymptomsByInitialRange(start, end, pageable)
+            .map { SymptomDetailsResponse.from(it) }
+        return ResponseEntity.ok(page)
     }
 }

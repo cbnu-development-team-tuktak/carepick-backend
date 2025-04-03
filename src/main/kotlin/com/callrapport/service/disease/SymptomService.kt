@@ -25,4 +25,14 @@ class SymptomService(
     fun getSymptomById(id: Long): Symptom? {
         return symptomRepository.findById(id).orElse(null)
     }
+
+    fun getSymptomsByInitialRange(start: String, end: String, pageable: Pageable): Page<Symptom> {
+        return symptomRepository.findByNameBetween(start, end, pageable)
+    }
+
+    // 전체 증상 개수를 반환하는 함수
+    fun countAllSymptoms(): Long {
+        return symptomRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
+    }
+    
 }
