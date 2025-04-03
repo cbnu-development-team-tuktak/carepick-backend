@@ -25,4 +25,11 @@ interface SymptomRepository : JpaRepository<Symptom, Long> {
     fun existsByName(
         name: String // 증상명
     ): Boolean // 중복 여부 (true: 존재함, false: 없음)
+
+    // 특정 초성으로 시작하는 증상을 페이지 단위로 조회
+    fun findByNameBetween(
+        start: String,
+        end: String,
+        pageable: Pageable
+    ): Page<Symptom>
 }
