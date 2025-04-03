@@ -1,0 +1,168 @@
+/* ================== 의사 카드 스타일 ================== */
+
+/* 의사 카드 전체 크기 */
+.doctor-card {
+  width: 184px !important; /* 카드 너비 */
+  border-radius: 12px; /* 둥근 모서리 */
+  overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
+  padding: 0 !important; /* 패딩 제거 */
+  margin: 4px; /* 카드 간격 */
+  font-size: 0.85rem; /* 폰트 크기 */
+}
+
+/* 의사 프로필 이미지 */
+.doctor-card-image {
+  height: 184px !important; /* 이미지 높이 */
+  object-fit: cover; /* 이미지 크기 조정 (비율 유지 */
+}
+
+/* 의사 카드의 제목 */
+.card-title {
+  font-size: 1rem; /* 제목 폰트 크기 */
+  margin-bottom: 0.5rem; /* 제목과 본문 간의 간격 */
+  text-align: left !important; /* 제목 왼쪽 정렬 */
+}
+
+/* 의사 카드의 본문 텍스트 */
+.card-text {
+  font-size: 0.75rem; /* 본문 폰트 크기 */
+  margin-bottom: 0.25rem; /* 본문 텍스트 간 간격 */
+  text-align: left !important; /* 본문 왼쪽 정렬 */
+}
+
+/* ================== 의사 상세 정보 관련 스타일 ================== */
+
+/* 의사 이미지 스타일 */
+.doctor-image {
+  width: 100px; /* 이미지 너비 */
+  height: 100px; /* 이미지 높이 */
+  object-fit: cover; /* 비율에 맞춰 이미지 크기 조정 */
+  cursor: pointer; /* 클릭 가능한 모양으로 변경 */
+  display: block; /* 블록 요소로 설정 */
+  margin: 0; /* 기본 margin 제거하여 왼쪽 상단에 배치 */
+}
+
+/* 새 창에서 이미지 확대 시 적용될 스타일 */
+.full-screen-image {
+  max-width: 100%; /* 최대 너비 100% */
+  height: auto; /* 높이는 비율에 맞춰 자동 조정 */
+  margin: 0;
+  display: block; /* 블록 요소로 설정 */
+}
+
+/* ================== 병원 카드 스타일 ================== */
+
+/* 병원 카드 전체 크기 */
+.hospital-card {
+  width: 368px !important; /* 카드 너비 */
+  border-radius: 12px; /* 둥근 모서리 */
+  overflow: hidden; /* 내용이 넘칠 경우 숨김 처리 */
+  padding: 0 !important; /* 패딩 제거 */
+  margin: 4px; /* 카드 간격 */
+  font-size: 0.85rem; /* 폰트 크기 */
+}
+
+/* 병원 이미지 (썸네일) */
+.hospital-image {
+  height: 184px !important; /* 이미지 높이 */
+  object-fit: cover; /* 이미지 크기 조정 (비율 유지) */
+  width: 100%; /* 이미지 너비 100% */
+}
+
+/* 병원 이름 */
+.hospital-body h6 {
+  font-size: 1rem; /* 병원 이름 폰트 크기 */
+  margin-bottom: 0.5rem; /* 이름과 진료과/주소 간의 간격 */
+  text-align: left !important; /* 병원 이름 왼쪽 정렬 */
+}
+
+/* 진료과, 주소 텍스트 */
+.hospital-body p {
+  font-size: 0.75rem; /* 텍스트 폰트 크기 */
+  margin-bottom: 0.25rem; /* 텍스트 간 간격 */
+  text-align: left !important; /* 텍스트 왼쪽 정렬 */
+}
+
+/* 병원 카드 이름, 진료과, 주소에 공통 적용 */
+.truncate-text {
+  display: block; /* inline 요소에도 적용 */              
+  white-space: nowrap; /* 텍스트는 한 줄로 표시 */
+  overflow: hidden; /* 넘치는 텍스트는 숨김 처리 */
+  text-overflow: ellipsis; /* 텍스트가 길어지면 ...으로 처리 */
+  max-width: 100%; /* 최대 너비 100% */
+}
+
+/* ================== 병원 상세 정보 관련 스타일 ================== */
+
+/* 병원 썸네일 스타일 */
+.hospital-thumbnail {
+  width: 368px; /* 이미지 너비 */
+  height: 184px; /* 이미지 높이 */
+  object-fit: cover; /* 이미지 크기 조정 (비율 유지) */
+  border-radius: 12px; /* 둥근 모서리 */
+}
+
+/* ================== 증상 카드 커스텀 보완 ================== */
+
+/* ================== 증상 카드 ================== */
+
+/* ================== 증상 카드 ================== */
+
+.symptom-card {
+  min-width: 280px;
+  max-width: 280px;
+  box-sizing: border-box;
+  cursor: default;
+}
+
+/* 입력 비활성 상태 */
+.symptom-name-input:disabled {
+  background-color: #eee !important;
+  color: #333;
+}
+
+/* 버튼 그룹 스타일 */
+.symptom-button-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: 12px; /* ✅ 입력창과의 간격 추가 */
+  gap: 6px;
+}
+
+/* 아이콘 버튼 */
+.symptom-icon-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+
+
+/* ================== 고정 버튼 스타일 ================== */
+
+/* 고정 버튼 스타일 */
+.floating-btn {
+  position: fixed; /* 화면에 고정된 위치에 배치 */
+  right: 20px; /* 오른쪽에서 20px 떨어지게 배치 */
+  bottom: 20px; /* 아래에서 20px 떨어지게 배치 */ 
+  border-radius: 50% !important; /* 버튼을 원형으로 만듦 */
+  width: 60px; /* 버튼의 가로 크기 */
+  height: 60px; /* 버튼의 세로 크기 */
+  display: flex; /* flexbox로 아이콘을 정렬 */
+  justify-content: center; /* 가로로 가운데 정렬 */
+  align-items: center; /* 세로로 가운데 정렬 */
+  z-index: 1000; /*  버튼이 다른 요소 위에 위치하도록 설정 */
+}
+
+.floating-btn .react-icons {
+  font-size: 24px;  /* 아이콘 크기 설정 */
+}
+
+.floating-btn:hover {
+  cursor: pointer; /* 버튼 위에 마우스 올리면 포인터로 변경 */
+}
+

@@ -6,7 +6,7 @@ import com.callrapport.service.disease.SymptomService
 
 // Spring 관련 import
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Pageable 
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -42,6 +42,30 @@ class SymptomEntityController(
         val symptom = symptomService.getSymptomById(id)
             ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(SymptomDetailsResponse.from(symptom))
+    }
+
+    // 특정 초성 범위로 증상 목록 조회 (예: ㄱ → start=가, end=나)
+    // 예: GET /api/symptoms/filter?start=가&end=나&page=0&size=10
+    @GetMapping("/filter")
+    fun getSymptomsByInitialRange(
+        @RequestParam start: String,
+        @RequestParam end: String,
+        pageable: Pageable
+    ): ResponseEntity<Page<SymptomDetailsResponse>> {
+        val page = symptomService.getSymptomsByInitialRange(start, end, pageable)
+            .map { SymptomDetailsResponse.from(it) }
+        return ResponseEntity.ok(page)
+    }
+
+    // 특정 초성 범위로 증상 목록의 개수 조회 (예: ㄱ → start=가, end=나)
+    // 예: GET /api/symptoms/filter/count?start=가&end=나
+    @GetMapping("/filter/count")
+    fun getSymptomsCountByInitialRange(
+        @RequestParam start: String,
+        @RequestParam end: String
+    ): ResponseEntity<Map<String, Long>> {
+        val count = symptomService.countSymptomsByInitialRange(start, end)
+        return ResponseEntity.ok(mapOf("count" to count))
     }
 
     // 증상 삭제
