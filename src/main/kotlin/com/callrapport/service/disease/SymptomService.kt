@@ -34,5 +34,15 @@ class SymptomService(
     fun countAllSymptoms(): Long {
         return symptomRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
     }
-    
+
+    // 증상 삭제
+    fun deleteSymptom(id: Long): Boolean {
+        val symptom = symptomRepository.findById(id).orElse(null)
+        return if (symptom != null) {
+            symptomRepository.delete(symptom)
+            true
+        } else {
+            false
+        }
+    }
 }

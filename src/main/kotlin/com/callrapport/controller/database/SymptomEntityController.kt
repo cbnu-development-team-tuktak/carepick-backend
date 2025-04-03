@@ -44,16 +44,15 @@ class SymptomEntityController(
         return ResponseEntity.ok(SymptomDetailsResponse.from(symptom))
     }
 
-    // 특정 초성 범위로 증상 목록 조회 (예: ㄱ → start=가, end=나)
-    // 예: GET /api/symptoms/filter?start=가&end=나&page=0&size=10
-    @GetMapping("/filter")
-    fun getSymptomsByInitialRange(
-        @RequestParam start: String,
-        @RequestParam end: String,
-        pageable: Pageable
-    ): ResponseEntity<Page<SymptomDetailsResponse>> {
-        val page = symptomService.getSymptomsByInitialRange(start, end, pageable)
-            .map { SymptomDetailsResponse.from(it) }
-        return ResponseEntity.ok(page)
+    // 증상 삭제
+    // 예: DELETE /api/symptoms/1008
+    @DeleteMapping("/{id}")
+    fun deleteSymptom(@PathVariable id: Long): ResponseEntity<Void> {
+        val isDeleted = symptomService.deleteSymptom(id)
+        return if (isDeleted) {
+            ResponseEntity.noContent().build() // 삭제 성공
+        } else {
+            ResponseEntity.notFound().build() // 삭제할 증상이 없으면 404
+        }
     }
 }

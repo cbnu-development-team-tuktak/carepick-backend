@@ -171,4 +171,8 @@ class DiseaseService(
         return diseaseRepository.findAll(pageable)
     }
 
+    // 전체 질병 개수를 반환하는 함수
+    fun countAllDiseases(): Long {
+        return diseaseRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
+    }
 }

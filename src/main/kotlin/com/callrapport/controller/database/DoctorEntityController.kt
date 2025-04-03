@@ -13,12 +13,19 @@ import org.springframework.data.domain.Pageable // 페이징 정보(페이지 �
 
 // Spring Web 관련 import 
 import org.springframework.web.bind.annotation.* // REST 컨트롤러, 매핑, 요청 파라미터 어노테이션 등
+import org.springframework.http.ResponseEntity
 
 @RestController
 @RequestMapping("/api/doctors")
 class DoctorEntityController(
     private val doctorService: DoctorService // 의사 데이터를 처리하는 서비스 
 ) {
+    // 의사 개수 조회
+    @GetMapping("/count")
+    fun getDoctorsCount(): ResponseEntity<Map<String, Long>> {
+        val count = doctorService.countAllDoctors()  // 전체 증상 개수 조회
+        return ResponseEntity.ok(mapOf("count" to count))
+    }
     // 의사 이름으로 검색
     // 예: http://localhost:8080/api/doctors/search?keyword=남호석&page=0&size=10
     @GetMapping("/search")
