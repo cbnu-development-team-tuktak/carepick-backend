@@ -175,4 +175,9 @@ class DiseaseService(
     fun countAllDiseases(): Long {
         return diseaseRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
     }
+
+    // ID로 질병 조회 (엔티티 반환)
+    fun findDiseaseById(id: Long): Disease? {
+        return diseaseRepository.findById(id).orElse(null)
+    }
 }

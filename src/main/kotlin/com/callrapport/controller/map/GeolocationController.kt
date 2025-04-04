@@ -16,7 +16,6 @@ import com.callrapport.service.map.GeolocationService
 
 @RestController
 class GeolocationController(private val geolocationService: GeolocationService) {
-
     // 주소를 통해 경도, 위도를 반환하는 API
     @GetMapping("/api/geolocation")
     fun getCoordinates(@RequestParam address: String): Mono<Coordinate> {
