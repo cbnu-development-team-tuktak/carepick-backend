@@ -38,4 +38,8 @@ interface SymptomRepository : JpaRepository<Symptom, Long> {
 
     @Query("SELECT COUNT(s) FROM Symptom s WHERE s.name >= :start AND s.name < :end")
     fun countByNameRange(@Param("start") start: String, @Param("end") end: String): Long
+
+    fun findByNameIn(
+        names: List<String>
+    ): List<Symptom>
 }
