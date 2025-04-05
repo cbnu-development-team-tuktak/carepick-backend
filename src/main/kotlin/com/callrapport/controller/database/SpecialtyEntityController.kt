@@ -2,6 +2,7 @@ package com.callrapport.controller
 
 // 엔티티 import
 import com.callrapport.model.common.Specialty // 진료과 엔티티
+
 // 레포지토리 import
 import com.callrapport.repository.common.SpecialtyRepository // 진료과 정보를 저장/조회하는 JPA 레포지토리
 import org.springframework.http.ResponseEntity // HTTP 응답을 표현하는 클래스  
