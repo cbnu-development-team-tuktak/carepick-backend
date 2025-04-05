@@ -9,13 +9,12 @@ import com.callrapport.model.hospital.Hospital // 병원 엔티티
 // 서비스 import 
 import com.callrapport.service.HospitalService // 병원 관련 비즈니스 로직 처리 서비스 
 
-// Spring Data 관련 import
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+// Spring Data JPA 관련 import
+import org.springframework.data.domain.Page // 페이징 결과를 담는 객체
+import org.springframework.data.domain.Pageable // 페이징 요청 정보를 담는 객체
 
 // Spring Web 관련 import 
+import org.springframework.http.ResponseEntity // HTTP 응답 객체
 import org.springframework.web.bind.annotation.* // REST 컨트롤러 관련 어노테이션들
 
 @RestController
@@ -24,11 +23,13 @@ class HospitalEntityController(
     private val hospitalService: HospitalService // 병원 데이터를 처리하는 서비스 의존성 주입 
 ) {
     // 병원 개수 조회
+    // 예: http://localhost:8080/api/hospitals/count
     @GetMapping("/count")
     fun getSymptomsCount(): ResponseEntity<Map<String, Long>> {
         val count = hospitalService.countAllHospitals()  // 전체 증상 개수 조회
         return ResponseEntity.ok(mapOf("count" to count))
     }
+
 
     // 병원명으로 검색
     // 예: http://localhost:8080/api/hospitals/search?keyword=베이드의원&page=0&size=10
@@ -66,11 +67,14 @@ class HospitalEntityController(
     }
 
     // 병원 ID로 단일 병원 조회
+    // 예: http://localhost:8080/api/hospitals/H0000238449
     @GetMapping("/{id}")
     fun getHospitalById(
         @PathVariable id: String
     ): HospitalDetailsResponse {
+        // 서비스 계층을 통해 병원 엔티티 조회
         val hospital = hospitalService.getHospitalById(id)
+        // 조회된 병원 엔티티를 DTO로 변환하여 응답
         return HospitalDetailsResponse.from(hospital)
     }
 }

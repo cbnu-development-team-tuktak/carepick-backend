@@ -12,7 +12,7 @@ import com.callrapport.repository.disease.DiseaseRepository // 가공 질병 데
 // import com.callrapport.repository.disease.DiseaseRawRepository // 질병 원본 데이터 리포지토리
 
 // Service (서비스) 관련 import
-import com.callrapport.service.disease.DiseaseService
+import com.callrapport.service.disease.DiseaseService // 질병 서비스 로직 처리
 
 // Spring Data JPA 관련 import 
 import org.springframework.data.domain.Page // 페이징된 응답을 위한 객체
