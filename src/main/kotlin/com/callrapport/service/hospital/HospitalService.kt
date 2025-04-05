@@ -27,8 +27,8 @@ import org.springframework.http.HttpEntity // HTTP 요청 엔티티 (Header + Bo
 import org.springframework.http.HttpMethod // HTTP 요청 메서드 (GET, POST 등)
 
 // JSON 데이터 처리 관련 import
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.JsonNode // JSON 데이터를 트리 구조로 표현하는 Jackson 클래스
+import com.fasterxml.jackson.databind.ObjectMapper // JSON 파싱 및 객체 매핑을 위한 Jackson 핵심 클래스
 
 // 공간 데이터(geo) 관련 import (병원 위치 좌표 관리)
 import org.locationtech.jts.geom.Coordinate // 좌표 데이터 타입
@@ -36,7 +36,8 @@ import org.locationtech.jts.geom.GeometryFactory // 공간 데이터 객체 생�
 import org.locationtech.jts.geom.Point // 병원 위치를 저장하는 Point 타입
 import org.locationtech.jts.geom.PrecisionModel // 좌표 정밀도 설정
 
-import com.callrapport.component.map.Geolocation
+// Component (컴포넌트) 관련 import
+import com.callrapport.component.map.Geolocation // 위치 좌표 변환 및 지리 정보 처리를 담당하는 컴포넌트
 
 @Service
 class HospitalService(

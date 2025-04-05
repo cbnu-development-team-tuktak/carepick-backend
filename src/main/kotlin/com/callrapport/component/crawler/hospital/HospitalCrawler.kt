@@ -87,7 +87,7 @@ class HospitalCrawler(
                     break
                 }
                 */
-                if (pageNum >= 1) break // 최대 1페이지까지만 크롤링
+                if (pageNum >= 2) break // 최대 1페이지까지만 크롤링
                
                 pageNum++ // 다음 페이지로 이동
             }
