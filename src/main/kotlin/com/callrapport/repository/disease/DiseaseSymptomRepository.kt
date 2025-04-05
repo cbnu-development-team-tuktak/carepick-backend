@@ -27,10 +27,14 @@ interface DiseaseSymptomRepository : JpaRepository<DiseaseSymptom, Long> {
         symptom: Symptom // 증상 엔티티
     ): Boolean // 이미 연결되어 있으면 true 반환
 
-    // 🔥 여러 증상에 연결된 모든 질병-증상 관계 조회
-    fun findBySymptomIn(symptoms: List<Symptom>): List<DiseaseSymptom>
+    // 여러 증상에 연결된 모든 질병-증상 관계 조회
+    fun findBySymptomIn(
+        symptoms: List<Symptom> // 증상 리스트
+    ): List<DiseaseSymptom> // 연결된 질병-증상 관계 목록
 
     
-    // ✅ 여러 질병에 연결된 모든 질병-증상 관계 조회 (신규 추가)
-    fun findByDiseaseIn(diseases: List<Disease>): List<DiseaseSymptom>
+    // 여러 질병에 연결된 모든 질병-증상 관계 조회
+    fun findByDiseaseIn(
+        diseases: List<Disease> // 질병 리스트
+    ): List<DiseaseSymptom> // 연결된 질병-증상 관계 목록
 }
