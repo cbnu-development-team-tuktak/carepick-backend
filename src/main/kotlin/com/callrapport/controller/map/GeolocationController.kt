@@ -20,5 +20,5 @@ class GeolocationController(private val geolocationService: GeolocationService) 
     @GetMapping("/api/geolocation")
     fun getCoordinates(@RequestParam address: String): Mono<Coordinate> {
         return geolocationService.getCoordinates(address)
-    }
+    }    
 }
