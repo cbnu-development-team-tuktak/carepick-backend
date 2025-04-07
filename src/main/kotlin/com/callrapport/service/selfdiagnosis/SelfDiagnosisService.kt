@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service // 해당 클래스를 서비스 �
 // 진단 결과 DTO
 data class DiagnosisResult(
     val message: String, // 진단 메시지 또는 결과 설명
-    val suggestedSymptoms: List<String> = emptyList() // 추천된 증상 목록 (선택적으로 포함)
+    val suggestedSymptoms: List<String> = emptyList(), // 추천된 증상 목록 (선택적으로 포함)
+    val suggestedSpecialties: List<String> = emptyList() // 추천 진료과 목록 (선택적으로 포함)
 )
 
 @Service
@@ -75,6 +76,24 @@ class SelfDiagnosisService(
             "- ${disease.name} (${matchedNames.size}개 일치): ${matchedNames.joinToString(", ")}"
         }
 
+        // 관련 진료과 정리 (리스트 형태로 저장 → DTO에 함께 전달)
+        val suggestedSpecialties = topDiseases
+            .flatMap { it.key.diseaseSpecialties.map { ds -> ds.specialty.name } } // DiseaseSpecialty → Specialty 이름
+            .distinct()
+            .sorted()
+
+        // 진료과 문자열 메시지로 변환 (비어 있을 경우 '정보 없음')
+        val relatedSpecialtyStr = suggestedSpecialties.joinToString(", ").ifEmpty { "정보 없음" }
+
+        // 최종 메시지 구성
+        val message = """
+            입력한 증상 키워드: $symptomStr
+            가장 관련 있는 질병:
+            $diseaseDetails
+
+            관련 진료과: $relatedSpecialtyStr
+        """.trimIndent()
+
         // 일치한 증상 목록 (Disease 객체들) 추출
         val relatedDiseases = diseaseMatchInfo.keys
 
@@ -92,14 +111,11 @@ class SelfDiagnosisService(
             .map { it.first } // 이름만 추출
             .take(5) // 상위 5개만 추천
 
-        // 최종 진단 메시지 구성
-        val message = """
-            입력한 증상 키워드: $symptomStr
-            가장 관련 있는 질병:
-            $diseaseDetails
-        """.trimIndent()
-
-        // 진단 결과 반환 (메시지 + 추천 증상)
-        return DiagnosisResult(message, suggestedSymptoms)
+        // 진단 결과 반환 (메시지 + 추천 증상 + 추천 진료과)
+        return DiagnosisResult(
+            message = message, // 메시지
+            suggestedSymptoms = suggestedSymptoms, // 추천 증상
+            suggestedSpecialties = suggestedSpecialties // 추천 진료과
+        )
     }
 }
