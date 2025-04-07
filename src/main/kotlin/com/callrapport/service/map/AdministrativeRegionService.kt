@@ -65,6 +65,18 @@ class AdministrativeRegionService(
         return administrativeRegionRepository.findByRiNm(ri, pageable)
     }
 
+    // 시도명만 반환
+    fun findSidoNames(): List<String> {
+        return administrativeRegionRepository.findDistinctSidoNames()
+    }
+
+    // 시도명으로 읍면동 목록 조회
+    fun findUmdBySido(sido: String, pageable: Pageable): List<String> {
+        // 시도에 해당하는 읍면동 목록만 추출 (중복 제거)
+        val regions = administrativeRegionRepository.findBySidoNm(sido, pageable)
+        return regions.mapNotNull { it.umdNm }.distinct() // 읍면동명만 추출하고 중복 제거
+    }
+
     // 모든 행정구역 데이터 삭제
     @Transactional
     fun deleteAll() {
