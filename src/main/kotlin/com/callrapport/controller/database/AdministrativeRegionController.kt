@@ -77,4 +77,19 @@ class AdministrativeRegionController(
     ): Page<AdministrativeRegion> {
         return administrativeRegionService.findByRi(ri, pageable)
     }
+
+    // 시도명만 반환하는 엔드포인트 추가
+    @GetMapping("/sido-names")
+    fun getSidoNames(): List<String> {
+        return administrativeRegionService.findSidoNames() // 페이징 없이 시도명만 반환
+    }   
+
+    // 시도명으로 읍면동 목록을 반환
+    @GetMapping("/sido/umd")
+    fun getUmdBySido(
+        @RequestParam sido: String, // 시도명 (예: 경기도)
+        pageable: Pageable // 페이지 정보 (page, size, sort)
+    ): List<String> {
+        return administrativeRegionService.findUmdBySido(sido, pageable)
+    }
 }

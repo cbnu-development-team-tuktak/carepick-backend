@@ -17,6 +17,12 @@ import org.springframework.data.domain.Pageable // 페이징 요청 정보를 �
 import org.springframework.http.ResponseEntity // HTTP 응답 객체
 import org.springframework.web.bind.annotation.* // REST 컨트롤러 관련 어노테이션들
 
+// 공간 데이터 관련 import
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.Point
+import org.locationtech.jts.geom.PrecisionModel
+
 @RestController
 @RequestMapping("/api/hospitals")
 class HospitalEntityController(
@@ -29,7 +35,6 @@ class HospitalEntityController(
         val count = hospitalService.countAllHospitals()  // 전체 증상 개수 조회
         return ResponseEntity.ok(mapOf("count" to count))
     }
-
 
     // 병원명으로 검색
     // 예: http://localhost:8080/api/hospitals/search?keyword=베이드의원&page=0&size=10
@@ -76,5 +81,21 @@ class HospitalEntityController(
         val hospital = hospitalService.getHospitalById(id)
         // 조회된 병원 엔티티를 DTO로 변환하여 응답
         return HospitalDetailsResponse.from(hospital)
+    }
+
+    // 위치를 기준으로 병원 검색 (근처 병원 순으로 정렬)
+    // 예: http://localhost:8080/api/hospitals/search/location?lat=36.6242237&lng=127.4614843&page=0&size=10
+    @GetMapping("/search/location")
+    fun searchHospitalsByLocation(
+        @RequestParam lat: Double, 
+        @RequestParam lng: Double, 
+        pageable: Pageable
+    ): Page<HospitalDetailsResponse> {
+        val coordinate = Coordinate(lng, lat) // 경도, 위도 순서
+        val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+        val location = geometryFactory.createPoint(coordinate)
+
+        val hospitalPage = hospitalService.getHospitalsByLocation(location, pageable)
+        return hospitalPage.map { HospitalDetailsResponse.from(it) }
     }
 }

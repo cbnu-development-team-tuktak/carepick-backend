@@ -535,4 +535,9 @@ class HospitalService(
     fun countAllHospitals(): Long {
         return hospitalRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
     }
+
+    // 병원 위치를 기준으로 가까운 병원 순으로 정렬
+    fun getHospitalsByLocation(location: Point, pageable: Pageable): Page<Hospital> {
+        return hospitalRepository.findAllByLocationOrderByDistance(location, pageable)
+    }
 }
