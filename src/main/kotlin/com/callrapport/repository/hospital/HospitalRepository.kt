@@ -56,8 +56,8 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
     @Query(
         """
         SELECT h FROM Hospital h
-        LEFT JOIN h.specialties hs 
-        LEFT JOIN hs.specialty s 
+        JOIN h.specialties hs
+        JOIN hs.specialty s
         WHERE
             (:specialties IS NULL OR s.name IN :specialties)
             AND (
