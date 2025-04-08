@@ -9,8 +9,11 @@ import com.fasterxml.jackson.annotation.JsonManagedReference // 순환 참조 �
 // JPA 관련 import
 import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 
-// 공간 데이터(GIS) 관련 import 
-import org.locationtech.jts.geom.Point
+// 공간 데이터(geo) 관련 import (병원 위치 좌표 관리)
+import org.locationtech.jts.geom.Coordinate // 좌표 데이터 타입
+import org.locationtech.jts.geom.GeometryFactory // 공간 데이터 객체 생성
+import org.locationtech.jts.geom.Point // 병원 위치를 저장하는 Point 타입
+import org.locationtech.jts.geom.PrecisionModel // 좌표 정밀도 설정
 
 @Entity
 @Table(
@@ -84,8 +87,9 @@ data class Hospital(
 
     // 병원의 위치 정보 (공간 데이터)
     @Column(
-        nullable = true, // 선택적 입력 값 (NULL 허용)
+        nullable = false, // 필수 입력 값 (NULL 허용 안 함)
         columnDefinition = "POINT SRID 4326" // 공간 데이터(Point) 타입, GPS 좌표계(SRID 4326 - WGS 84) 사용
     )
-    var location: Point? = null // 병원의 좌표 정보
+    var location: Point = GeometryFactory(PrecisionModel(), 4326) // 병원의 좌표 정보
+        .createPoint(Coordinate(127.0, 37.0)) // 기본값: 서울 중심 좌표 등으로 설정
 )

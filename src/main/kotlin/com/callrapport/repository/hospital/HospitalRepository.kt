@@ -46,5 +46,41 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
 
     // 위치를 기준으로 병원 정렬, 페이징 결과 반환
     @Query("SELECT h FROM Hospital h ORDER BY function('ST_Distance', h.location, :location) ASC")
-    fun findAllByLocationOrderByDistance(location: Point, pageable: Pageable): Page<Hospital>
+    fun findAllByLocationOrderByDistance(
+        location: Point, 
+        pageable: Pageable // 페이지네이션 정보를 포함한 객체
+    ): Page<Hospital>
+
+    // 쿼리를 이용하여 정렬 옵션, 필터 옵션을 반영한 페이징 결과 반환
+    // 쿼리문이 상당히 길기 때문에, 위키 페이지에 상술
+    @Query(
+        """
+        SELECT h FROM Hospital h
+        LEFT JOIN h.specialties hs 
+        LEFT JOIN hs.specialty s 
+        WHERE
+            (:specialties IS NULL OR s.name IN :specialties)
+            AND (
+                :location IS NULL OR :maxDistance IS NULL
+                OR function('ST_Distance_Sphere', h.location, :location) <= :maxDistance
+            )
+        GROUP BY h
+        ORDER BY
+            CASE 
+                WHEN :sortBy = 'distance' THEN function('ST_Distance_Sphere', h.location, :location)
+                ELSE NULL
+            END ASC,
+            CASE
+                WHEN :sortBy = 'name' THEN h.name
+                ELSE NULL
+            END ASC
+        """
+    )
+    fun searchHospitalsByFilters( 
+        @Param("location") location: Point?, // 위치
+        @Param("maxDistance") maxDistanceInMeters: Double?, // 거리 제한
+        @Param("specialties") specialties: List<String>?, // 진료과 리스트
+        @Param("sortBy") sortBy: String, // 정렬 기준 ("distance" 또는 "name")
+        pageable: Pageable // 페이지네이션 정보를 포함한 객체
+    ): Page<Hospital> // 페이지 단위의 검색된 병원 목록
 }
