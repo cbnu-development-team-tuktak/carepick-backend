@@ -540,4 +540,33 @@ class HospitalService(
     fun getHospitalsByLocation(location: Point, pageable: Pageable): Page<Hospital> {
         return hospitalRepository.findAllByLocationOrderByDistance(location, pageable)
     }
+
+    fun getHospitalsByFilters(
+        location: Point?, // 위치 정보
+        maxDistanceInKm: Double?, // 거리 제한 (km 단위)
+        specialties: List<String>?, // 진료과 리스트
+        sortBy: String, // 정렬 기준 ("distance" 또는 "name")
+        pageable: Pageable // 페이징 정보
+    ): Page<Hospital> {
+        // 사용자가 입력한 거리(km)를 m 단위로 변환 (예: 3km → 3000m)
+        val maxDistanceInMeters = maxDistanceInKm?.times(1000) 
+
+        // 진료과 필터링 값이 비어 있거나 null이면, null로 처리
+        val safeSpecialties = if (specialties.isNullOrEmpty()) null else specialties
+
+        // 정렬 유효성 검사 
+        val validSortBy = when (sortBy.lowercase()) {
+            "distance", "name" -> sortBy.lowercase() // 유효한 경우 그대로 사용
+            else -> "distance" // 잘못된 값이 들어온 경우 기본적으로 "distance" 사용
+        }
+
+        // 필터링 조건을 기준으로 병원 목록 조회
+        return hospitalRepository.searchHospitalsByFilters(
+            location = location, // 기준 위치
+            maxDistanceInMeters = maxDistanceInMeters, // 거리 제한 (m 단위)
+            specialties = safeSpecialties, // 필터링할 진료과 목록
+            sortBy = validSortBy, // 정렬 기준
+            pageable = pageable // 페이지 요청 정보
+        )
+    }
 }
