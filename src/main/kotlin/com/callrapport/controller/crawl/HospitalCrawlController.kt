@@ -26,6 +26,11 @@ import org.springframework.web.bind.annotation.* // Spring의 REST 컨트롤러 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper // JSON 변환을 위한 Jackson 라이브러리
 import com.fasterxml.jackson.module.kotlin.readValue // JSON 문자열을 객체로 변환하는 기능 제공
 
+import com.callrapport.component.crawler.hospital.HospitalField
+
+import java.net.URLEncoder
+
+
 @RestController
 @RequestMapping("/api/crawl/hospital")
 class HospitalCrawlController(
@@ -81,7 +86,7 @@ class HospitalCrawlController(
             // 크롤링된 병원 목록을 순회하며 상세 정보를 가져옴
             hospitalLinks.forEach { (name, url) ->
                 val hospitalId = extractHospitalIdFromUrl(url) // 병원 ID 추출
-                val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url) // 병원 상세 정보 크롤링
+                val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url, HospitalField.values().toList()) // 모든 필드를 활성화
 
                 // 병원 부가 정보 JSON 파싱
                 val additionalInfoJson = hospitalInfo["additional_info"]?.toString() ?: "{}"
@@ -183,5 +188,67 @@ class HospitalCrawlController(
     private fun extractHospitalIdFromUrl(url: String): String {
         // URL의 마지막 '/' 이후에 나오는 문자열을 반환 (예: .../H001234567 → H0001234567)
         return url.substringAfterLast("/")
+    }
+
+    // 병원 목록을 5페이지까지 크롤링하고, 운영 시간만 가져오는 엔드포인트
+    // 예: http://localhost:8080/api/crawl/hospital/operating-hours
+    @GetMapping("/operating-hours")
+    fun crawlHospitalOperatingHours(): ResponseEntity<List<Map<String, Any>>> {
+        return try {
+            // 병원 목록(이름 + URL)을 5페이지까지 크롤링
+            val hospitalLinks = hospitalCrawler.crawlHospitalLinks(maxPage = 5)
+
+            // 병원 운영 시간만 크롤링
+            val operatingHoursList = mutableListOf<Map<String, Any>>()
+
+            hospitalLinks.forEach { (name, url) ->
+                // 병원 운영 시간만 크롤링
+                val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url, listOf(HospitalField.OPERATING_HOURS))
+
+                // 운영 시간 정보만 추출하여 리스트에 추가
+                val operatingHours = hospitalInfo["operating_hours"]?.toString() ?: "정보 없음"
+
+                // 결과를 리스트에 추가
+                operatingHoursList.add(
+                    mapOf(
+                        "name" to name,
+                        "url" to url,
+                        "operating_hours" to operatingHours
+                    )
+                )
+            }
+
+            // HTTP 상태 코드 200(OK)와 함께 운영 시간 목록 응답 반환
+            ResponseEntity(operatingHoursList, HttpStatus.OK)
+        } catch (e: Exception) {
+            // 오류 발생 시 로그 출력 및 HTTP 500 오류 코드 반환
+            ResponseEntity.status(500)
+                .body(listOf(mapOf("error" to "⚠️ ${e.message}")))
+        }
+    }
+
+    // 병원 목록을 5페이지까지 크롤링하고, 네이버에서 운영 시간만 가져오는 엔드포인트
+    // 예: http://localhost:8080/api/crawl/hospital/operating-hours-from-naver?name=베이드의원
+    @GetMapping("/operating-hours-from-naver")
+    fun crawlHospitalOperatingHoursFromNaver(@RequestParam name: String): ResponseEntity<Map<String, Any>> {
+        return try {
+            // 네이버 검색 URL 생성
+            val searchUrl = "https://search.naver.com/search.naver?where=nexearch&sm=top_sug.pre&fbm=0&acr=1&acq=${URLEncoder.encode(name, "UTF-8")}&qdt=0&ie=utf8&query=${URLEncoder.encode(name, "UTF-8")}"
+
+            // 네이버에서 운영 시간 크롤링
+            val operatingHours = hospitalCrawler.crawlOperatingHoursFromNaver(searchUrl) // 네이버에서 운영 시간 크롤링
+
+            // 응답 반환
+            ResponseEntity.ok(
+                mapOf(
+                    "hospital_name" to name,
+                    "operating_hours_from_naver" to operatingHours
+                )
+            )
+        } catch (e: Exception) {
+            // 오류 발생 시 로그 출력 및 HTTP 500 오류 코드 반환
+            ResponseEntity.status(500)
+                .body(mapOf("error" to "⚠️ ${e.message}"))
+        }
     }
 }
