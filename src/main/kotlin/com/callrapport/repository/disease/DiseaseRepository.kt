@@ -13,4 +13,9 @@ interface DiseaseRepository : JpaRepository<Disease, Long> {
     fun findByName(
         name: String // 질병명
     ): Disease? // 입력한 질병명과 정확히 일치하는 질병 정보
+
+    // 여러 질병명을 기준으로 질병 정보 목록 조회
+    fun findByNameIn(
+        names: List<String> // 질병 목록
+    ): List<Disease> // 입력한 질병명들과 일치하는 질병 목록들
 }
