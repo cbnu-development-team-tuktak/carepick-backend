@@ -28,7 +28,7 @@ class HospitalCrawler(
     private val hospitalInfoExtractor: HospitalInfoExtractor // HTML에서 병원 정보를 추출하는 유틸리티
 ) {
     // 병원 목록(이름 + URL) 크롤링
-    fun crawlHospitalLinks(): List<Pair<String, String>> {
+    fun crawlHospitalLinks(maxPage: Int = 1): List<Pair<String, String>> {
         val hospitalLinks = mutableListOf<Pair<String, String>>() // 병원 목록 저장 리스트
         val driver = webCrawler.createWebDriver() // WebDriver 생성
         try {
@@ -87,7 +87,7 @@ class HospitalCrawler(
                     break
                 }
                 */
-                if (pageNum >= 2) break // 최대 1페이지까지만 크롤링
+                if (pageNum >= maxPage) break // 최대 1페이지까지만 크롤링
                
                 pageNum++ // 다음 페이지로 이동
             }
