@@ -39,10 +39,15 @@ data class Hospital(
     val address: String? = null, // 병원 주소
 
     @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val operatingHours: String? = null, // 병원 운영시간
-
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
     val url: String? = null, // 병원 정보 페이지 URL
+
+    // 병원과 운영 시간 연결 테이블과의 관계 (1:N)
+    @OneToMany(
+        mappedBy = "hospital", // HospitalOperatingHours에서 hospital 필드를 기준으로 관계 설정
+        cascade = [CascadeType.ALL], // 병원 삭제 시 연결된 운영시간도 삭제
+        orphanRemoval = true // 관계가 끊기면 DB에서 삭제됨
+    )
+    var operatingHours: MutableList<HospitalOperatingHours> = mutableListOf(), // 병원과 연결된 운영 시간 목록
 
     // 병원과 진료과의 관계 (1:N)
     @OneToMany(

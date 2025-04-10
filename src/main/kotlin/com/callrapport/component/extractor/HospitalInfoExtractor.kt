@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component // Spring의 컴포넌트로 등
 // JSON 변환 관련 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper // JSON 변환을 위한 Jackson 라이브러리
 
+import com.callrapport.component.log.LogBroadcaster // 로그 브로드캐스터
+
 @Component
-class HospitalInfoExtractor {
+class HospitalInfoExtractor (
+    private val logBroadcaster: LogBroadcaster // 로그 전송 컴포넌트
+) {
     // 병원 전화번호 추출
     fun extractPhoneNumber(doc: Document): String? { 
         // 첫 번째 <a> 태그에서 전화번호 추출
@@ -56,34 +60,73 @@ class HospitalInfoExtractor {
         return "$line $stationText $exitInfo".trim()
     }
 
-    // 병원의 운영 시간을 추출
-    fun extractOperatingHours(doc: Document): String? {
-        // 운영 시간을 저장할 맵 생성
-        val operatingHours = mutableMapOf<String, String>() 
-
-        // 운영 시간 정보가 있는 div 요소 선택
-        val timeInfoElement = doc.selectFirst("div.time_info") ?: return null
-        // 요일별 운영 시간 정보를 포함하는 dl 태그 선택
-        val timeEntries = timeInfoElement.select("dl")
-
-        for (entry in timeEntries) {
-            // dt 태그에서 요일 추출 (없으면 다음 반복으로 넘어감)
-            val day = entry.selectFirst("dt")?.text()?.trim() ?: continue
-            // dd 태그에서 운영 시간 추출 (없으면 기본값 설정)
-            val time = entry.selectFirst("dd")?.text()?.replace("\n", " ")?.trim() ?: "운영 시간 없음"
-
-            // 요일을 키, 운영 시간을 값으로 저장
-            operatingHours[day] = time
+    // "평일(월~금)", "월요일", "토요일" 등의 텍스트를 ["월", "화", ...] 식의 요일 리스트로 변환
+    fun parseDays(dayText: String): List<String> {
+        return when {
+            dayText.contains("평일") -> listOf("월", "화", "수", "목", "금")
+            dayText.contains("주말") -> listOf("토", "일")
+            dayText.contains("월~금") -> listOf("월", "화", "수", "목", "금")
+            dayText.contains("화~금") -> listOf("화", "수", "목", "금")
+            dayText.contains("토~일") -> listOf("토", "일")
+            dayText.contains("월요일") -> listOf("월")
+            dayText.contains("화요일") -> listOf("화")
+            dayText.contains("수요일") -> listOf("수")
+            dayText.contains("목요일") -> listOf("목")
+            dayText.contains("금요일") -> listOf("금")
+            dayText.contains("토요일") -> listOf("토")
+            dayText.contains("일요일") -> listOf("일")
+            dayText.contains("공휴일") -> listOf("공휴일")
+            else -> listOf(dayText) // 예외적으로 처리되지 않은 경우 원본 그대로 저장
         }
+    }
 
-        return if (operatingHours.isNotEmpty()) {
-            // JSON 형식 문자열로 변환
-            jacksonObjectMapper().writeValueAsString(operatingHours) 
+    fun parseStartAndEndTime(timeText: String): Pair<String, String> {
+        val pattern = Regex("""\d{2}:\d{2}\s*-\s*\d{2}:\d{2}""")
+        return if (pattern.matches(timeText)) {
+            val parts = timeText.split("-").map { it.trim() }
+            if (parts.size == 2) parts[0] to parts[1]
+            else "휴진" to "휴진"
         } else {
-            null // 운영 시간이 없으면 NULL 반환
+            "휴진" to "휴진"
         }
     }
     
+    // 병원의 운영 시간을 추출하는 메서드 (JSON 대신 Map 반환)
+    fun extractOperatingHours(doc: Document): Map<String, Pair<String, String>>? {
+        val operatingHours = mutableMapOf<String, Pair<String, String>>()
+    
+        val possibleDiv = doc.selectFirst("div.treatment_possibility_time div.possible") ?: return null
+        val timeItems = possibleDiv.select("ul > li")
+    
+        for (item in timeItems) {
+            val dayText = item.selectFirst("span.day")?.text()?.trim() ?: continue
+            val timeText = item.selectFirst("span.time")?.text()?.trim() ?: "휴진"
+    
+            val days = parseDays(dayText)
+    
+            // logBroadcaster.sendLog("📅 운영시간 항목 발견 → 요일: '$dayText', 변환된 요일 목록: $days, 시간: '$timeText'")
+            for (day in days) {
+                val (start, end) = parseStartAndEndTime(timeText)
+                // logBroadcaster.sendLog("🕒 시간 파싱 완료 → $day: 시작='$start', 종료='$end'")
+                operatingHours[day] = start to end
+            }
+        }
+    
+        val allDays = listOf("월", "화", "수", "목", "금", "토", "일", "공휴일")
+        for (day in allDays) {
+            if (day !in operatingHours) {
+                // logBroadcaster.sendLog("⚠️ '$day' 요일 누락 → 휴진으로 처리됨")
+                operatingHours[day] = "휴진" to "휴진"
+            }
+        }
+    
+        // logBroadcaster.sendLog("✅ 최종 추출된 운영시간: $operatingHours")
+    
+        return if (operatingHours.isNotEmpty()) operatingHours else null
+    }
+    
+    
+
     // 병원의 추가 정보를 추출
     fun extractAdditionalInfo(doc: Document, hospitalId: String): String? {
         val additionalInfoMap = mutableMapOf<String, Any>(
