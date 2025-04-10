@@ -39,6 +39,10 @@ import org.locationtech.jts.geom.PrecisionModel // 좌표 정밀도 설정
 // Component (컴포넌트) 관련 import
 import com.callrapport.component.map.Geolocation // 위치 좌표 변환 및 지리 정보 처리를 담당하는 컴포넌트
 
+import java.time.LocalTime
+
+import com.callrapport.component.log.LogBroadcaster // 로그 브로드캐스터
+
 @Service
 class HospitalService(
     // 의사 관련 레포지토리
@@ -51,10 +55,12 @@ class HospitalService(
 
     // 병원 관련 레포지토리
     private val hospitalRepository: HospitalRepository, // 병원 저장소
+    private val hospitalOperatingHoursRepository: HospitalOperatingHoursRepository, // 병원-운영 시간 관계 저장소
     private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 저장소
     private val hospitalSpecialtyRepository: HospitalSpecialtyRepository, // 병원-진료과 관계 저장소
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원-부가정보 연결 저장소
     private val hospitalImageRepository: HospitalImageRepository, // 병원-이미지 연결 저장소
+    private val operatingHoursRepository: OperatingHoursRepository, // 운영 시간 정보 저장소
     private val additionalInfoRepository: AdditionalInfoRepository, // 병원 부가 정보 저장소
 
     // 공통 관련 레포지토리
@@ -65,7 +71,9 @@ class HospitalService(
     private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository, // 즐겨찾는 병원 저장소  
 
     // 좌표 변환을 위한 컴포넌트
-    private val geolocation: Geolocation
+    private val geolocation: Geolocation,
+
+    private val logBroadcaster: LogBroadcaster
 ) {
     // 병원과 연관된 이미지들을 저장하고, 병원-이미지 관계(HospitalImage)를 설정한다. 
     @Transactional
@@ -106,7 +114,6 @@ class HospitalService(
         phoneNumber: String?, // 전화번호
         homepage: String?, // 홈페이지 URL 
         address: String?, // 병원 주소
-        operatingHours: String?, // 병원 운영 시간
         url: String? // 병원 상세 정보 URL
     ): Hospital {
         // 기존 병원 데이터 확인 (있으면 업데이트, 없으면 새로 생성)
@@ -120,7 +127,6 @@ class HospitalService(
                 phoneNumber = phoneNumber, // 전화번호 업데이트
                 homepage = homepage, // 홈페이지 주소 업데이트
                 address = address, // 주소 업데이트
-                operatingHours = operatingHours, // 운영 시간 업데이트
                 url = url // 상세 정보 URL 업데이트
             )
         } else {
@@ -131,7 +137,6 @@ class HospitalService(
                 phoneNumber = phoneNumber, // 전화번호
                 homepage = homepage, // 홈페이지 주소
                 address = address, // 주소
-                operatingHours = operatingHours, // 운영 시간
                 url = url // 상세 정보 URL
             )
         }
@@ -139,6 +144,72 @@ class HospitalService(
         // 병원 정보 저장 (신규 또는 수정된 병원 정보 DB에 반영)
         return hospitalRepository.save(hospital)
     }
+
+    // 병원과 운영시간(HospitalOperatingHours)을 저장 (기존 요일 관계가 있으면 OperatingHours만 업데이트)
+    private fun saveHospitalOperatingHours(
+        savedHospital: Hospital,
+        operatingHoursMap: Map<String, Pair<String, String>>?
+    ) {
+        if (!operatingHoursMap.isNullOrEmpty()) {
+            val newRelations = mutableListOf<HospitalOperatingHours>()
+
+            operatingHoursMap.forEach { (day, timePair) ->
+                val (start, end) = timePair
+
+                // "휴진"이면 null 처리
+                val parsedStart = try {
+                    if (start == "휴진") null else LocalTime.parse(start.trim())
+                } catch (e: Exception) {
+                    logBroadcaster.sendLog("⛔ 시작 시간 파싱 실패 [${savedHospital.name} / $day]: '$start' → ${e.message}")
+                    null
+                }
+
+                val parsedEnd = try {
+                    if (end == "휴진") null else LocalTime.parse(end.trim())
+                } catch (e: Exception) {
+                    logBroadcaster.sendLog("⛔ 종료 시간 파싱 실패 [${savedHospital.name} / $day]: '$end' → ${e.message}")
+                    null
+                }
+
+                // 병원 ID + 요일 기준으로 기존 관계 조회
+                val existing = hospitalOperatingHoursRepository.findByHospitalAndDay(savedHospital.id!!, day)
+
+                if (existing != null) {
+                    // 기존 연결된 OperatingHours만 업데이트
+                    var op = existing.operatingHours
+                    op.startTime = parsedStart
+                    op.endTime = parsedEnd
+                    operatingHoursRepository.save(op)
+
+                    logBroadcaster.sendLog("🔁 병원 [${savedHospital.name}]의 [$day] 운영시간이 업데이트되었습니다: $parsedStart ~ $parsedEnd")
+                } else {
+                    // 새로운 OperatingHours 및 관계 생성
+                    val newOp = operatingHoursRepository.save(
+                        OperatingHours(
+                            day = day,
+                            startTime = parsedStart,
+                            endTime = parsedEnd
+                        )
+                    )
+
+                    logBroadcaster.sendLog("🆕 병원 [${savedHospital.name}]의 [$day] 운영시간이 새로 등록되었습니다: $parsedStart ~ $parsedEnd")
+
+                    newRelations.add(
+                        HospitalOperatingHours(
+                            hospital = savedHospital,
+                            operatingHours = newOp
+                        )
+                    )
+                }
+            }
+
+            // 신규 관계만 저장 (기존은 수정만 진행됨)
+            if (newRelations.isNotEmpty()) {
+                hospitalOperatingHoursRepository.saveAll(newRelations)
+            }
+        }
+    }
+
 
     // 병원과 진료과의 관계(HospitalSpecialty)를 저장
     private fun saveHospitalSpecialties(savedHospital: Hospital, specialties: List<String>?) {
@@ -459,7 +530,7 @@ class HospitalService(
         phoneNumber: String?, // 병원 홈페이지 URL (선택적 정보)
         homepage: String?, // 병원 홈페이지 URL (선택적 정보)
         address: String, // 병원 주소
-        operatingHours: String?, // 병원 운영 시간 
+        operatingHoursMap: Map<String, Pair<String, String>>?, // 병원 운영 시간
         specialties: List<String>?, // 병원에서 운영하는 진료과 리스트
         url: String?, // 병원 상세 정보 페이지 URL
         additionalInfo: Map<String, Any>?, // 병원의 부가 정보
@@ -473,7 +544,6 @@ class HospitalService(
             phoneNumber = phoneNumber,
             homepage = homepage,
             address = address,
-            operatingHours = operatingHours,
             url = url
         )
 
@@ -482,6 +552,9 @@ class HospitalService(
 
         // 병원의 진료과 정보 저장 (중복 방지 포함)
         saveHospitalSpecialties(savedHospital, specialties)
+
+        // 병원의 운영 시간 정보 저장
+        saveHospitalOperatingHours(savedHospital, operatingHoursMap)
 
         // 병원의 의사 정보 저장 (새로운 의사 데이터 추가)
         if (!doctors.isNullOrEmpty()) {

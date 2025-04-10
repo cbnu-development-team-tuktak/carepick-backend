@@ -30,6 +30,7 @@ import com.callrapport.component.crawler.hospital.HospitalField
 
 import java.net.URLEncoder
 
+import com.callrapport.component.log.LogBroadcaster // 로그 브로드캐스터
 
 @RestController
 @RequestMapping("/api/crawl/hospital")
@@ -49,6 +50,8 @@ class HospitalCrawlController(
     private val doctorRepository: DoctorRepository, // 의사 정보 관리
     private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 관리
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원 추가 정보 관리
+
+    private val logBroadcaster: LogBroadcaster
 ) {
 
     private val objectMapper = jacksonObjectMapper() // JSON 변환 객체 생성
@@ -83,7 +86,6 @@ class HospitalCrawlController(
             // 병원 목록 크롤링 (이름과 URL)
             val hospitalLinks = hospitalCrawler.crawlHospitalLinks()
 
-            // 크롤링된 병원 목록을 순회하며 상세 정보를 가져옴
             hospitalLinks.forEach { (name, url) ->
                 val hospitalId = extractHospitalIdFromUrl(url) // 병원 ID 추출
                 val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url, HospitalField.values().toList()) // 모든 필드를 활성화
@@ -91,6 +93,34 @@ class HospitalCrawlController(
                 // 병원 부가 정보 JSON 파싱
                 val additionalInfoJson = hospitalInfo["additional_info"]?.toString() ?: "{}"
                 
+                val operatingHoursJson = hospitalInfo["operating_hours"]?.toString()
+                logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 JSON 수신: $operatingHoursJson")
+
+                val operatingHours: Map<String, Pair<String, String>>? = if (!operatingHoursJson.isNullOrBlank()) {
+                    try {
+                        val parsed = objectMapper.readValue<Map<String, Map<String, String>>>(operatingHoursJson)
+                
+                        parsed.forEach { (day, value) ->
+                            logBroadcaster.sendLog("📅 요일: $day, 시작: ${value["first"]}, 종료: ${value["second"]}")
+                        }
+                
+                        val splitMap = parsed.mapValues { (_, value) ->
+                            val start = value["first"] ?: "휴진"
+                            val end = value["second"] ?: "휴진"
+                            start to end
+                        }
+                
+                        logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 파싱 성공: $splitMap")
+                        splitMap
+                    } catch (e: Exception) {
+                        logBroadcaster.sendLog("❌ 병원 [$name] 운영 시간 파싱 실패: ${e.message}")
+                        null
+                    }
+                } else {
+                    logBroadcaster.sendLog("ℹ️ 병원 [$name] 운영 시간 정보 없음")
+                    null
+                }
+
                 // JSON을 Map으로 변환
                 val additionalInfo: Map<String, Any> = objectMapper.readValue(additionalInfoJson)
 
@@ -167,7 +197,7 @@ class HospitalCrawlController(
                     phoneNumber = hospitalInfo["phone_number"]?.toString(), // 병원 전화번호
                     homepage = hospitalInfo["homepage"]?.toString(), // 병원 홈페이지 URL
                     address = hospitalInfo["address"]?.toString() ?: "", // 병원 주소
-                    operatingHours = hospitalInfo["operating_hours"]?.toString(), // 병원 운영 시간
+                    operatingHoursMap = operatingHours, // 운영 시간
                     specialties = specialties, // 병원의 진료과 목록
                     url = url, // 병원 상세 페이지 URL
                     additionalInfo = additionalInfo, // 병원의 추가 정보
@@ -176,7 +206,7 @@ class HospitalCrawlController(
                 )
             }
 
-            // 모든 병원 정보를 성공적으로 저장한 경우 응답 반환ㄴ
+            // 모든 병원 정보를 성공적으로 저장한 경우 응답 반환
             ResponseEntity.ok("All hospital info saved successfully")
         } catch (e: Exception) { // 예외 발생 시 오류 메시지 반환
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -190,13 +220,15 @@ class HospitalCrawlController(
         return url.substringAfterLast("/")
     }
 
-    // 병원 목록을 5페이지까지 크롤링하고, 운영 시간만 가져오는 엔드포인트
-    // 예: http://localhost:8080/api/crawl/hospital/operating-hours
+    // 병원 목록을 maxPage까지 크롤링하고, 운영 시간만 가져오는 엔드포인트
+    // 예: http://localhost:8080/api/crawl/hospital/operating-hours?maxPage=1
     @GetMapping("/operating-hours")
-    fun crawlHospitalOperatingHours(): ResponseEntity<List<Map<String, Any>>> {
+    fun crawlHospitalOperatingHours(
+        @RequestParam maxPage: Int
+    ): ResponseEntity<List<Map<String, Any>>> {
         return try {
-            // 병원 목록(이름 + URL)을 5페이지까지 크롤링
-            val hospitalLinks = hospitalCrawler.crawlHospitalLinks(maxPage = 5)
+            // 병원 목록(이름 + URL)을 maxPage까지 크롤링
+            val hospitalLinks = hospitalCrawler.crawlHospitalLinks(maxPage = maxPage)
 
             // 병원 운영 시간만 크롤링
             val operatingHoursList = mutableListOf<Map<String, Any>>()
@@ -227,7 +259,7 @@ class HospitalCrawlController(
         }
     }
 
-    // 병원 목록을 5페이지까지 크롤링하고, 네이버에서 운영 시간만 가져오는 엔드포인트
+
     // 예: http://localhost:8080/api/crawl/hospital/operating-hours-from-naver?name=베이드의원
     @GetMapping("/operating-hours-from-naver")
     fun crawlHospitalOperatingHoursFromNaver(@RequestParam name: String): ResponseEntity<Map<String, Any>> {

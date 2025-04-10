@@ -43,7 +43,7 @@ class HospitalCrawler(
     
             while (true) {
                 // 병원 검색 결과 페이지 URL (페이지 번호에 따라 변경됨)
-                val url = "https://mobile.hidoc.co.kr/find/result/list?page=$pageNum&filterType=H"
+                val url = "https://mobile.hidoc.co.kr/find/result/list?orderType=15010&page=$pageNum&filterType=H"
                 driver.get(url) // 해당 페이지로 이동
     
                 // 최대 20초 동안 요소 로딩 대기
@@ -166,86 +166,91 @@ class HospitalCrawler(
     fun crawlOperatingHoursFromNaver(url: String): Map<String, String> {
         val driver = webCrawler.createWebDriver()
         val result = mutableMapOf<String, String>()
-    
+        
         try {
             driver.get(url)
-    
-            val wait = WebDriverWait(driver, Duration.ofSeconds(10))
-            wait.until {
+            
+            // 로딩 대기
+            WebDriverWait(driver, Duration.ofSeconds(10)).until {
                 (driver as JavascriptExecutor).executeScript("return document.readyState") == "complete"
             }
-    
-            // 1단계 ~ 8단계 동일
-            val targetSpan = wait.until(
-                ExpectedConditions.presenceOfElementLocated(
-                    By.xpath("//span[@class='place_blind' and text()='영업시간']")
-                )
-            )
-            result["1단계"] = "success"
-    
-            val parentStrong = targetSpan.findElement(By.xpath("./parent::*"))
-            result["2단계"] = if (parentStrong.tagName == "strong") "success" else "failed"
-    
-            val parentDiv = parentStrong.findElement(By.xpath("./parent::*"))
-            result["3단계"] = if (parentDiv.tagName == "div") "success" else "failed"
-    
-            val secondChild = parentDiv.findElements(By.xpath("./*")).getOrNull(1)
-            result["4단계"] = if (secondChild != null && secondChild.tagName == "div") "success" else "failed"
-    
-            val firstChildOfSecond = secondChild?.findElements(By.xpath("./*"))?.getOrNull(0)
-            result["5단계"] = if (firstChildOfSecond != null && firstChildOfSecond.tagName == "a") "success" else "failed"
-    
-            val div1 = firstChildOfSecond?.findElements(By.xpath("./*"))?.getOrNull(0)
-            result["6단계"] = if (div1 != null && div1.tagName == "div") "success" else "failed"
-    
-            val div2 = div1?.findElements(By.xpath("./*"))?.getOrNull(0)
-            result["7단계"] = if (div2 != null && div2.tagName == "div") "success" else "failed"
-    
-            val div3 = div2?.findElements(By.xpath("./*"))?.getOrNull(0)
-            result["8단계"] = if (div3 != null && div3.tagName == "div") "success" else "failed"
-    
-            // 9단계: div3의 형제 중 span 태그 찾기
-            val siblingSpan = div3?.findElement(By.xpath("following-sibling::span"))
-            result["9단계"] = if (siblingSpan != null && siblingSpan.tagName == "span") "success" else "failed"
-    
-            // 10단계: 클릭
+            
+            // 현재 페이지 HTML 전체를 저장 (디버깅용)
+            val currentHtml = driver.pageSource
+            result["탭_HTML"] = currentHtml
+            
+            val originalHandles = driver.windowHandles.toSet()
+            result["탭_개수_이전"] = originalHandles.size.toString()
+        
+            var movedSuccessfully = false
+        
             try {
-                siblingSpan?.click()
-                Thread.sleep(5000) // 🕒 기다려야 DOM 반영됨
-                result["10단계"] = "success"
-            } catch (clickException: Exception) {
-                println("⚠️ 10단계 클릭 실패: ${clickException.message}")
-                result["10단계"] = "failed"
-            }
-
-            // div1 다시 가져옴 (중요!!)
-            val div1Refreshed = firstChildOfSecond?.findElements(By.xpath("./*"))?.getOrNull(0)
-
-            // 형제 탐색
-            val siblingsOfDiv1 = div1Refreshed?.findElements(By.xpath("./following-sibling::*")) ?: emptyList()
-
-            for ((i, sibling) in siblingsOfDiv1.withIndex()) {
-                val level = "${11 + i}단계"
-                try {
-                    // 그냥 텍스트 전체만 가져옴 (하위 태그 포함)
-                    val text = sibling.text.trim()
-                    println("📄 [$level] 텍스트 전체: $text")
-
-                    result[level] = "success"
-                    result["텍스트_$level"] = text // 텍스트 그대로 저장
-
-                } catch (e: Exception) {
-                    println("⚠️ [$level] 텍스트 수집 실패: ${e.message}")
-                    result[level] = "failed"
+                driver.findElement(By.id("_title"))
+                result["1단계"] = "success"
+                movedSuccessfully = true
+            } catch (e: NoSuchElementException) {
+                val linkElements = driver.findElements(By.cssSelector("a.place_bluelink"))
+                val validLink = linkElements.firstOrNull {
+                    val href = it.getAttribute("href")
+                    href != null && href != "#" && href.isNotBlank()
+                }
+    
+                if (validLink != null) {
+                    validLink.click()
+                    Thread.sleep(5000)
+    
+                    val newHandles = driver.windowHandles.toSet()
+                    result["탭_개수_이후"] = newHandles.size.toString()
+    
+                    val diffHandles = newHandles - originalHandles
+    
+                    if (diffHandles.isNotEmpty()) {
+                        val newTab = diffHandles.first()
+                        driver.switchTo().window(newTab)
+    
+                        // 새 탭에서 div#_pcmap_list_scroll_container 내에 ul 태그가 있는지 확인
+                        try {
+                            val ulElement = driver.findElement(By.cssSelector("div#_pcmap_list_scroll_container ul"))
+                            if (ulElement != null) {
+                                result["탭_전환_성공"] = "success"
+                            } else {
+                                result["탭_전환_성공"] = "failed"
+                            }
+                        } catch (e: NoSuchElementException) {
+                            result["탭_전환_성공"] = "failed"
+                        }
+    
+                        try {
+                            driver.findElement(By.id("_title"))
+                            result["1단계"] = "success"
+                            movedSuccessfully = true
+                        } catch (e: NoSuchElementException) {
+                            result["1단계"] = "failed"
+                            result["error"] = "❌ 새 탭 전환은 성공했으나 '_title' 요소를 찾지 못함"
+                        }
+                    } else {
+                        result["1단계"] = "failed"
+                        result["error"] = "✅ 링크 클릭됨. 하지만 새 탭이 열리지 않음 (탭 개수 동일)"
+                    }
+                } else {
+                    result["1단계"] = "failed"
+                    result["error"] = "❌ 'place_bluelink' 요소 클릭 불가 (유효한 href 없음)"
                 }
             }
+        
+            if (!movedSuccessfully) {
+                result["error"] = result["error"] ?: "⚠️ '_title' 탐색 실패 및 탭 전환 실패"
+                result["탭_개수_이후"] = driver.windowHandles.size.toString()
+            }
+        
         } catch (e: Exception) {
-            println("⚠️ 전체 흐름 중 예외 발생: ${e.message}")
-            for (i in 1..10) result["${i}단계"] = result["${i}단계"] ?: "failed"
+            result["1단계"] = result["1단계"] ?: "failed"
+            result["error"] = "⚠️ 예외 발생: ${e.message}"
         } finally {
             driver.quit()
         }
-    
+        
         return result
-    }    
+    }
+    
 }
