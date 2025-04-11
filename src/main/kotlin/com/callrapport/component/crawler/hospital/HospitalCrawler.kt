@@ -22,13 +22,20 @@ import org.springframework.stereotype.Component // 해당 클래스의 Spring의
 // JSON 변환 관련 import
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper // Jackson 라이브러리 (JSON 변환 기능 제공)
 
+// 병원 상세 정보를 선택적으로 지정하기 위한 enum 클래스
+enum class HospitalField {
+    ID, NAME, PHONE, HOMEPAGE, ADDRESS, SPECIALTIES, OPERATING_HOURS, ADDITIONAL_INFO, DOCTORS, URL
+}
+
 @Component
 class HospitalCrawler(
     private val webCrawler: WebCrawler, // Selenium 기반 웹 크롤러
     private val hospitalInfoExtractor: HospitalInfoExtractor // HTML에서 병원 정보를 추출하는 유틸리티
 ) {
     // 병원 목록(이름 + URL) 크롤링
-    fun crawlHospitalLinks(): List<Pair<String, String>> {
+    fun crawlHospitalLinks(
+        maxPage: Int = 1 // 최대 페이지 수
+    ): List<Pair<String, String>> {
         val hospitalLinks = mutableListOf<Pair<String, String>>() // 병원 목록 저장 리스트
         val driver = webCrawler.createWebDriver() // WebDriver 생성
         try {
@@ -36,7 +43,7 @@ class HospitalCrawler(
     
             while (true) {
                 // 병원 검색 결과 페이지 URL (페이지 번호에 따라 변경됨)
-                val url = "https://mobile.hidoc.co.kr/find/result/list?page=$pageNum&filterType=H"
+                val url = "https://mobile.hidoc.co.kr/find/result/list?orderType=15010&page=$pageNum&filterType=H"
                 driver.get(url) // 해당 페이지로 이동
     
                 // 최대 20초 동안 요소 로딩 대기
@@ -87,7 +94,7 @@ class HospitalCrawler(
                     break
                 }
                 */
-                if (pageNum >= 1) break // 최대 1페이지까지만 크롤링
+                if (pageNum >= maxPage) break // 최대 1페이지까지만 크롤링
                
                 pageNum++ // 다음 페이지로 이동
             }
@@ -100,76 +107,150 @@ class HospitalCrawler(
         return hospitalLinks // 병원 목록 반환
     }
     
-    // 병원 상세 정보 크롤링 (이름, 전화번호, 주소, 진료과목 등)
-    fun crawlHospitalInfos(name: String, url: String): Map<String, Any?> {
-        val driver = webCrawler.createWebDriver() // WebDriver 생성
-        var hospitalId: String? = null // 병원 ID 저장 변수
+    // 병원 상세 정보 크롤링 (지정된 필드만 추출)
+    fun crawlHospitalInfos(
+        name: String,
+        url: String,
+        fields: List<HospitalField> = HospitalField.values().toList() // 기본은 전체 필드
+    ): Map<String, Any?> {
+        val driver = webCrawler.createWebDriver()
+        var hospitalId: String? = null
 
         return try {
-            driver.get(url) // 병원 상세 페이지 접속
-
-            // 최대 10초 동안 페이지 로딩 대기
+            driver.get(url)
             val wait = WebDriverWait(driver, Duration.ofSeconds(10))
-
-            // 페이지 로딩 완료 확인
             wait.until { (driver as JavascriptExecutor).executeScript("return document.readyState") == "complete" }
 
-            // 현재 페이지의 HTML 소스 가져오기
             val htmlContent = driver.pageSource ?: ""
-
-            // Jsoup을 사용하여 HTML 문서 파싱
             val doc: Document = Jsoup.parse(htmlContent)
 
-            // URL에서 병원 ID 추출
             hospitalId = url.substringAfterLast("/")
+            val mapper = jacksonObjectMapper()
 
-            // 병원 전화번호 추출
-            val phoneNumber = hospitalInfoExtractor.extractPhoneNumber(doc) ?: ""
-            
-            // 병원 홈페이지 URL 추출
-            val homepage = hospitalInfoExtractor.extractHomepage(doc) ?: ""
+            val result = mutableMapOf<String, Any?>()
 
-            // 병원 주소 추출
-            val address = hospitalInfoExtractor.extractAddress(doc) ?: ""
+            if (HospitalField.ID in fields) result["hospital_id"] = hospitalId
+            if (HospitalField.NAME in fields) result["name"] = name
+            if (HospitalField.PHONE in fields) result["phone_number"] = hospitalInfoExtractor.extractPhoneNumber(doc)
+            if (HospitalField.HOMEPAGE in fields) result["homepage"] = hospitalInfoExtractor.extractHomepage(doc)
+            if (HospitalField.ADDRESS in fields) result["address"] = hospitalInfoExtractor.extractAddress(doc)
+            if (HospitalField.SPECIALTIES in fields) result["specialties"] = hospitalInfoExtractor.extractSpecialties(doc)
+            if (HospitalField.OPERATING_HOURS in fields) {
+                val hours = hospitalInfoExtractor.extractOperatingHours(doc)
+                result["operating_hours"] = mapper.writeValueAsString(hours ?: emptyMap<String, String>())
+            }
+            if (HospitalField.ADDITIONAL_INFO in fields) {
+                result["additional_info"] = hospitalInfoExtractor.extractAdditionalInfo(doc, hospitalId)
+            }
+            if (HospitalField.DOCTORS in fields) {
+                val doctorUrls = hospitalInfoExtractor.extractDoctorUrls(doc)
+                result["doctor_urls"] = mapper.writeValueAsString(doctorUrls)
+            }
+            if (HospitalField.URL in fields) result["url"] = url
 
-            // 병원 진료과목 추출
-            val specialties = hospitalInfoExtractor.extractSpecialties(doc) ?: ""
+            result
 
-            // 병원의 운영 시간 정보 추출 (JSON 변환)
-            val operatingHoursMap = hospitalInfoExtractor.extractOperatingHours(doc) // 운영 시간 정보 추출
-            val operatingHours = jacksonObjectMapper().writeValueAsString(operatingHoursMap ?: emptyMap<String, String>()) // JSON 변환
-
-            // 병원 추가 정보 추출 (24시간 응급실 여부, 협진 시스템 등)
-            val additionalInfo = hospitalInfoExtractor.extractAdditionalInfo(doc, hospitalId) ?: "" 
-
-            // 병원에 소속된 의사 정보 크롤링 (의사 ID 및 프로필 URL)
-            val doctorUrls = hospitalInfoExtractor.extractDoctorUrls(doc) // 의사 정보 추출
-            val doctorUrlsJson = jacksonObjectMapper().writeValueAsString(doctorUrls) // JSON 변환
-
-            // 크롤링한 병원 정보를 Map 형태로 변환 
-            mapOf(
-                "hospital_id" to hospitalId, // 병원 ID
-                "name" to name, // 병원 이름
-                "phone_number" to phoneNumber, // 병원 전화번호
-                "homepage" to homepage, // 병원 홈페이지 URL
-                "address" to address, // 병원 주소
-                "specialties" to specialties, // 병원 진료과 정보
-                "operating_hours" to operatingHours, // 병원 운영 시간 (JSON 변환)
-                "additional_info" to additionalInfo, // 병원 추가 정보 
-                "doctor_urls" to doctorUrlsJson, // 병원 소속 의사 정보 (JSON 변환)
-                "url" to url // 병원 상세 페이지 URL
-            )
         } catch (e: Exception) {
-            // 크롤링 중 오류 발생 시 로그 출력 및 기본 응답 반환
             println("⚠️ Failed to crawl hospital info from $url: ${e.message}")
             mapOf(
-                "hospital_id" to (hospitalId ?: ""), // 병원 ID (없으면 빈 값)
-                "name" to name, // 병원 이름
-                "url" to url, // 병원 상세 페이지 URL
-                "error" to "⚠️ ${e.message}" // 오류 메시지 포함
+                "hospital_id" to (hospitalId ?: ""),
+                "name" to name,
+                "url" to url,
+                "error" to "⚠️ ${e.message}"
             )
         } finally {
-            driver.quit() // WebDriver 종료
+            driver.quit()
         }
     }
+
+    fun crawlOperatingHoursFromNaver(url: String): Map<String, String> {
+        val driver = webCrawler.createWebDriver()
+        val result = mutableMapOf<String, String>()
+        
+        try {
+            driver.get(url)
+            
+            // 로딩 대기
+            WebDriverWait(driver, Duration.ofSeconds(10)).until {
+                (driver as JavascriptExecutor).executeScript("return document.readyState") == "complete"
+            }
+            
+            // 현재 페이지 HTML 전체를 저장 (디버깅용)
+            val currentHtml = driver.pageSource
+            result["탭_HTML"] = currentHtml
+            
+            val originalHandles = driver.windowHandles.toSet()
+            result["탭_개수_이전"] = originalHandles.size.toString()
+        
+            var movedSuccessfully = false
+        
+            try {
+                driver.findElement(By.id("_title"))
+                result["1단계"] = "success"
+                movedSuccessfully = true
+            } catch (e: NoSuchElementException) {
+                val linkElements = driver.findElements(By.cssSelector("a.place_bluelink"))
+                val validLink = linkElements.firstOrNull {
+                    val href = it.getAttribute("href")
+                    href != null && href != "#" && href.isNotBlank()
+                }
+    
+                if (validLink != null) {
+                    validLink.click()
+                    Thread.sleep(5000)
+    
+                    val newHandles = driver.windowHandles.toSet()
+                    result["탭_개수_이후"] = newHandles.size.toString()
+    
+                    val diffHandles = newHandles - originalHandles
+    
+                    if (diffHandles.isNotEmpty()) {
+                        val newTab = diffHandles.first()
+                        driver.switchTo().window(newTab)
+    
+                        // 새 탭에서 div#_pcmap_list_scroll_container 내에 ul 태그가 있는지 확인
+                        try {
+                            val ulElement = driver.findElement(By.cssSelector("div#_pcmap_list_scroll_container ul"))
+                            if (ulElement != null) {
+                                result["탭_전환_성공"] = "success"
+                            } else {
+                                result["탭_전환_성공"] = "failed"
+                            }
+                        } catch (e: NoSuchElementException) {
+                            result["탭_전환_성공"] = "failed"
+                        }
+    
+                        try {
+                            driver.findElement(By.id("_title"))
+                            result["1단계"] = "success"
+                            movedSuccessfully = true
+                        } catch (e: NoSuchElementException) {
+                            result["1단계"] = "failed"
+                            result["error"] = "❌ 새 탭 전환은 성공했으나 '_title' 요소를 찾지 못함"
+                        }
+                    } else {
+                        result["1단계"] = "failed"
+                        result["error"] = "✅ 링크 클릭됨. 하지만 새 탭이 열리지 않음 (탭 개수 동일)"
+                    }
+                } else {
+                    result["1단계"] = "failed"
+                    result["error"] = "❌ 'place_bluelink' 요소 클릭 불가 (유효한 href 없음)"
+                }
+            }
+        
+            if (!movedSuccessfully) {
+                result["error"] = result["error"] ?: "⚠️ '_title' 탐색 실패 및 탭 전환 실패"
+                result["탭_개수_이후"] = driver.windowHandles.size.toString()
+            }
+        
+        } catch (e: Exception) {
+            result["1단계"] = result["1단계"] ?: "failed"
+            result["error"] = "⚠️ 예외 발생: ${e.message}"
+        } finally {
+            driver.quit()
+        }
+        
+        return result
+    }
+    
 }

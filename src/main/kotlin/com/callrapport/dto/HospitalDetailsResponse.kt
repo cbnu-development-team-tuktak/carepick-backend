@@ -3,6 +3,9 @@ package com.callrapport.dto
 import com.callrapport.model.hospital.Hospital
 import com.callrapport.model.hospital.HospitalAdditionalInfo
 import com.callrapport.model.hospital.HospitalImage
+import com.callrapport.model.hospital.HospitalOperatingHours // 병원-운영시간 관계 엔티티 import
+
+import org.locationtech.jts.geom.Point
 
 data class HospitalDetailsResponse(
     val id: String, // 병원 ID
@@ -10,7 +13,7 @@ data class HospitalDetailsResponse(
     val phoneNumber: String?, // 병원 전화번호 (선택적 필드, NULL 허용)
     val homepage: String?, // 병원 홈페이지 URL (선택적 필드, NULL 허용)
     val address: String, // 병원 주소
-    val operatingHours: String?, // 병원 운영 시간 (선택적 필드, NULL 허용)
+    val operatingHours: List<OperatingHourResponse>?, // 병원 운영 시간 (선택적 필드, NULL 허용)
     val url: String, // 병원 정보 페이지 URL
     val specialties: List<String>?, // 병원의 진료과 목록 (선택적 필드, NULL 허용)
     val doctors: List<String>?, // 병원에 소속된 의사 목록 (선택적 필드, NULL 허용)
@@ -26,13 +29,17 @@ data class HospitalDetailsResponse(
                 phoneNumber = hospital.phoneNumber, // 병원 전화번호
                 homepage = hospital.homepage, // 병원 홈페이지 URL
                 address = hospital.address ?: "", // 병원 주소 (주소가 null인 경우 빈 문자열로 대체)
-                operatingHours = hospital.operatingHours, // 병원 운영 시간
-                url = hospital.url ?: "", // 병원 상세 페이지 (상세 페이지가 null인 경우 빈 문자열로 대체)
-
+                operatingHours = hospital.operatingHours
+                    .takeIf { it.isNotEmpty() }
+                    ?.map { 
+                        // ✅ 변경된 OperatingHourResponse에 맞춰 변환
+                        OperatingHourResponse.from(it.operatingHours)
+                    },
+                url = hospital.url ?: "",
                 // 병원에 연결된 진료과 목록이 존재할 경우
                 specialties = hospital.specialties
                     .takeIf { it.isNotEmpty() } // 비어 있지 않은 경우에만 수행
-                    ?.mapNotNull { it.specialty?.name }, // specialty가 null이 아니면 name 추출, 
+                    ?.mapNotNull { it.specialty?.name }, // specialty가 null이 아니면 name 추출
 
                 // 병원에 연결된 의사 목록이 존재할 경우
                 doctors = hospital.doctors
@@ -62,12 +69,51 @@ data class ImageResponse(
             return ImageResponse(
                 // 이미지 ID가 null인 경우 기본값으로 0L 설정
                 id = hospitalImage.image.id ?: 0L, 
-                 
+                
                 // 실제 이미지가 위치한 외부 URL
                 url = hospitalImage.image.url,
 
                 // 해당 이미지에 대한 설명
                 alt = hospitalImage.image.alt
+            )
+        }
+    }
+}
+
+// 병원 좌표 정보를 담을 클래스
+data class LatLng(
+    val latitude: Double, // 위도
+    val longitude: Double // 경도
+)
+
+fun Point?.toLatLng(): LatLng? {
+    return this?.let {
+        LatLng(latitude = it.y, longitude = it.x)
+    }
+}
+
+data class OperatingHourResponse(
+    val day: String,         // 요일 (예: "월")
+    val startTime: String?,  // 시작 시간 ("HH:mm" 형식)
+    val endTime: String?,    // 종료 시간 ("HH:mm" 형식)
+) {
+    companion object {
+        fun from(entity: com.callrapport.model.hospital.OperatingHours): OperatingHourResponse {
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+
+            val formattedStart = entity.startTime?.format(formatter)
+            val formattedEnd = entity.endTime?.format(formatter)
+
+            val formattedTime = if (formattedStart == null || formattedEnd == null) {
+                "휴진"
+            } else {
+                "$formattedStart - $formattedEnd"
+            }
+
+            return OperatingHourResponse(
+                day = entity.day,
+                startTime = formattedStart, // null이면 휴진
+                endTime = formattedEnd,     // null이면 휴진
             )
         }
     }
