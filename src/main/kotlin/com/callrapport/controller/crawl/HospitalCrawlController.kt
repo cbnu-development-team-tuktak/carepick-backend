@@ -93,28 +93,37 @@ class HospitalCrawlController(
                 // 병원 부가 정보 JSON 파싱
                 val additionalInfoJson = hospitalInfo["additional_info"]?.toString() ?: "{}"
                 
+                // 병원 정보에서 운영 시간 JSON 문자열 추출
                 val operatingHoursJson = hospitalInfo["operating_hours"]?.toString()
-                logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 JSON 수신: $operatingHoursJson")
 
+                // 운영 시간 JSON 로그 송신
+                logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 JSON 수신: $operatingHoursJson")
+                
+                // 유효한 JSON 문자열이 있는 경우만 처리
                 val operatingHours: Map<String, Pair<String, String>>? = if (!operatingHoursJson.isNullOrBlank()) {
                     try {
+                        // JSON 문자열을 Map<String, Map<String, String>> 구조로 파싱
                         val parsed = objectMapper.readValue<Map<String, Map<String, String>>>(operatingHoursJson)
-                
+                        
+                        // 파싱된 운영 시간을 순회하며 로그 송신
                         parsed.forEach { (day, value) ->
                             logBroadcaster.sendLog("📅 요일: $day, 시작: ${value["first"]}, 종료: ${value["second"]}")
                         }
-                
+                        
+                        // 내부 value Map에서 "first"와 "second" 값을 추출하여 Pair로 변환
                         val splitMap = parsed.mapValues { (_, value) ->
-                            val start = value["first"] ?: "휴진"
-                            val end = value["second"] ?: "휴진"
-                            start to end
+                            val start = value["first"] ?: "휴진" // 시작 시간이 없으면 "휴진"으로 처리
+                            val end = value["second"] ?: "휴진" // 종료 시간이 없으면 "휴진"으로 처리
+                            start to end // (시작, 종료) 형태로 반환
                         }
-                
+                        
+                        // 최종 파싱된 운영 시간 로그 송신
                         logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 파싱 성공: $splitMap")
-                        splitMap
-                    } catch (e: Exception) {
+                        splitMap // 변환된 결과 반환
+                    } catch (e: Exception) { // 파싱 도중 예외가 발생한 경우
+                        // 파싱 에러 로그 송신
                         logBroadcaster.sendLog("❌ 병원 [$name] 운영 시간 파싱 실패: ${e.message}")
-                        null
+                        null // 실패 시 null 반환
                     }
                 } else {
                     logBroadcaster.sendLog("ℹ️ 병원 [$name] 운영 시간 정보 없음")
