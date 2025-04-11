@@ -618,28 +618,39 @@ class HospitalService(
         location: Point?, // 위치 정보
         maxDistanceInKm: Double?, // 거리 제한 (km 단위)
         specialties: List<String>?, // 진료과 리스트
+        selectedDays: List<String>?, // 요일 필터 (예: ["월", "토"])
+        startTime: LocalTime?, // 최소 시작 시간
+        endTime: LocalTime?, // 최대 종료 시간
         sortBy: String, // 정렬 기준 ("distance" 또는 "name")
         pageable: Pageable // 페이징 정보
     ): Page<Hospital> {
-        // 사용자가 입력한 거리(km)를 m 단위로 변환 (예: 3km → 3000m)
-        val maxDistanceInMeters = maxDistanceInKm?.times(1000) 
+        // 거리 단위 변환 (km → m)
+        val maxDistanceInMeters = maxDistanceInKm?.times(1000)
 
-        // 진료과 필터링 값이 비어 있거나 null이면, null로 처리
+        // 진료과 리스트가 비어있으면 null로 처리
         val safeSpecialties = if (specialties.isNullOrEmpty()) null else specialties
 
-        // 정렬 유효성 검사 
+        // 정렬 기준 유효성 검사
         val validSortBy = when (sortBy.lowercase()) {
-            "distance", "name" -> sortBy.lowercase() // 유효한 경우 그대로 사용
-            else -> "distance" // 잘못된 값이 들어온 경우 기본적으로 "distance" 사용
+            "distance", "name" -> sortBy.lowercase()
+            else -> "distance"
         }
 
-        // 필터링 조건을 기준으로 병원 목록 조회
+        // 선택된 요일 수 계산 (null일 경우 null, 아니면 개수)
+        val dayCount = selectedDays?.size?.toLong() ?: 0L
+
+        // 필터 조건에 맞는 병원 검색
         return hospitalRepository.searchHospitalsByFilters(
-            location = location, // 기준 위치
-            maxDistanceInMeters = maxDistanceInMeters, // 거리 제한 (m 단위)
-            specialties = safeSpecialties, // 필터링할 진료과 목록
-            sortBy = validSortBy, // 정렬 기준
-            pageable = pageable // 페이지 요청 정보
+            location = location,
+            maxDistanceInMeters = maxDistanceInMeters,
+            specialties = safeSpecialties,
+            selectedDays = selectedDays,
+            startTime = startTime,
+            endTime = endTime,
+            dayCount = dayCount,
+            sortBy = validSortBy,
+            pageable = pageable
         )
     }
+
 }
