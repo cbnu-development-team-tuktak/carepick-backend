@@ -18,8 +18,7 @@ data class HospitalDetailsResponse(
     val specialties: List<String>?, // 병원의 진료과 목록 (선택적 필드, NULL 허용)
     val doctors: List<String>?, // 병원에 소속된 의사 목록 (선택적 필드, NULL 허용)
     val images: List<ImageResponse>?, // 병원과 연결된 이미지 정보 추가
-    val additionalInfo: HospitalAdditionalInfo?, // 병원 추가 정보 (선택적 필드, NULL 허용)
-    val location: LatLng? // 병원 위치 정보
+    val additionalInfo: HospitalAdditionalInfo? // 병원 추가 정보 (선택적 필드, NULL 허용)
 ) {
     companion object {
         // Hospital 엔티티를 HospitalDetailsResponse DTO로 변환
@@ -52,9 +51,7 @@ data class HospitalDetailsResponse(
                     .takeIf { it.isNotEmpty() } // 비어 있지 않은 경우에만  수행
                     ?.map { ImageResponse.from(it) }, // ImageResponse로 변환
 
-                additionalInfo = hospital.additionalInfo, // 병원 부가 정보
-
-                location = hospital.location.toLatLng()
+                additionalInfo = hospital.additionalInfo // 병원 부가 정보
             )
         }
     }
