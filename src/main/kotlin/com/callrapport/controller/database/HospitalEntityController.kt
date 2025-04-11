@@ -23,6 +23,8 @@ import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.geom.PrecisionModel
 
+import java.time.LocalTime
+
 @RestController
 @RequestMapping("/api/hospitals")
 class HospitalEntityController(
@@ -100,41 +102,42 @@ class HospitalEntityController(
     }
 
     // 필터 및 정렬 기준을 반영한 병원 검색
-    // 예: http://localhost:8080/api/hospitals/filter?lat=36.6242237&lng=127.4614843&distance=3&specialties=소아청소년과&specialties=내과&sortBy=distance&page=0&size=10
+    // 예: http://localhost:8080/api/hospitals/filter?lat=36.6242237&lng=127.4614843&distance=3&specialties=성형외과&sortBy=distance&selectedDays=월&startTime=09:00&endTime=18:00&page=0&size=10
     @GetMapping("/filter")
     fun searchHospitalsByFilters(
-        @RequestParam(required = false) lat: Double?, // 위도 (nullable)
-        @RequestParam(required = false) lng: Double?, // 경도 (nullable)
-        @RequestParam(required = false) distance: Double?, // 거리 (km 단위)
-        @RequestParam(required = false) specialties: List<String>?, // 진료과 리스트
-        @RequestParam(defaultValue = "distance") sortBy: String, // 정렬 기준 ("distance" or "name")
-        pageable: Pageable // 페이지네이션 정보 (page, size 등)
+        @RequestParam(required = false) lat: Double?, // 위도
+        @RequestParam(required = false) lng: Double?, // 경도
+        @RequestParam(required = false) distance: Double?, // 거리 (km)
+        @RequestParam(required = false) specialties: List<String>?, // 진료과
+        @RequestParam(required = false) selectedDays: List<String>?, // 요일 필터 (예: 월, 화)
+        @RequestParam(required = false) startTime: LocalTime?, // 시작 시간 필터
+        @RequestParam(required = false) endTime: LocalTime?, // 종료 시간 필터
+        @RequestParam(defaultValue = "distance") sortBy: String, // 정렬 기준
+        pageable: Pageable
     ): Page<HospitalDetailsResponse> {
-        // 위도와 경도가 모두 존재할 경우에만 위치(Point) 객체 생성 (좌표계: WGS 84)
         val location = if (lat != null && lng != null) {
-            val coordinate = Coordinate(lng, lat) // 경도(lng), 위도(lat) 순서로 입력
-            val geometryFactory = GeometryFactory(PrecisionModel(), 4326) // 좌표 정밀도 설정 + SRIG 4326
-            geometryFactory.createPoint(coordinate) // Point 객체 생성
-        } else {
-            null // 둘 중 하나라도 null이면 거리 필터 미적용
-        }
+            val coordinate = Coordinate(lng, lat)
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+            geometryFactory.createPoint(coordinate)
+        } else null
 
-        // 정렬 기준 유효성 체크
         val validSortBy = when (sortBy.lowercase()) {
-            "distance", "name" -> sortBy.lowercase() // distance 또는 name일 경우 그대로 사용
-            else -> "distance" // 잘못된 값이면 기본값 사용
+            "distance", "name" -> sortBy.lowercase()
+            else -> "distance"
         }
 
-        // 병원 검색 서비스 호출 
         val hospitalPage = hospitalService.getHospitalsByFilters(
-            location = location, // 기준 위치
-            maxDistanceInKm = distance, // 최대 검색 거리 (km)
-            specialties = specialties, // 진료과 리스트
-            sortBy = validSortBy, // 정렬 기준
-            pageable = pageable // 페이징 정보
+            location = location,
+            maxDistanceInKm = distance,
+            specialties = specialties,
+            selectedDays = selectedDays,
+            startTime = startTime,
+            endTime = endTime,
+            sortBy = validSortBy,
+            pageable = pageable
         )
 
-        // 엔티티 → 응답 DTO로 매핑하여 반환
         return hospitalPage.map { HospitalDetailsResponse.from(it) }
     }
+
 }

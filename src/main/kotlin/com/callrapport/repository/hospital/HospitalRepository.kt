@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable // 페이지네이션 요청을 
 // 공간 데이터 관련 import
 import org.locationtech.jts.geom.Point // 병원의 위치를 저장하는 공간 데이터 타입
 
+import java.time.LocalTime
+
 @Repository
 interface HospitalRepository : JpaRepository<Hospital, String> {
     // 병원 이름을 기준으로 검색
@@ -51,20 +53,35 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
         pageable: Pageable // 페이지네이션 정보를 포함한 객체
     ): Page<Hospital>
 
-    // 쿼리를 이용하여 정렬 옵션, 필터 옵션을 반영한 페이징 결과 반환
-    // 쿼리문이 상당히 길기 때문에, 위키 페이지에 상술
     @Query(
         """
         SELECT h FROM Hospital h
         JOIN h.specialties hs
         JOIN hs.specialty s
+        JOIN h.operatingHours hoh
+        JOIN hoh.operatingHours oh
         WHERE
             (:specialties IS NULL OR s.name IN :specialties)
             AND (
                 :location IS NULL OR :maxDistance IS NULL
                 OR function('ST_Distance_Sphere', h.location, :location) <= :maxDistance
             )
+            AND (
+                :selectedDays IS NULL
+                OR (
+                    oh.day IN :selectedDays
+                    AND (:startTime IS NULL OR oh.startTime <= :startTime)
+                    AND (:endTime IS NULL OR oh.endTime >= :endTime)
+                )
+            )
         GROUP BY h
+        HAVING 
+            (:selectedDays IS NULL OR COUNT(DISTINCT CASE
+                WHEN (:startTime IS NULL OR oh.startTime <= :startTime)
+                AND (:endTime IS NULL OR oh.endTime >= :endTime)
+                AND oh.day IN :selectedDays
+                THEN oh.day
+            END) = :dayCount)
         ORDER BY
             CASE 
                 WHEN :sortBy = 'distance' THEN function('ST_Distance_Sphere', h.location, :location)
@@ -76,11 +93,17 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
             END ASC
         """
     )
-    fun searchHospitalsByFilters( 
-        @Param("location") location: Point?, // 위치
-        @Param("maxDistance") maxDistanceInMeters: Double?, // 거리 제한
-        @Param("specialties") specialties: List<String>?, // 진료과 리스트
-        @Param("sortBy") sortBy: String, // 정렬 기준 ("distance" 또는 "name")
-        pageable: Pageable // 페이지네이션 정보를 포함한 객체
-    ): Page<Hospital> // 페이지 단위의 검색된 병원 목록
+    fun searchHospitalsByFilters(
+        @Param("location") location: Point?,
+        @Param("maxDistance") maxDistanceInMeters: Double?,
+        @Param("specialties") specialties: List<String>?,
+        @Param("selectedDays") selectedDays: List<String>?, // 필터링할 요일 리스트
+        @Param("startTime") startTime: LocalTime?,           // 사용자가 선택한 시작 시간
+        @Param("endTime") endTime: LocalTime?,               // 사용자가 선택한 종료 시간
+        @Param("dayCount") dayCount: Long,                   // selectedDays.size.toLong()
+        @Param("sortBy") sortBy: String,
+        pageable: Pageable
+    ): Page<Hospital>
+
+
 }
