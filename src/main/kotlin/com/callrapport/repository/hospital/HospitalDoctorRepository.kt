@@ -20,4 +20,7 @@ interface HospitalDoctorRepository : JpaRepository<HospitalDoctor, Long> {
         hospitalId: String, // 병원 ID
         doctorId: String // 의사 ID
     ): Boolean // 해당 조합이 존재하면 true, 아니면 false
+
+    // 특정 의사 ID에 대해 첫 번째 병원-의사 관계 조회
+    fun findFirstByDoctorId(doctorId: String): HospitalDoctor?
 }

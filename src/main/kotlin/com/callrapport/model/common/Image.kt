@@ -18,7 +18,8 @@ data class Image(
 
     @Column(
         nullable = false, // 필수 입력 값 (NULL 허용 안 함)
-        unique = true // 중복된 URL 저장 불가
+        unique = true, // 중복된 URL 저장 불가
+        columnDefinition = "TEXT" // 매우 긴 문자열 저장
     )
     val url: String, // 이미지 url
 

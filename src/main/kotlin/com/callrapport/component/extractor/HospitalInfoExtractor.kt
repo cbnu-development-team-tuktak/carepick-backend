@@ -10,8 +10,12 @@ import org.springframework.stereotype.Component // Spring의 컴포넌트로 등
 // JSON 변환 관련 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper // JSON 변환을 위한 Jackson 라이브러리
 
+import com.callrapport.component.log.LogBroadcaster // 로그 브로드캐스터
+
 @Component
-class HospitalInfoExtractor {
+class HospitalInfoExtractor (
+    private val logBroadcaster: LogBroadcaster // 로그 전송 컴포넌트
+) {
     // 병원 전화번호 추출
     fun extractPhoneNumber(doc: Document): String? { 
         // 첫 번째 <a> 태그에서 전화번호 추출
@@ -56,32 +60,128 @@ class HospitalInfoExtractor {
         return "$line $stationText $exitInfo".trim()
     }
 
-    // 병원의 운영 시간을 추출
-    fun extractOperatingHours(doc: Document): String? {
-        // 운영 시간을 저장할 맵 생성
-        val operatingHours = mutableMapOf<String, String>() 
+    // 요일 전체 리스트
+    private val weekDays = listOf("월", "화", "수", "목", "금", "토", "일")
 
-        // 운영 시간 정보가 있는 div 요소 선택
-        val timeInfoElement = doc.selectFirst("div.time_info") ?: return null
-        // 요일별 운영 시간 정보를 포함하는 dl 태그 선택
-        val timeEntries = timeInfoElement.select("dl")
+    // 입력된 요일 텍스트("월~금", "토요일", "평일" 등)를 실제 요일 리스트로 변환
+    fun parseDays(
+        dayText: String // 변환할 요일 범위 또는 단일 요일이 포함된 문자열
+    ): List<String> { // 변환된 요일 문자열 리스트 (예: ["월", "화", "수"])
+        // "월~금", "금~화" 등 범위 형식이 포함된 경우
+        if (dayText.contains("~")) {
 
-        for (entry in timeEntries) {
-            // dt 태그에서 요일 추출 (없으면 다음 반복으로 넘어감)
-            val day = entry.selectFirst("dt")?.text()?.trim() ?: continue
-            // dd 태그에서 운영 시간 추출 (없으면 기본값 설정)
-            val time = entry.selectFirst("dd")?.text()?.replace("\n", " ")?.trim() ?: "운영 시간 없음"
-
-            // 요일을 키, 운영 시간을 값으로 저장
-            operatingHours[day] = time
+            val (start, end) = dayText
+                .split("~") // "~" 기호 기준으로 시작/종료 요일을 분리
+                .map { it.trim().take(1) } // 각 항목에서 첫 글자만 추출 ("")
+            
+            // 시작 요일과 종료 요일의 인덱스를 요일 리스트에서 탐색
+            val startIndex = weekDays.indexOf(start) // 시작 요일 인덱스 저장
+            val endIndex = weekDays.indexOf(end) // 종료 요일 인덱스 저장
+            
+            // 유효한 인덱스일 경우
+            if (startIndex != -1 && endIndex != -1) {
+                // 예: "월~금" → 월, 화, 수, 목, 금
+                return if (startIndex <= endIndex) {
+                    weekDays.subList(startIndex, endIndex + 1)
+                // 예: "금~화" → 금, 토, 일, 월, 화 (요일 순환) 
+                } else {
+                    weekDays.subList(startIndex, weekDays.size) + weekDays.subList(0, endIndex + 1)
+                }
+            }
         }
 
-        return if (operatingHours.isNotEmpty()) {
-            // JSON 형식 문자열로 변환
-            jacksonObjectMapper().writeValueAsString(operatingHours) 
+        return when {
+            dayText.contains("평일") -> listOf("월", "화", "수", "목", "금") // "평일" → 월 ~ 금
+            dayText.contains("주말") -> listOf("토", "일") // "주말" → 토, 일
+            dayText.contains("월요일") -> listOf("월") // "월요일" → 월
+            dayText.contains("화요일") -> listOf("화") // "화요일" → 화
+            dayText.contains("수요일") -> listOf("수") // "수요일" → 수
+            dayText.contains("목요일") -> listOf("목") // "목요일" → 목
+            dayText.contains("금요일") -> listOf("금") // "금요일" → 금
+            dayText.contains("토요일") -> listOf("토") // "토요일" → 토
+            dayText.contains("일요일") -> listOf("일") // "일요일" → 일
+            dayText.contains("공휴일") -> listOf("공휴일") // "공휴일" -> 공휴일
+            else -> listOf(dayText) // 위 조건에 해당하지 않는 경우 원본 문자열 그대로 반환
+        }
+    }
+
+    // 운영 시간 문자열("HH:mm - HH:mm")을 시작 시간과 종료 시간으로 분리
+    fun parseStartAndEndTime(
+        timeText: String // "10:00 - 18:00" 형식의 문자열
+    ): Pair<String, String> {
+        // "HH:mm - HH:mm" 형식에 대응하는 정규식
+        val pattern = Regex("""\d{2}:\d{2}\s*-\s*\d{2}:\d{2}""")
+
+        // 주어진 형식과 일치하는 경우
+        return if (pattern.matches(timeText)) {
+            // "-" 기준으로 분리 후 공백 제거
+            val parts = timeText.split("-").map { it.trim() }
+            
+            // 시작 시간과 종료 시간 반환
+            if (parts.size == 2) parts[0] to parts[1]
+
+            // 분리가 제대로 이뤄지지 않은 경우 "휴진" 처리
+            else "휴진" to "휴진"
+
+        // 주어진 형식과 일치하지 않는 경우
         } else {
-            null // 운영 시간이 없으면 NULL 반환
+            "휴진" to "휴진"
         }
+    }
+    
+    // 병원의 운영 시간을 추출
+    fun extractOperatingHours(
+        doc: Document // Jsoup의 Document 객체 (HTML 파싱 결과)
+    ): Map<String, Pair<String, String>>? {
+        // 요일 → (시작시간, 종료시간) 매핑
+        val operatingHours = mutableMapOf<String, Pair<String, String>>()
+        
+        // 운영 시간 정보가 들어 있는 최상위 div 요소 선택
+        val possibleDiv = doc.selectFirst("div.treatment_possibility_time div.possible") ?: return null
+        // ul > li 형식으로 각 요일의 시간 정보를 선택
+        val timeItems = possibleDiv.select("ul > li")
+        
+        // 시간 정보에 있는 요소들을 순회
+        for (item in timeItems) {
+            // 요일 텍스트 추출 (예: "월요일", "평일", "토~일" 등), 없으면 다음 항목으로 넘어감
+            val dayText = item.selectFirst("span.day")?.text()?.trim() ?: continue
+
+            // 시간 텍스트 추출 (예: "09:00 - 18:00"), 없으면 "휴진"으로 처리
+            val timeText = item.selectFirst("span.time")?.text()?.trim() ?: "휴진"
+    
+            // 요일 텍스트를 실제 요일 리스트로 변환 (예: ["월", "화", ...])
+            val days = parseDays(dayText)
+            
+            // logBroadcaster.sendLog("📅 운영시간 항목 발견 → 요일: '$dayText', 변환된 요일 목록: $days, 시간: '$timeText'")
+
+            // 변환된 요일 리스트에 대해 반복 처리
+            for (day in days) {
+                // 시간 텍스트를 시작/종료 시간으로 분리 (예: "09:00" to "18:00")
+                val (start, end) = parseStartAndEndTime(timeText)
+                // logBroadcaster.sendLog("🕒 시간 파싱 완료 → $day: 시작='$start', 종료='$end'")
+                
+                // 결과를 요일 기준으로 맵에 저장 
+                operatingHours[day] = start to end
+            }
+        }
+        
+        // 모든 요일 목록 정의 (공휴일 포함)
+        val allDays = listOf("월", "화", "수", "목", "금", "토", "일", "공휴일")
+
+        // 누락된 요일이 있다면 기본적으로 "휴진" 처리
+        for (day in allDays) {
+            if (day !in operatingHours) {
+                // logBroadcaster.sendLog("⚠️ '$day' 요일 누락 → 휴진으로 처리됨")
+                
+                // 해당 요일이 없으면 "휴진"으로 처리
+                operatingHours[day] = "휴진" to "휴진"
+            }
+        }
+    
+        // logBroadcaster.sendLog("✅ 최종 추출된 운영시간: $operatingHours")
+        
+        // 운영 시간이 하나라도 존재하면 반환, 아니면 null 반환
+        return if (operatingHours.isNotEmpty()) operatingHours else null
     }
     
     // 병원의 추가 정보를 추출

@@ -17,7 +17,6 @@ import com.callrapport.config.ChatgptApiProperties // ChatGPT API 설정을 담�
     ] 
 )
 class CallRapportApplication
-
 fun main(args: Array<String>) {
     // Spring Boot 애플리케이션 실행
     runApplication<CallRapportApplication>(*args)

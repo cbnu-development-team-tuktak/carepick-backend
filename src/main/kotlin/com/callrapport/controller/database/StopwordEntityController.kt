@@ -5,10 +5,10 @@ import org.springframework.web.bind.annotation.* // REST 컨트롤러, 매핑, �
 import org.springframework.http.ResponseEntity // HTTP 응답을 표현하는 클래스  
 
 // 저장소 관련 import
-import com.callrapport.repository.common.StopwordRepository
+import com.callrapport.repository.common.StopwordRepository // 불용어(stopword) 데이터를 관리하는 저장소
 
 // 엔티티 관련 import
-import com.callrapport.model.common.Stopword
+import com.callrapport.model.common.Stopword // 불용어(stopword) 엔티티 클래스
 
 @RestController
 @RequestMapping("/api/stopwords")
