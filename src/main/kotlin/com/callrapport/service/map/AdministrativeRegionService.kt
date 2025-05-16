@@ -1,5 +1,8 @@
 package com.callrapport.service.map
 
+// Component 관련 import
+import com.callrapport.component.file.FileManager // CSV 파일 읽기 컴포넌트
+
 // Model (엔티티) 관련 import
 import com.callrapport.model.common.AdministrativeRegion // 행정구역 엔티티
 
@@ -15,7 +18,28 @@ import org.springframework.transaction.annotation.Transactional // 트랜잭션 
 @Service
 class AdministrativeRegionService(
     private val administrativeRegionRepository: AdministrativeRegionRepository, // 행정구역 리포지토리
+    private val fileManager: FileManager // CSV 파일 읽기 컴포넌트
 ) {
+    // CSV 파일로부터 행정구역 데이터를 읽고 DB에 저장
+    @Transactional
+    fun saveAdministrativeRegion() {
+        val filePath = "csv/LSCT_LAWDCD.csv" // 읽어올 CSV 파일 경로
+        val regions = fileManager.readCsv(filePath) // CSV 파일을 읽어 Map 리스트로 변환
+
+        // CSV에서 읽은 데이터를 엔티티 리스트로 변환
+        val entities = regions.map {
+            AdministrativeRegion(
+                sidoNm = it["SIDO_NM"] ?: "", // 시도명
+                sggNm = it["SGG_NM"] ?: "", // 시군구명
+                umdNm = it["UMD_NM"]?.takeIf { umd -> umd.isNotBlank() }, // 읍면동명
+                riNm = it["RI_NM"]?.takeIf { ri -> ri.isNotBlank() } // 리명
+            )
+        }
+
+        // 엔티티 리스트를 DB에 일괄 저장
+        administrativeRegionRepository.saveAll(entities)
+    }
+
     // 전체 행정구역 조회
     fun findAll(pageable: Pageable): Page<AdministrativeRegion> {
         return administrativeRegionRepository.findAll(pageable)
