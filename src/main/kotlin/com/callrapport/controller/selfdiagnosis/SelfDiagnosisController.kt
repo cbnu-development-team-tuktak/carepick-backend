@@ -11,39 +11,60 @@ import org.springframework.http.ResponseEntity // HTTP 응답 본문과 상태 �
 @RestController
 @RequestMapping("/api/self-diagnosis")
 class SelfDiagnosisController(
-    // 자가진단 비즈니스 로직을 처리
-    private val selfDiagnosisService: SelfDiagnosisService
+    private val selfDiagnosisService: SelfDiagnosisService // 자가진단 비즈니스 로직을 처리
 ) {
 
-    // 증상 기반 자가진단 결과 반환
-    // 예: http://localhost:8080/api/self-diagnosis/symptoms
-    // POST 방식으로 증상 리스트(List<String>)를 전달해야 함
-    @PostMapping("/symptoms")
-    fun handleSymptoms(@RequestBody symptoms: List<String>): ResponseEntity<DiagnosisResult> {
-        // 서비스 계층을 통해 진단 결과 생성
-        val response = selfDiagnosisService.diagnoseBySymptoms(symptoms)
-        // 생성된 진단 결과를 HTTP 200 OK와 함께 반환
+    // 자연어 기반 자가진단 - mini 버전 (GET)
+    // 예: http://localhost:8080/api/self-diagnosis/natural/mini?text=재채기가%20나와&k=3
+    @GetMapping("/natural/mini")
+    fun getNaturalMini(
+        @RequestParam text: String, // 증상 설명 텍스트
+        @RequestParam(required = false, defaultValue = "3") k: Int // Top-k 예측 개수
+    ): ResponseEntity<DiagnosisResult> {
+        // 서비스 호출하여 예측 수행
+        val response = selfDiagnosisService.diagnoseNaturalMini(text, k)
+
+        // 에측 결과를 200 OK 응답으로 반환
         return ResponseEntity.ok(response)
     }
 
-    // 질병명 기반 자가진단 결과 반환 (진료과 안내)
-    // 예: http://localhost:8080/api/self-diagnosis/disease
-    // POST 방식으로 질병명을 문자열 리스트(List<String>)로 전달해야 함
-    @PostMapping("/disease")
-    fun handleDisease(@RequestBody diseaseNames: List<String>): ResponseEntity<DiagnosisResult> {
-        val response = selfDiagnosisService.diagnoseByDiseaseName(diseaseNames)
+    // 자연어 기반 자가진단 - mini 버전 (POST)
+    // 예: POST http://localhost:8080/api/self-diagnosis/natural/mini
+    @PostMapping("/natural/mini")
+    fun postNaturalMini(
+        @RequestBody text: String, // 증상 설명 텍스트
+        @RequestParam(required = false, defaultValue = "3") k: Int // Top-k 예측 개수
+    ): ResponseEntity<DiagnosisResult> {
+        // 서비스 호출로 예측 수행
+        val response = selfDiagnosisService.diagnoseNaturalMini(text, k) 
+
+        // 예측 결과를 200 OK로 반환
+        return ResponseEntity.ok(response) 
+    }
+
+    // 자연어 기반 자가진단 - advanced 버전 (GET)
+    // 예: http://localhost:8080/api/self-diagnosis/natural/advanced?text=속이%20메스껍고%20열이%20납니다
+    @GetMapping("/natural/advanced")
+    fun getNaturalAdvanced(
+        @RequestParam text: String // 증상 설명 텍스트
+    ): ResponseEntity<DiagnosisResult> {
+        // 서비스 호출로 예측 수행
+        val response = selfDiagnosisService.diagnoseNaturalAdvanced(text)
+
+        // 예측 결과를 200 OK로 반환
         return ResponseEntity.ok(response)
     }
 
+    // 자연어 기반 자가진단 - advanced 버전 (POST)
+    // 예: POST http://localhost:8080/api/self-diagnosis/natural/advanced
+    @PostMapping("/natural/advanced")
+    fun postNaturalAdvanced(
+        @RequestBody text: String // 증상 설명 텍스트
+    ): ResponseEntity<DiagnosisResult> {
+        // 서비스 호출로 예측 수행
+        val response = selfDiagnosisService.diagnoseNaturalAdvanced(text)
 
-    // 자연어 기반 자가진단 결과 반환 (향후 구현 예정)
-    // 예: http://localhost:8080/api/self-diagnosis/natural
-    // POST 방식으로 사용자 입력 문장을 전달해야 함
-    @PostMapping("/natural")
-    fun handleNaturalLanguage(@RequestBody inputText: String): ResponseEntity<DiagnosisResult> {
-        // 서비스 계층을 통해 진단 결과 생성
-        val response = selfDiagnosisService.diagnoseByNaturalLanguage(inputText)
-        // 생성된 진단 결과를 HTTP 200 OK와 함께 반환
+        // 예측 결과를 200 OK로 반환
         return ResponseEntity.ok(response)
     }
 }

@@ -45,7 +45,7 @@ class BackupService {
             "carepick", // 백업 대상이 되는 데이터베이스 이름
             "--result-file=$filePath" // 백업 파일을 저장할 경로 지정 
         )
-        
+
         // 백업 명령어(command)를 실행할 프로세스를 생성하고 실행
         val process = ProcessBuilder(command)
             .redirectErrorStream(true) // 오류 스트림을 표준 출력 스트림으로 병합하여 출력

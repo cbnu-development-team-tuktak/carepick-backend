@@ -7,13 +7,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 // 사용자 정의 설정 프로퍼티 클래스 import
 import com.callrapport.config.NaverApiProperties // 네이버 API 설정을 담고 있는 프로퍼티 클래스
-import com.callrapport.config.ChatgptApiProperties // ChatGPT API 설정을 담고 있는 프로퍼티 클래스
+
 // Spring Boot의 자동 설정 활성화 및 프로퍼티 클래스 활성화
 @SpringBootApplication
 @EnableConfigurationProperties(
     value = [
         NaverApiProperties::class, // NaverApiProperties 클래스 활성화
-        ChatgptApiProperties::class // ChatgptApiProeprties 클래스 활성화
     ] 
 )
 class CallRapportApplication
