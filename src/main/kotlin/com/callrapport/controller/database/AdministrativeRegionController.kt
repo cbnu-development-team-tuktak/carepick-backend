@@ -20,15 +20,6 @@ class AdministrativeRegionController(
     private val administrativeRegionService: AdministrativeRegionService, // 행정구역 저장 로직을 담당하는 서비스
     private val administrativeRegionRepository: AdministrativeRegionRepository // 행정구역 조회/삭제를 담당하는 JPA 리포지토리
 ) {
-
-    // 행정구역 CSV 파일을 읽어 DB에 저장
-    // http://localhost:8080/api/administrative-regions/initialize
-    // @GetMapping("/initialize")
-    // fun initialize(): String {
-    //     administrativeRegionService.saveAdministrativeRegion()
-    //     return "행정구역 데이터가 성공적으로 저장되었습니다."
-    // }
-
     // 모든 행정구역 데이터를 페이지로 조회
     // 예: http://localhost:8080/api/administrative-regions?page=0&size=10
     @GetMapping
