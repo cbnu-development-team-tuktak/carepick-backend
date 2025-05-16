@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service // 서비스 레이어 컴포넌�
 // REST 클라이언트 관련 import
 import org.springframework.web.client.RestTemplate // 외부 HTTP 요청을 수행하는 Spring REST 클라이언트
 
+// Repository (저장소) 관련 import
+import com.callrapport.repository.disease.DiseaseRepository // 질병 정보 조회 리포지토리
+import com.callrapport.repository.disease.DiseaseSpecialtyRepository // 질병-진료과 관계 정보 조회 리포지토리
+
 data class DiagnosisResult(
     val message: String, // 예측 결과 메시지 (예: "감기일 가능성이 있습니다")
     val suggestedSymptoms: List<String> = emptyList(), // 추천 증상 목록
@@ -18,7 +22,27 @@ data class DiagnosisResult(
 )
 
 @Service
-class SelfDiagnosisService {
+class SelfDiagnosisService(
+    // Repository: 질병 관련
+    private val diseaseRepository: DiseaseRepository, // 질병 정보 조회 리포지토리
+    private val diseaseSpecialtyRepository: DiseaseSpecialtyRepository, // 질병-진료과 관게 정보 조회 리포지토리
+) {
+    // 질병명 리스트를 받아 해당 질병들의 진료과 이름 목록을 반환
+    private fun getSpecialtiesByDiseaseNames(
+        diseaseNames: List<String> // 예측된 질병명 목록
+    ): List<String> {
+        // 질병명을 기반으로 질병 엔티티 리스트 조회
+        val diseases = diseaseRepository.findByNameIn(diseaseNames)
+
+        // 각 질병과 연결된 진료과 이름을 flatMap으로 펼치고 중복 제거
+        return diseases
+            .flatMap { disease ->
+                diseaseSpecialtyRepository.findByDisease(disease) // 질병-진료과 관계 조회
+                    .mapNotNull { it.specialty?.name } // 진료과명만 추출
+            }
+            .distinct() // 중복된 진료과 이름 제거 
+    }
+
     // 자연어 기반 질병 예측 (mini 모델)
     fun diagnoseNaturalMini(
         inputText: String?, // 사용자 입력 문장
@@ -78,11 +102,14 @@ class SelfDiagnosisService {
                 }
             }
             
+            // 예측된 질병명을 기반으로 진료과 이름 리스트 조회
+            val specialties = getSpecialtiesByDiseaseNames(diseaseNames)
+
             // 예측 결과를 DiagnosisResult 형태로 반환
             return DiagnosisResult(
                 message = message, // 위에서 구성한 요약 메시지
                 suggestedSymptoms = emptyList(), // 현재는 빈 리스트로 반환 (추후 삭제 예정)
-                suggestedSpecialties = listOf("예측 진료과 제공 예정") // 추후 진료과 연동 시 대체 예정
+                suggestedSpecialties = specialties // 추후 진료과 연동 시 대체 예정
             )
 
         // 예외가 발생했을 경우

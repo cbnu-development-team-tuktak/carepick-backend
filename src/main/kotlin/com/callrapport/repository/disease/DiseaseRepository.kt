@@ -14,6 +14,11 @@ interface DiseaseRepository : JpaRepository<Disease, Long> {
         name: String // 질병명
     ): Disease? // 질병명에 해당하는 질병
 
+    // 여러 질병명을 기준으로 질병 목록 조회
+    fun findByNameIn(
+        name: List<String> // 질병명 리스트
+    ): List<Disease> // 해당하는 질병 목록
+
     // 질병명을 기준으로 부분 검색
     fun findByNameContainingIgnoreCase(
         name: String, // 검색할 질병명 키워드

@@ -17,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional // 트랜잭션 
 import org.springframework.data.domain.Page // 페이징 응답 객체
 import org.springframework.data.domain.Pageable // 페이징 요청 객체
 
-import java.nio.charset.Charset
+// Java 표준 라이브러리 관련 import
+import java.nio.charset.Charset // 파일 인코딩 지정
 
 @Service
 class DiseaseService(
