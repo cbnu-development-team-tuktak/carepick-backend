@@ -10,7 +10,7 @@ import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
 import java.time.LocalDateTime // 즐겨찾기한 시간 저장을 위한 LocalDateTime 클래스
 
 @Entity
-@Table(name = "user_favortie_hospitals")
+@Table(name = "user_favorite_hospitals")
 data class UserFavoriteHospital(
     @Id // 기본 키(Primary Key) 설정
     @GeneratedValue(strategy = GenerationType.IDENTITY) // ID 값을 자동 증가(Auto Increment)하도록 설정
