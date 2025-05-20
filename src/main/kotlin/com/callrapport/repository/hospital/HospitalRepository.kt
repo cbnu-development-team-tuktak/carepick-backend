@@ -61,7 +61,8 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
         JOIN h.operatingHours hoh
         JOIN hoh.operatingHours oh
         WHERE
-            (:specialties IS NULL OR s.name IN :specialties)
+            (:keyword IS NULL OR h.name LIKE %:keyword%) 
+            AND (:specialties IS NULL OR s.name IN :specialties)
             AND (
                 :location IS NULL OR :maxDistance IS NULL
                 OR function('ST_Distance_Sphere', h.location, :location) <= :maxDistance
@@ -94,16 +95,15 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
         """
     )
     fun searchHospitalsByFilters(
-        @Param("location") location: Point?,
-        @Param("maxDistance") maxDistanceInMeters: Double?,
-        @Param("specialties") specialties: List<String>?,
-        @Param("selectedDays") selectedDays: List<String>?, // 필터링할 요일 리스트
-        @Param("startTime") startTime: LocalTime?,           // 사용자가 선택한 시작 시간
-        @Param("endTime") endTime: LocalTime?,               // 사용자가 선택한 종료 시간
-        @Param("dayCount") dayCount: Long,                   // selectedDays.size.toLong()
-        @Param("sortBy") sortBy: String,
-        pageable: Pageable
-    ): Page<Hospital>
-
-
+        @Param("keyword") keyword: String?, // 병원 이름 검색 키워드 (부분 일치)             
+        @Param("location") location: Point?, // 기준 좌표 (위치 기반 검색용)
+        @Param("maxDistance") maxDistanceInMeters: Double?, // 최대 거리 (미터 단위)
+        @Param("specialties") specialties: List<String>?, // 진료과목 필터
+        @Param("selectedDays") selectedDays: List<String>?, // 원하는 요일 목록
+        @Param("startTime") startTime: LocalTime?, // 희망 진료 시작 시간
+        @Param("endTime") endTime: LocalTime?, // 희망 진료 종료 시간
+        @Param("dayCount") dayCount: Long, // 선택된 요일 수 (selectedDays.size.toLong())
+        @Param("sortBy") sortBy: String, // 정렬 기준 ("distance" 또는 "name")
+        pageable: Pageable // 페이지네이션 결과
+    ): Page<Hospital> // 페이징된 병원 리스트 결과
 }
