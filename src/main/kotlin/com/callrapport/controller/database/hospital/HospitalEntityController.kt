@@ -102,9 +102,10 @@ class HospitalEntityController(
     }
 
     // 필터 및 정렬 기준을 반영한 병원 검색
-    // 예: http://localhost:8080/api/hospitals/filter?lat=36.6242237&lng=127.4614843&distance=3&specialties=성형외과&sortBy=distance&selectedDays=월&startTime=09:00&endTime=18:00&page=0&size=10
+    // 예: http://localhost:8080/api/hospitals/filter?keyword=서울&lat=36.6242237&lng=127.4614843&distance=3&specialties=성형외과&sortBy=distance&selectedDays=월&startTime=09:00&endTime=18:00&page=0&size=10
     @GetMapping("/filter")
     fun searchHospitalsByFilters(
+        @RequestParam(required = false) keyword: String?, // 병원 이름 키워드 (부분 일치)
         @RequestParam(required = false) lat: Double?, // 위도
         @RequestParam(required = false) lng: Double?, // 경도
         @RequestParam(required = false) distance: Double?, // 거리 (km)
@@ -115,29 +116,33 @@ class HospitalEntityController(
         @RequestParam(defaultValue = "distance") sortBy: String, // 정렬 기준
         pageable: Pageable
     ): Page<HospitalDetailsResponse> {
+        // 좌표 객체 생성 (위도와 경도가 모두 존재할 경우만 생성)
         val location = if (lat != null && lng != null) {
-            val coordinate = Coordinate(lng, lat)
-            val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
-            geometryFactory.createPoint(coordinate)
-        } else null
+            val coordinate = Coordinate(lng, lat) // 위도(lat), 경도(lng)를 좌표 객체로 반환
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326) // WGS84 좌표계 (SRID: 4326) 사용
+            geometryFactory.createPoint(coordinate) // 좌표(Point) 객체 생성
+        } else null // 위도 또는 경도 값이 없으면 null 처리
 
+        // 정렬 기준 검증 및 기본값 설정
         val validSortBy = when (sortBy.lowercase()) {
-            "distance", "name" -> sortBy.lowercase()
-            else -> "distance"
+            "distance", "name" -> sortBy.lowercase() // 유효한 정렬 기준이면 그대로 사용
+            else -> "distance" // 잘못된 값이면 기본값 "distance" 사용
         }
 
+        // 병원 검색 서비스 호출
         val hospitalPage = hospitalService.getHospitalsByFilters(
-            location = location,
-            maxDistanceInKm = distance,
-            specialties = specialties,
-            selectedDays = selectedDays,
-            startTime = startTime,
-            endTime = endTime,
-            sortBy = validSortBy,
-            pageable = pageable
+            keyword = keyword, // 병원 이름 키워드 (부분 일치)
+            location = location, // 위치 정보 (Point 좌표)
+            maxDistanceInKm = distance, // 최대 거리 제한 (km 단위)
+            specialties = specialties, // 진료과 필터
+            selectedDays = selectedDays, // 요일 필터 
+            startTime = startTime, // 희망 시작 시간
+            endTime = endTime, // 희망 종료 시간
+            sortBy = validSortBy, // 정렬 기준 (distance 또는 name)
+            pageable = pageable // 페이지네이션 정보
         )
 
+        // 검색할 병원 목록을 HospitalDetailsResponse 형태로 매핑하여 변환
         return hospitalPage.map { HospitalDetailsResponse.from(it) }
     }
-
 }

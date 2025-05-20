@@ -615,6 +615,7 @@ class HospitalService(
     }
 
     fun getHospitalsByFilters(
+        keyword: String?, // 병원 이름 검색 키워드 (부분 일치)
         location: Point?, // 위치 정보
         maxDistanceInKm: Double?, // 거리 제한 (km 단위)
         specialties: List<String>?, // 진료과 리스트
@@ -636,21 +637,21 @@ class HospitalService(
             else -> "distance"
         }
 
-        // 선택된 요일 수 계산 (null일 경우 null, 아니면 개수)
+        // 선택된 요일 수 계산 (null일 경우 0L)
         val dayCount = selectedDays?.size?.toLong() ?: 0L
 
         // 필터 조건에 맞는 병원 검색
         return hospitalRepository.searchHospitalsByFilters(
-            location = location,
-            maxDistanceInMeters = maxDistanceInMeters,
-            specialties = safeSpecialties,
-            selectedDays = selectedDays,
-            startTime = startTime,
-            endTime = endTime,
-            dayCount = dayCount,
-            sortBy = validSortBy,
-            pageable = pageable
+            keyword = keyword, // 병원 이름 키워드
+            location = location, // 기준 위치 (Point 타입 좌표)
+            maxDistanceInMeters = maxDistanceInMeters, // 최대 거리 제한 (미터 단위)
+            specialties = safeSpecialties, // 진료과 필터
+            selectedDays = selectedDays, // 선택된 요일 필터
+            startTime = startTime, // 진료 시작 시간 필터
+            endTime = endTime, // 진료 종료 시간 필터
+            dayCount = dayCount, // 선택된 요일 수 (HAVING 절 조건)
+            sortBy = validSortBy, // 정렬 기준 (distance 또는 name)
+            pageable = pageable // 페이지네이션 정보
         )
     }
-
 }
