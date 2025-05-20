@@ -1,0 +1,1131 @@
+rank,name,region
+1,University of Oxford,United Kingdom
+2,Harvard University,United States
+3,University of Cambridge,United Kingdom
+4,Imperial College London,United Kingdom
+5,Johns Hopkins University,United States
+=6,Stanford University,United States
+=6,Yale University,United States
+8,UCL,United Kingdom
+9,University of Toronto,Canada
+10,University of Pennsylvania,United States
+11,University of California  Berkeley,United States
+12,King’s College London,United Kingdom
+13,Karolinska Institute,Sweden
+14,University of California  Los Angeles,United States
+15,Tsinghua University,China
+16,Columbia University,United States
+17,National University of Singapore,Singapore
+18,University of Michigan-Ann Arbor,United States
+19,University of Washington,United States
+20,University of Melbourne,Australia
+=21,University of Edinburgh,United Kingdom
+=21,University of Hong Kong,Hong Kong
+23,Duke University,United States
+24,The Chinese University of Hong Kong,Hong Kong
+25,Peking University,China
+26,The University of Chicago,United States
+27,The University of Tokyo,Japan
+28,University of British Columbia,Canada
+29,McGill University,Canada
+30,University of North Carolina at Chapel Hill,United States
+31,Monash University,Australia
+=32,Charité - Universitätsmedizin Berlin,Germany
+=32,Washington University in St Louis,United States
+34,University of California  San Diego,United States
+35,The University of Sydney,Australia
+36,Boston University,United States
+37,University of Amsterdam,Netherlands
+38,Universität Heidelberg,Germany
+39,McMaster University,Canada
+40,Fudan University,China
+41,KU Leuven,Belgium
+42,ETH Zurich,Switzerland
+43,Emory University,United States
+44,Seoul National University,South Korea
+45,LMU Munich,Germany
+=46,Kyoto University,Japan
+=46,Northwestern University,United States
+48,University of Manchester,United Kingdom
+49,New York University,United States
+=50,Sungkyunkwan University (SKKU),South Korea
+=50,University of Glasgow,United Kingdom
+52,Erasmus University Rotterdam,Netherlands
+53,Technical University of Munich,Germany
+=54,University of Bristol,United Kingdom
+=54,University of Southern California,United States
+56,Shanghai Jiao Tong University,China
+57,The University of Queensland,Australia
+58,Maastricht University,Netherlands
+59,Vanderbilt University,United States
+60,Yonsei University (Seoul campus),South Korea
+61,Brown University,United States
+62,Leiden University,Netherlands
+63,University of Groningen,Netherlands
+64,University of Copenhagen,Denmark
+65,University of Minnesota,United States
+66,University of Birmingham,United Kingdom
+=67,University of Bern,Switzerland
+=67,University of Pittsburgh-Pittsburgh campus,United States
+69,Queen Mary University of London,United Kingdom
+70,The University of Osaka,Japan
+=71,University of California  Davis,United States
+=71,UNSW Sydney,Australia
+73,University of Barcelona,Spain
+74,University of Alberta,Canada
+75,Tufts University,United States
+76,Zhejiang University,China
+77,Aarhus University,Denmark
+78,University of Cape Town,South Africa
+79,University of Nottingham,United Kingdom
+80,National Taiwan University (NTU),Taiwan
+81,Sorbonne University,France
+82,Case Western Reserve University,United States
+83,Lund University,Sweden
+84,University of Basel,Switzerland
+85,Nanyang Technological University  Singapore,Singapore
+=86,Nanjing University,China
+=86,Newcastle University,United Kingdom
+=86,University of São Paulo,Brazil
+89,University of Adelaide,Australia
+90,University of Liverpool,United Kingdom
+91,University of Florida,United States
+92,University of Wisconsin-Madison,United States
+=93,Université de Montréal,Canada
+=93,Université Paris-Saclay,France
+95,Sichuan University,China
+96,Ghent University,Belgium
+97,Wuhan University,China
+98,University of Tübingen,Germany
+99,University of Massachusetts,United States
+=100,Huazhong University of Science and Technology,China
+=100,University of Rochester,United States
+101–125,Australian National University,Australia
+101–125,Medical University of Vienna,Austria
+101–125,Ohio State University (Main campus),United States
+101–125,Radboud University Nijmegen,Netherlands
+101–125,Tohoku University,Japan
+101–125,University of Antwerp,Belgium
+101–125,University of Bologna,Italy
+101–125,University of Calgary,Canada
+101–125,University of Freiburg,Germany
+101–125,University of Gothenburg,Sweden
+101–125,University of Helsinki,Finland
+101–125,University of Iowa,United States
+101–125,University of Lausanne,Switzerland
+101–125,University of Leeds,United Kingdom
+101–125,University of Leicester,United Kingdom
+101–125,University of Miami,United States
+101–125,University of Oslo,Norway
+101–125,University of Ottawa,Canada
+101–125,University of Sheffield,United Kingdom
+101–125,University of Southampton,United Kingdom
+101–125,University of Texas at Austin,United States
+101–125,University of York,United Kingdom
+101–125,Uppsala University,Sweden
+101–125,Vrije Universiteit Amsterdam,Netherlands
+126–150,Dartmouth College,United States
+126–150,George Washington University,United States
+126–150,Queen’s University,Canada
+126–150,Queen’s University Belfast,United Kingdom
+126–150,RWTH Aachen University,Germany
+126–150,Sun Yat-sen University,China
+126–150,The University of Western Australia,Australia
+126–150,Trinity College Dublin,Ireland
+126–150,Université Catholique de Louvain,Belgium
+126–150,Université Libre de Bruxelles,Belgium
+126–150,Université Paris Cité,France
+126–150,University of Auckland,New Zealand
+126–150,University of California  Irvine,United States
+126–150,University of Colorado Denver/Anschutz Medical Campus,United States
+126–150,University of Geneva,Switzerland
+126–150,University of Hamburg,Germany
+126–150,University of Illinois Chicago,United States
+126–150,University of Milan,Italy
+126–150,University of Münster,Germany
+126–150,University of Utah,United States
+126–150,University of Warwick,United Kingdom
+126–150,University of Würzburg,Germany
+126–150,Vita-Salute San Raffaele University,Italy
+126–150,Wageningen University & Research,Netherlands
+126–150,Western University,Canada
+151–175,Cardiff University,United Kingdom
+151–175,Georgetown University,United States
+151–175,Humanitas University,Italy
+151–175,King Saud University,Saudi Arabia
+151–175,Korea University,South Korea
+151–175,La Trobe University,Australia
+151–175,Macquarie University,Australia
+151–175,Oregon Health and Science University,United States
+151–175,Penn State (Main campus),United States
+151–175,St George’s  University of London,United Kingdom
+151–175,The Hong Kong Polytechnic University,Hong Kong
+151–175,Tokyo Medical and Dental University (TMDU),Japan
+151–175,TU Dresden,Germany
+151–175,Ulm University,Germany
+151–175,Universitat Autònoma de Barcelona (UAB),Spain
+151–175,Université Laval,Canada
+151–175,University of Arizona,United States
+151–175,University of Bonn,Germany
+151–175,University of Cologne,Germany
+151–175,University of Erlangen-Nuremberg,Germany
+151–175,University of Exeter,United Kingdom
+151–175,University of Göttingen,Germany
+151–175,University of Macau,Macao
+151–175,University of Padua,Italy
+151–175,University of Technology Sydney,Australia
+176–200,Heinrich Heine University Düsseldorf,Germany
+176–200,Indiana University,United States
+176–200,Medical University of Graz,Austria
+176–200,Medical University of Innsbruck,Austria
+176–200,Pompeu Fabra University,Spain
+176–200,Purdue University West Lafayette,United States
+176–200,Queensland University of Technology,Australia
+176–200,Southern Medical University,China
+176–200,Stellenbosch University,South Africa
+176–200,Technical University of Denmark,Denmark
+176–200,Tel Aviv University,Israel
+176–200,Tongji University,China
+176–200,United Arab Emirates University,United Arab Emirates
+176–200,Università Cattolica del Sacro Cuore,Italy
+176–200,Università della Svizzera italiana,Switzerland
+176–200,University College Dublin,Ireland
+176–200,University of Aberdeen,United Kingdom
+176–200,University of Dundee,United Kingdom
+176–200,University of Kiel,Germany
+176–200,University of Milan-Bicocca,Italy
+176–200,University of Navarra,Spain
+176–200,University of Southern Denmark,Denmark
+176–200,University of the Witwatersrand,South Africa
+176–200,University of Virginia (Main campus),United States
+176–200,Vrije Universiteit Brussel,Belgium
+201–250,Aalborg University,Denmark
+201–250,Aix-Marseille University,France
+201–250,Autonomous University of Madrid,Spain
+201–250,City  University of London,United Kingdom
+201–250,Dalhousie University,Canada
+201–250,Deakin University,Australia
+201–250,Delft University of Technology,Netherlands
+201–250,Flinders University,Australia
+201–250,Goethe University Frankfurt,Germany
+201–250,Hasselt University,Belgium
+201–250,Hong Kong Baptist University,Hong Kong
+201–250,Imam Abdulrahman Bin Faisal University,Saudi Arabia
+201–250,Justus Liebig University Giessen,Germany
+201–250,Keio University,Japan
+201–250,King Abdulaziz University,Saudi Arabia
+201–250,Lancaster University,United Kingdom
+201–250,Linköping University,Sweden
+201–250,Macau University of Science and Technology,Macao
+201–250,Michigan State University,United States
+201–250,Nagoya University,Japan
+201–250,Northeastern University  US,United States
+201–250,Qatar University,Qatar
+201–250,RCSI University of Medicine and Health Sciences,Ireland
+201–250,Sapienza University of Rome,Italy
+201–250,Semmelweis University,Hungary
+201–250,Southern University of Science and Technology (SUSTech),China
+201–250,Texas A&M University,United States
+201–250,Tulane University,United States
+201–250,Umeå University,Sweden
+201–250,University at Buffalo,United States
+201–250,University College Cork,Ireland
+201–250,University of Bergen,Norway
+201–250,University of Bordeaux,France
+201–250,University of Brescia,Italy
+201–250,University of Duisburg-Essen,Germany
+201–250,University of Liège,Belgium
+201–250,University of Malaya,Malaysia
+201–250,University of Manitoba,Canada
+201–250,University of Maryland  College Park,United States
+201–250,University of Naples Federico II,Italy
+201–250,University of Newcastle,Australia
+201–250,University of Otago,New Zealand
+201–250,University of Pavia,Italy
+201–250,University of Rome II – Tor Vergata,Italy
+201–250,University of St Andrews,United Kingdom
+201–250,University of Turku,Finland
+201–250,University of Twente,Netherlands
+201–250,University of Waterloo,Canada
+201–250,Verona University,Italy
+201–250,Western Sydney University,Australia
+251–300,Ajou University,South Korea
+251–300,Arizona State University (Tempe),United States
+251–300,Aston University,United Kingdom
+251–300,Auckland University of Technology,New Zealand
+251–300,Australian Catholic University,Australia
+251–300,Bond University,Australia
+251–300,Boston College,United States
+251–300,Complutense University of Madrid,Spain
+251–300,Curtin University,Australia
+251–300,Griffith University,Australia
+251–300,Hebrew University of Jerusalem,Israel
+251–300,Hokkaido University,Japan
+251–300,Imam Mohammad Ibn Saud Islamic University,Saudi Arabia
+251–300,Johannes Gutenberg University of Mainz,Germany
+251–300,Kyung Hee University,South Korea
+251–300,Kyushu University,Japan
+251–300,Lebanese American University,Lebanon
+251–300,Mahidol University,Thailand
+251–300,Montpellier University,France
+251–300,Murdoch University,Australia
+251–300,Nankai University,China
+251–300,Nantes Université,France
+251–300,National Yang Ming Chiao Tung University (NYCU),Taiwan
+251–300,Ruhr University Bochum,Germany
+251–300,Saveetha Institute of Medical and Technical Sciences,India
+251–300,Shenzhen University,China
+251–300,Taipei Medical University,Taiwan
+251–300,Tampere University,Finland
+251–300,Technion Israel Institute of Technology,Israel
+251–300,Tianjin University,China
+251–300,University of Campinas,Brazil
+251–300,University of Cyprus,Cyprus
+251–300,University of Florence,Italy
+251–300,University of Galway,Ireland
+251–300,University of Genoa,Italy
+251–300,University of Kansas,United States
+251–300,University of Kentucky,United States
+251–300,University of Pisa,Italy
+251–300,University of Porto,Portugal
+251–300,University of Sharjah,United Arab Emirates
+251–300,University of South Australia,Australia
+251–300,University of Strathclyde,United Kingdom
+251–300,University of Surrey,United Kingdom
+251–300,University of Sussex,United Kingdom
+251–300,University of Tsukuba,Japan
+251–300,University of Turin,Italy
+251–300,University of Victoria,Canada
+251–300,University of Wollongong,Australia
+251–300,Virginia Commonwealth University,United States
+251–300,Xi’an Jiaotong University,China
+301–400,Ajman University,United Arab Emirates
+301–400,Alfaisal University,Saudi Arabia
+301–400,Amedeo Avogadro University of Eastern Piedmont,Italy
+301–400,American University of Beirut,Lebanon
+301–400,Anglia Ruskin University (ARU),United Kingdom
+301–400,Banaras Hindu University,India
+301–400,Ben-Gurion University of the Negev,Israel
+301–400,Birla Institute of Technology and Science  Pilani,India
+301–400,Bournemouth University,United Kingdom
+301–400,Cairo University,Egypt
+301–400,Campus Bio-Medico University of Rome,Italy
+301–400,Charles University,Czechia
+301–400,Chulalongkorn University,Thailand
+301–400,Claude Bernard University Lyon 1,France
+301–400,Colorado State University  Fort Collins,United States
+301–400,Daffodil International University (DIU),Bangladesh
+301–400,Drexel University,United States
+301–400,Edith Cowan University,Australia
+301–400,Federation University Australia,Australia
+301–400,Friedrich Schiller University Jena,Germany
+301–400,George Mason University,United States
+301–400,Georgia State University,United States
+301–400,Hanyang University,South Korea
+301–400,James Cook University,Australia
+301–400,Jiangsu University,China
+301–400,Jinan University (China),China
+301–400,Keele University,United Kingdom
+301–400,Kermanshah University of Medical Sciences,Iran
+301–400,King Khalid University,Saudi Arabia
+301–400,Kobe University,Japan
+301–400,Koç University,Turkey
+301–400,Liverpool John Moores University,United Kingdom
+301–400,Lovely Professional University,India
+301–400,Manipal Academy of Higher Education,India
+301–400,Middlesex University,United Kingdom
+301–400,National and Kapodistrian University of Athens,Greece
+301–400,National Cheng Kung University (NCKU),Taiwan
+301–400,Norwegian University of Science and Technology,Norway
+301–400,Örebro University,Sweden
+301–400,Panjab University,India
+301–400,RMIT University,Australia
+301–400,Rush University,United States
+301–400,Rutgers University – New Brunswick,United States
+301–400,Saint Louis University,United States
+301–400,South China University of Technology,China
+301–400,Southeast University,China
+301–400,SUNY University at Albany,United States
+301–400,Swansea University,United Kingdom
+301–400,Tehran University of Medical Sciences,Iran
+301–400,The Catholic University of Korea,South Korea
+301–400,Ulster University,United Kingdom
+301–400,Universidade Federal de São Paulo (UNIFESP),Brazil
+301–400,Universidade Federal do Rio Grande do Sul,Brazil
+301–400,Université Côte d'Azur,France
+301–400,Université Grenoble Alpes,France
+301–400,Universiti Kebangsaan Malaysia,Malaysia
+301–400,University of Central Florida,United States
+301–400,University of Coimbra,Portugal
+301–400,University of Connecticut,United States
+301–400,University of Crete,Greece
+301–400,University of Delaware,United States
+301–400,University of East Anglia,United Kingdom
+301–400,University of Ferrara,Italy
+301–400,University of Georgia (USA),United States
+301–400,University of Greenwich,United Kingdom
+301–400,University of Greifswald,Germany
+301–400,University of Hawai’i at Mānoa,United States
+301–400,University of Insubria,Italy
+301–400,University of Kent,United Kingdom
+301–400,University of KwaZulu-Natal,South Africa
+301–400,University of Lille,France
+301–400,University of Lisbon,Portugal
+301–400,University of Lorraine,France
+301–400,University of Marburg,Germany
+301–400,University of Messina,Italy
+301–400,University of Modena and Reggio Emilia,Italy
+301–400,University of Mons,Belgium
+301–400,University of Nebraska Medical Center,United States
+301–400,University of Oulu,Finland
+301–400,University of Palermo,Italy
+301–400,University of Salerno,Italy
+301–400,University of Saskatchewan,Canada
+301–400,University of Siena,Italy
+301–400,University of South Carolina-Columbia,United States
+301–400,University of South Florida,United States
+301–400,University of Tartu,Estonia
+301–400,University of Tasmania,Australia
+301–400,University of Toulouse,France
+301–400,University of Trieste,Italy
+301–400,University of Ulsan,South Korea
+301–400,Victoria University,Australia
+301–400,Virginia Polytechnic Institute and State University,United States
+301–400,Wake Forest University,United States
+301–400,Washington State University,United States
+301–400,Wayne State University,United States
+301–400,Wroclaw Medical University,Poland
+301–400,Xiamen University,China
+301–400,York University,Canada
+401–500,Al Ain University,United Arab Emirates
+401–500,Amity University  Noida,India
+401–500,Arabian Gulf University,Bahrain
+401–500,Aristotle University of Thessaloniki,Greece
+401–500,Asia University  Taiwan,Taiwan
+401–500,Bar-Ilan University,Israel
+401–500,Brunel University of London,United Kingdom
+401–500,Capital Medical University,China
+401–500,Central Queensland University,Australia
+401–500,Chang Gung University,Taiwan
+401–500,China Medical University  Taiwan,Taiwan
+401–500,China Pharmaceutical University,China
+401–500,Chonnam National University,South Korea
+401–500,Chung-Ang University,South Korea
+401–500,Cyprus University of Technology,Cyprus
+401–500,Dublin City University,Ireland
+401–500,Duy Tan University,Vietnam
+401–500,East China University of Science and Technology,China
+401–500,Edinburgh Napier University,United Kingdom
+401–500,Ewha Womans University,South Korea
+401–500,Florida International University,United States
+401–500,Florida State University,United States
+401–500,Gabriele d‘Annunzio University,Italy
+401–500,Gachon University,South Korea
+401–500,Glasgow Caledonian University,United Kingdom
+401–500,Hacettepe University,Turkey
+401–500,Harokopio University of Athens,Greece
+401–500,Jagiellonian University,Poland
+401–500,Jamia Millia Islamia,India
+401–500,Jazan University,Saudi Arabia
+401–500,Juntendo University,Japan
+401–500,Kindai University,Japan
+401–500,King Faisal University,Saudi Arabia
+401–500,Kumamoto University,Japan
+401–500,Kuwait University,Kuwait
+401–500,Kyungpook National University (KNU),South Korea
+401–500,Lebanese University,Lebanon
+401–500,London South Bank University,United Kingdom
+401–500,Louisiana State University,United States
+401–500,Manchester Metropolitan University,United Kingdom
+401–500,Marche Polytechnic University,Italy
+401–500,Nanjing Medical University,China
+401–500,Nazarbayev University,Kazakhstan
+401–500,New Mexico State University (Main campus),United States
+401–500,North South University,Bangladesh
+401–500,Ohio University (Main campus),United States
+401–500,Pontificia Universidad Católica de Chile,Chile
+401–500,Pusan National University,South Korea
+401–500,Qassim University,Saudi Arabia
+401–500,Qazvin University of Medical Sciences,Iran
+401–500,San Diego State University,United States
+401–500,Shahid Beheshti University of Medical Sciences,Iran
+401–500,Shoolini University of Biotechnology and Management Sciences,India
+401–500,Soochow University  China,China
+401–500,Soonchunhyang University,South Korea
+401–500,Stony Brook University,United States
+401–500,Sultan Qaboos University,Oman
+401–500,Swinburne University of Technology,Australia
+401–500,Temple University,United States
+401–500,UiT The Arctic University of Norway,Norway
+401–500,Universiti Sains Malaysia,Malaysia
+401–500,University of Arkansas,United States
+401–500,University of Bari Aldo Moro,Italy
+401–500,University of Brighton,United Kingdom
+401–500,University of Cagliari,Italy
+401–500,University of California  Riverside,United States
+401–500,University of Campania Luigi Vanvitelli,Italy
+401–500,University of Canberra,Australia
+401–500,University of Eastern Finland,Finland
+401–500,University of Fribourg,Switzerland
+401–500,University of Ha’il,Saudi Arabia
+401–500,University of Houston,United States
+401–500,University of Hull,United Kingdom
+401–500,University of Ibadan,Nigeria
+401–500,University of Iceland,Iceland
+401–500,University of Jyväskylä,Finland
+401–500,University of Lagos,Nigeria
+401–500,University of L’Aquila,Italy
+401–500,University of Limerick,Ireland
+401–500,University of Management and Technology,Pakistan
+401–500,University of Minho,Portugal
+401–500,University of North Carolina at Charlotte,United States
+401–500,University of Parma,Italy
+401–500,University of Pécs,Hungary
+401–500,University of Portsmouth,United Kingdom
+401–500,University of Rennes 1,France
+401–500,University of Santiago de Compostela,Spain
+401–500,University of Sargodha,Pakistan
+401–500,University of Sassari,Italy
+401–500,University of Seville,Spain
+401–500,University of Southern Queensland,Australia
+401–500,University of Stirling,United Kingdom
+401–500,University of the Basque Country,Spain
+401–500,University of the Sunshine Coast,Australia
+401–500,University of the Western Cape,South Africa
+401–500,UWE Bristol (University of the West of England),United Kingdom
+401–500,University of Udine,Italy
+401–500,University of Valencia,Spain
+401–500,Victoria University of Wellington,New Zealand
+401–500,Vilnius University,Lithuania
+401–500,Yokohama City University,Japan
+501–600,Ain Shams University,Egypt
+501–600,Al-Azhar University,Egypt
+501–600,Alborz University of Medical Sciences,Iran
+501–600,Alexandria University,Egypt
+501–600,Aligarh Muslim University,India
+501–600,Arak University of Medical Sciences,Iran
+501–600,Auburn University,United States
+501–600,Babol University of Medical Sciences,Iran
+501–600,Bangor University,United Kingdom
+501–600,Baylor University,United States
+501–600,Beirut Arab University,Lebanon
+501–600,Birmingham City University,United Kingdom
+501–600,BRAC University,Bangladesh
+501–600,Central Michigan University,United States
+501–600,Charles Darwin University,Australia
+501–600,Chiba University,Japan
+501–600,Chitkara University,India
+501–600,European University Cyprus,Cyprus
+501–600,European University of Madrid,Spain
+501–600,Fujian Agriculture and Forestry University,China
+501–600,Government College University Faisalabad,Pakistan
+501–600,Guangzhou Medical University,China
+501–600,Hanoi Medical University,Vietnam
+501–600,Hiroshima University,Japan
+501–600,Iran University of Medical Sciences,Iran
+501–600,Jamia Hamdard University,India
+501–600,Jönköping University,Sweden
+501–600,Jordan University of Science and Technology,Jordan
+501–600,Jouf University,Saudi Arabia
+501–600,Kanazawa University,Japan
+501–600,Kerman University of Medical Sciences,Iran
+501–600,KIIT University,India
+501–600,King Saud bin Abdulaziz University for Health Sciences,Saudi Arabia
+501–600,Kurdistan University of Medical Sciences,Iran
+501–600,Leeds Beckett University,United Kingdom
+501–600,Lorestan University of Medical Sciences,Iran
+501–600,Mansoura University,Egypt
+501–600,Masaryk University,Czechia
+501–600,Massey University,New Zealand
+501–600,Memorial University of Newfoundland,Canada
+501–600,Mizzou - University of Missouri,United States
+501–600,National Tsing Hua University,Taiwan
+501–600,Northumbria University,United Kingdom
+501–600,North-West University,South Africa
+501–600,NOVA University of Lisbon,Portugal
+501–600,Oakland University,United States
+501–600,Okayama University,Japan
+501–600,Oklahoma State University,United States
+501–600,Princess Nourah bint Abdulrahman University,Saudi Arabia
+501–600,Sheffield Hallam University,United Kingdom
+501–600,Shiraz University of Medical Sciences,Iran
+501–600,Southern Illinois University Carbondale,United States
+501–600,Sunway University,Malaysia
+501–600,Tabriz University of Medical Sciences,Iran
+501–600,Taif University,Saudi Arabia
+501–600,Tecnológico de Monterrey,Mexico
+501–600,The Islamia University of Bahawalpur,Pakistan
+501–600,The University of Jordan,Jordan
+501–600,The University of Tennessee-Knoxville,United States
+501–600,Ton Duc Thang University,Vietnam
+501–600,Toronto Metropolitan University,Canada
+501–600,Umm Al-Qura University,Saudi Arabia
+501–600,Universidade Estadual Paulista (Unesp),Brazil
+501–600,Université de Bretagne Occidentale,France
+501–600,Université de Poitiers,France
+501–600,Université du Québec,Canada
+501–600,University of Botswana,Botswana
+501–600,University of Clermont Auvergne,France
+501–600,University of Colombo,Sri Lanka
+501–600,University of Debrecen,Hungary
+501–600,University of Essex,United Kingdom
+501–600,University of Foggia,Italy
+501–600,University of Granada,Spain
+501–600,University of Haifa,Israel
+501–600,University of Hertfordshire,United Kingdom
+501–600,University of Huddersfield,United Kingdom
+501–600,University of Indonesia,Indonesia
+501–600,University of Johannesburg,South Africa
+501–600,University of Kragujevac,Serbia
+501–600,University of Lahore,Pakistan
+501–600,University of Latvia,Latvia
+501–600,University of Lincoln,United Kingdom
+501–600,University of Ljubljana,Slovenia
+501–600,University of Nevada  Las Vegas,United States
+501–600,University of Nicosia,Cyprus
+501–600,University of Peradeniya,Sri Lanka
+501–600,University of Plymouth,United Kingdom
+501–600,University of Pretoria,South Africa
+501–600,University of Regina,Canada
+501–600,University of Rouen Normandie,France
+501–600,University of Szeged,Hungary
+501–600,University of the Balearic Islands,Spain
+501–600,University of the Philippines,Philippines
+501–600,University of Tours,France
+501–600,University of Waikato,New Zealand
+501–600,Urmia University of Medical Sciences,Iran
+501–600,Vietnam National University  Hanoi,Vietnam
+501–600,Yangzhou University,China
+601–800,Ahmadu Bello University,Nigeria
+601–800,Al-Ahliyya Amman University,Jordan
+601–800,Al-Baha University,Saudi Arabia
+601–800,Al-Farabi Kazakh National University,Kazakhstan
+601–800,Anadolu University,Turkey
+601–800,An-Najah National University,Palestine
+601–800,Applied Science Private University,Jordan
+601–800,Ariel University,Israel
+601–800,Atatürk University,Turkey
+601–800,Austral University,Argentina
+601–800,Bahauddin Zakariya University,Pakistan
+601–800,Baqiyatallah University of Medical Sciences,Iran
+601–800,Beni-Suef University,Egypt
+601–800,Birjand University of Medical Sciences,Iran
+601–800,Canterbury Christ Church University,United Kingdom
+601–800,Cardiff Metropolitan University,United Kingdom
+601–800,Catholic University of Portugal,Portugal
+601–800,Charles Sturt University,Australia
+601–800,Chiang Mai University,Thailand
+601–800,Chungbuk National University,South Korea
+601–800,Chungnam National University,South Korea
+601–800,Coventry University,United Kingdom
+601–800,Dalian University of Technology,China
+601–800,Damanhour University,Egypt
+601–800,Datta Meghe Institute of Higher Education & Research (Deemed to be University),India
+601–800,Democritus University of Thrace,Greece
+601–800,De Montfort University,United Kingdom
+601–800,Durban University of Technology,South Africa
+601–800,Eastern Mediterranean University,Northern Cyprus
+601–800,Ege University,Turkey
+601–800,Ehime University,Japan
+601–800,Federal University of Minas Gerais,Brazil
+601–800,Federal University of Rio de Janeiro,Brazil
+601–800,Federal University of Uberlândia,Brazil
+601–800,Florida Atlantic University,United States
+601–800,Fu Jen Catholic University,Taiwan
+601–800,Fujita Health University,Japan
+601–800,Gifu University,Japan
+601–800,Golestan University of Medical Sciences,Iran
+601–800,Guilan University of Medical Sciences,Iran
+601–800,Gyeongsang National University,South Korea
+601–800,Hallym University,South Korea
+601–800,Hamadan University of Medical Sciences (UMSHA),Iran
+601–800,Hamamatsu University School of Medicine,Japan
+601–800,Icesi University,Colombia
+601–800,Ilam University of Medical Sciences,Iran
+601–800,Inha University,South Korea
+601–800,Isfahan University of Medical Sciences,Iran
+601–800,Istanbul University,Turkey
+601–800,Istanbul University-Cerrahpaşa,Turkey
+601–800,Iuliu Haţieganu University of Medicine and Pharmacy Cluj-Napoca,Romania
+601–800,Jaume I University,Spain
+601–800,Jeonbuk National University,South Korea
+601–800,Jiangnan University,China
+601–800,Jimma University,Ethiopia
+601–800,JSS Academy of Higher Education and Research,India
+601–800,Kafrelsheikh University,Egypt
+601–800,Kagawa University,Japan
+601–800,Kansai Medical University,Japan
+601–800,Kansas State University,United States
+601–800,Kaohsiung Medical University,Taiwan
+601–800,Khon Kaen University,Thailand
+601–800,Kingston University,United Kingdom
+601–800,Kurume University,Japan
+601–800,Kwame Nkrumah University of Science and Technology,Ghana
+601–800,Kyoto Prefectural University of Medicine,Japan
+601–800,Lakehead University,Canada
+601–800,Lithuanian University of Health Sciences,Lithuania
+601–800,Maharishi Markandeshwar University (MMU),India
+601–800,Majmaah University,Saudi Arabia
+601–800,Makerere University,Uganda
+601–800,Mashhad University of Medical Sciences,Iran
+601–800,Mazandaran University of Medical Sciences,Iran
+601–800,Medical University of Gdańsk,Poland
+601–800,Medical University of Lodz,Poland
+601–800,Medical University of Warsaw,Poland
+601–800,Miguel Hernández University of Elche,Spain
+601–800,Montana State University,United States
+601–800,Nagasaki University,Japan
+601–800,Nagoya City University,Japan
+601–800,Najran University,Saudi Arabia
+601–800,National Autonomous University of Mexico,Mexico
+601–800,National Chung Hsing University,Taiwan
+601–800,National Sun Yat-Sen University,Taiwan
+601–800,National University of Colombia,Colombia
+601–800,Niigata University,Japan
+601–800,Nippon Medical School,Japan
+601–800,Open University of Catalonia,Spain
+601–800,Osaka Metropolitan University,Japan
+601–800,Oxford Brookes University,United Kingdom
+601–800,Palacký University Olomouc,Czechia
+601–800,Polytechnic Institute of Porto,Portugal
+601–800,Pontifical Catholic University of Rio Grande do Sul (PUCRS),Brazil
+601–800,Prince Sattam Bin Abdulaziz University,Saudi Arabia
+601–800,Public University of Navarre,Spain
+601–800,Qingdao University,China
+601–800,Rovira i Virgili University,Spain
+601–800,Rowan University,United States
+601–800,Sathyabama Institute of Science and Technology,India
+601–800,Shahrekord University of Medical Sciences,Iran
+601–800,Shantou University,China
+601–800,Southern Cross University,Australia
+601–800,SRM Institute of Science and Technology,India
+601–800,Suez Canal University,Egypt
+601–800,Sumy State University,Ukraine
+601–800,SUNY Binghamton University,United States
+601–800,Symbiosis International University,India
+601–800,Taibah University,Saudi Arabia
+601–800,Technological University Dublin,Ireland
+601–800,Teesside University,United Kingdom
+601–800,The Jikei University School of Medicine,Japan
+601–800,The University of Alabama,United States
+601–800,The University of Notre Dame Australia,Australia
+601–800,The University of the West Indies,Jamaica
+601–800,Tokai University,Japan
+601–800,Tokushima University,Japan
+601–800,Tokyo Medical University,Japan
+601–800,Tribhuvan University,Nepal
+601–800,TU Braunschweig,Germany
+601–800,UEES  Espiritu Santo University,Ecuador
+601–800,Universidad de Cartagena,Colombia
+601–800,Universidade Eduardo Mondlane,Mozambique
+601–800,Universidade Federal de Santa Catarina,Brazil
+601–800,Universidad Francisco de Vitoria,Spain
+601–800,Universidad Peruana Cayetano Heredia,Peru
+601–800,Universitas Airlangga,Indonesia
+601–800,Universitas Gadjah Mada,Indonesia
+601–800,Universitat Internacional de Catalunya,Spain
+601–800,Universiti Brunei Darussalam,Brunei Darussalam
+601–800,Universiti Putra Malaysia,Malaysia
+601–800,Universiti Sultan Zainal Abidin,Malaysia
+601–800,Universiti Tunku Abdul Rahman (UTAR),Malaysia
+601–800,University of A Coruña,Spain
+601–800,University of Alcalá,Spain
+601–800,University of Algarve,Portugal
+601–800,University of Almería,Spain
+601–800,University of Angers,France
+601–800,University of Aveiro,Portugal
+601–800,University of Beira Interior,Portugal
+601–800,University of Benin,Nigeria
+601–800,University of Bradford,United Kingdom
+601–800,University of Camerino (Unicam),Italy
+601–800,University of Canterbury,New Zealand
+601–800,University of Cape Coast,Ghana
+601–800,University of Castilla-La Mancha,Spain
+601–800,University of Central Lancashire,United Kingdom
+601–800,University of Chile,Chile
+601–800,University of Córdoba,Spain
+601–800,University of Dhaka,Bangladesh
+601–800,University of East London,United Kingdom
+601–800,University of Ghana,Ghana
+601–800,University of Girona,Spain
+601–800,University of Ioannina,Greece
+601–800,University of Jaén,Spain
+601–800,University of Jeddah,Saudi Arabia
+601–800,University of La Frontera,Chile
+601–800,University of Las Palmas de Gran Canaria,Spain
+601–800,University of Lleida,Spain
+601–800,University of Malaga,Spain
+601–800,University of Malta,Malta
+601–800,University of Medicine and Pharmacy Carol Davila,Romania
+601–800,University of Murcia,Spain
+601–800,University of Nairobi,Kenya
+601–800,University of Occupational and Environmental Health  Japan,Japan
+601–800,University of Oviedo,Spain
+601–800,University of Patras,Greece
+601–800,University of Rhode Island,United States
+601–800,University of Sadat City,Egypt
+601–800,University of Salamanca,Spain
+601–800,University of Salford,United Kingdom
+601–800,University of Santo Tomas,Philippines
+601–800,University of South Wales,United Kingdom
+601–800,University of Stavanger,Norway
+601–800,University of Tabriz,Iran
+601–800,University of Tabuk,Saudi Arabia
+601–800,University of Texas at Arlington,United States
+601–800,University of Texas at El Paso,United States
+601–800,University of Thessaly,Greece
+601–800,University of the West of Scotland,United Kingdom
+601–800,University of Toledo,United States
+601–800,University of Toyama,Japan
+601–800,University of Trás-os-Montes and Alto Douro,Portugal
+601–800,University of Tunis El Manar,Tunisia
+601–800,University of Vic – Central University of Catalonia,Spain
+601–800,University of Warmia and Mazury in Olsztyn,Poland
+601–800,University of Wyoming,United States
+601–800,University of Zagreb,Croatia
+601–800,University of Zaragoza,Spain
+601–800,University of Zimbabwe,Zimbabwe
+601–800,University Rey Juan Carlos,Spain
+601–800,Vietnam National University (Ho Chi Minh City),Vietnam
+601–800,Wakayama Medical University,Japan
+601–800,Walailak University,Thailand
+601–800,Waseda University,Japan
+601–800,Wenzhou Medical University,China
+601–800,Yarmouk University,Jordan
+601–800,Yeungnam University,South Korea
+601–800,Zahedan University of Medical Sciences,Iran
+601–800,Zanjan University of Medical Sciences,Iran
+601–800,Zhejiang University of Technology,China
+801–1000,Acıbadem University,Turkey
+801–1000,Aichi Medical University,Japan
+801–1000,Akdeniz University,Turkey
+801–1000,Akita University,Japan
+801–1000,Al-Balqa Applied University,Jordan
+801–1000,Al-Zaytoonah University of Jordan,Jordan
+801–1000,Ankara University,Turkey
+801–1000,Assiut University,Egypt
+801–1000,Aydın Adnan Menderes University,Turkey
+801–1000,Bahçeşehir University,Turkey
+801–1000,Bandung Institute of Technology (ITB),Indonesia
+801–1000,Bayero University,Nigeria
+801–1000,Benha University,Egypt
+801–1000,Bowling Green State University,United States
+801–1000,Bursa Uludağ University,Turkey
+801–1000,Chang Gung University of Science and Technology,Taiwan
+801–1000,Chengdu University,China
+801–1000,Chosun University,South Korea
+801–1000,Chung Shan Medical University,Taiwan
+801–1000,Comenius University in Bratislava,Slovakia
+801–1000,Dankook University,South Korea
+801–1000,Dicle University,Turkey
+801–1000,Dokkyo Medical University,Japan
+801–1000,Dokuz Eylül University,Turkey
+801–1000,Dow University of Health Sciences,Pakistan
+801–1000,Dr D. Y. Patil Vidyapeeth  Pune,India
+801–1000,Edge Hill University,United Kingdom
+801–1000,Erciyes University,Turkey
+801–1000,Fayoum University,Egypt
+801–1000,Federal University of Espírito Santo,Brazil
+801–1000,Federal University of Goiás,Brazil
+801–1000,Federal University of Pelotas,Brazil
+801–1000,Federal University of Rio Grande do Norte (UFRN),Brazil
+801–1000,Federal University of Santa Maria,Brazil
+801–1000,Federal University of São Carlos,Brazil
+801–1000,Firat University,Turkey
+801–1000,Fluminense Federal University,Brazil
+801–1000,Gazi University,Turkey
+801–1000,George Emil Palade University of Medicine  Pharmacy  Science  and Technology of Targu Mures,Romania
+801–1000,Georgia Southern University,United States
+801–1000,Gunma University,Japan
+801–1000,Hangzhou Normal University,China
+801–1000,Helwan University,Egypt
+801–1000,Hyogo Medical University,Japan
+801–1000,Instituto Politécnico de Viana do Castelo,Portugal
+801–1000,International Hellenic University,Greece
+801–1000,I-Shou University,Taiwan
+801–1000,Istanbul Medeniyet University,Turkey
+801–1000,Jeju National University,South Korea
+801–1000,Jianghan University,China
+801–1000,Kagoshima University,Japan
+801–1000,Kangwon National University,South Korea
+801–1000,Kasetsart University,Thailand
+801–1000,Kathmandu University,Nepal
+801–1000,Kitasato University,Japan
+801–1000,Kochi University,Japan
+801–1000,Londrina State University,Brazil
+801–1000,Mae Fah Luang University,Thailand
+801–1000,Management & Science University (MSU),Malaysia
+801–1000,Marmara University,Turkey
+801–1000,Medical University of Bialystok,Poland
+801–1000,Medical University of Lublin,Poland
+801–1000,Medical University of Silesia in Katowice,Poland
+801–1000,Medical University of Sofia,Bulgaria
+801–1000,Metropolitan Autonomous University,Mexico
+801–1000,Mie University,Japan
+801–1000,Minia University,Egypt
+801–1000,Mohammed V University of Rabat,Morocco
+801–1000,Mutah University,Jordan
+801–1000,National University of Córdoba,Argentina
+801–1000,National University of La Plata,Argentina
+801–1000,Near East University,Northern Cyprus
+801–1000,Necmettin Erbakan University,Turkey
+801–1000,Nicolaus Copernicus University in Toruń,Poland
+801–1000,Northern Illinois University,United States
+801–1000,Nova Southeastern University,United States
+801–1000,Obafemi Awolowo University,Nigeria
+801–1000,Oita University,Japan
+801–1000,Old Dominion University,United States
+801–1000,Ontario Tech University,Canada
+801–1000,Osaka Medical and Pharmaceutical University,Japan
+801–1000,Pavol Jozef Šafárik University in Košice,Slovakia
+801–1000,Pontifical Javeriana University,Colombia
+801–1000,Pontifícia Universidade Católica do Paraná,Brazil
+801–1000,Port Said University,Egypt
+801–1000,Poznan University of Medical Sciences,Poland
+801–1000,Prince of Songkla University,Thailand
+801–1000,Qom University of Medical Sciences,Iran
+801–1000,Riga Stradiņš University,Latvia
+801–1000,Riphah International University,Pakistan
+801–1000,Ritsumeikan University,Japan
+801–1000,Saga University,Japan
+801–1000,Saints Cyril and Methodius University in Skopje,North Macedonia
+801–1000,Saitama Medical University,Japan
+801–1000,Sapporo Medical University,Japan
+801–1000,Selçuk University,Turkey
+801–1000,Shahid Sadoughi University of Medical Sciences,Iran
+801–1000,Sharda University,India
+801–1000,Shiga University of Medical Science,Japan
+801–1000,Shimane University,Japan
+801–1000,Shinshu University,Japan
+801–1000,Showa University,Japan
+801–1000,Sidi Mohamed Ben Abdellah University,Morocco
+801–1000,Siksha ‘O’ Anusandhan,India
+801–1000,Sofia University,Bulgaria
+801–1000,South Dakota State University,United States
+801–1000,South Valley University (Egypt),Egypt
+801–1000,Süleyman Demirel University,Turkey
+801–1000,Tanta University,Egypt
+801–1000,Taras Shevchenko National University of Kyiv,Ukraine
+801–1000,Teikyo University,Japan
+801–1000,Texas State University,United States
+801–1000,The Hashemite University,Jordan
+801–1000,The Open University,United Kingdom
+801–1000,Toho University,Japan
+801–1000,Tokyo University of Science,Japan
+801–1000,Tottori University,Japan
+801–1000,Tzu Chi University,Taiwan
+801–1000,Universidad Autónoma de Chile,Chile
+801–1000,Universidad Católica de la Santísima Concepción,Chile
+801–1000,Universidad Católica del Maule,Chile
+801–1000,Universidad Católica San Antonio de Murcia (UCAM),Spain
+801–1000,Universidad del Desarrollo,Chile
+801–1000,Universidade do Estado do Rio de Janeiro (UERJ),Brazil
+801–1000,Universidade Federal da Bahia,Brazil
+801–1000,Universidade Federal de Ciências da Saúde de Porto Alegre (UFCSPA),Brazil
+801–1000,Universidade Federal de Juiz de Fora,Brazil
+801–1000,Universidade Federal de Sergipe,Brazil
+801–1000,Universidade Federal do Ceará (UFC),Brazil
+801–1000,Universidade Federal do Paraná (UFPR),Brazil
+801–1000,Universidade Lusófona,Portugal
+801–1000,Universidad Nacional de Asunción,Paraguay
+801–1000,Universidad San Francisco de Quito,Ecuador
+801–1000,Universitas Padjadjaran,Indonesia
+801–1000,Universitas Syiah Kuala,Indonesia
+801–1000,Universitat Ramon Llull,Spain
+801–1000,Université Saint-Joseph de Beyrouth,Lebanon
+801–1000,Universiti Malaysia Sarawak (UNIMAS),Malaysia
+801–1000,University of Alicante,Spain
+801–1000,University of Antioquia,Colombia
+801–1000,University of Applied Sciences and Arts of Western Switzerland,Switzerland
+801–1000,University of Brasília,Brazil
+801–1000,University of Cadiz,Spain
+801–1000,University of Chester,United Kingdom
+801–1000,University of Concepción,Chile
+801–1000,University of Costa Rica,Costa Rica
+801–1000,University of Derby,United Kingdom
+801–1000,University of Franche-Comté,France
+801–1000,University of Fukui,Japan
+801–1000,University of Health Sciences  Turkey,Turkey
+801–1000,University of Ilorin,Nigeria
+801–1000,University of Karachi,Pakistan
+801–1000,University of Kinshasa,Democratic Republic of the Congo
+801–1000,University of La Laguna,Spain
+801–1000,University of León,Spain
+801–1000,University of Lethbridge,Canada
+801–1000,University of Maribor,Slovenia
+801–1000,University of Medicine and Pharmacy of Craiova,Romania
+801–1000,University of Memphis,United States
+801–1000,University of Miyazaki,Japan
+801–1000,University of Monastir,Tunisia
+801–1000,University of New Brunswick UNB,Canada
+801–1000,University of Nigeria Nsukka,Nigeria
+801–1000,University of Novi Sad,Serbia
+801–1000,University of Oradea,Romania
+801–1000,University of Ostrava,Czechia
+801–1000,University of Primorska,Slovenia
+801–1000,University of Puerto Rico,Puerto Rico
+801–1000,University of Santiago  Chile (USACH),Chile
+801–1000,University of Sfax,Tunisia
+801–1000,University of Shizuoka,Japan
+801–1000,University of Social Welfare and Rehabilitation Sciences,Iran
+801–1000,University of South Bohemia in České Budějovice,Czechia
+801–1000,University of South Dakota,United States
+801–1000,University of Split,Croatia
+801–1000,University of Sulaimani,Iraq
+801–1000,University of Texas Rio Grande Valley,United States
+801–1000,University of the Andes  Chile,Chile
+801–1000,University of the Andes  Colombia,Colombia
+801–1000,University of the Free State,South Africa
+801–1000,University of the Ryukyus,Japan
+801–1000,University of Valladolid,Spain
+801–1000,University of Wolverhampton,United Kingdom
+801–1000,University of Yamanashi,Japan
+801–1000,University of Zambia,Zambia
+801–1000,Usmanu Danfodiyo University  Sokoto,Nigeria
+801–1000,Western Michigan University,United States
+801–1000,Xuzhou Medical University,China
+801–1000,Yamagata University,Japan
+801–1000,Yamaguchi University,Japan
+801–1000,Yanbian University,China
+801–1000,Yeditepe University,Turkey
+801–1000,Zagazig University,Egypt
+801–1000,ZHAW Zurich University of Applied Sciences,Switzerland
+1001+,Aksaray University,Turkey
+1001+,Al-Nahrain University,Iraq
+1001+,Ankara Yildirim Beyazit University,Turkey
+1001+,Aswan University,Egypt
+1001+,Austral University of Chile,Chile
+1001+,Autonomous University of Baja California,Mexico
+1001+,Başkent University,Turkey
+1001+,Benemérita Universidad Autónoma de Puebla,Mexico
+1001+,Bezmiâlem Vakif University,Turkey
+1001+,Bharati Vidyapeeth University,India
+1001+,Bogomolets National Medical University,Ukraine
+1001+,Bolu Abant Izzet Baysal University,Turkey
+1001+,Bozok University,Turkey
+1001+,Burapha University,Thailand
+1001+,Ceará State University,Brazil
+1001+,CES University,Colombia
+1001+,Cukurova University,Turkey
+1001+,Czech Technical University in Prague,Czechia
+1001+,Damascus University,Syria
+1001+,Del Rosario University,Colombia
+1001+,Diponegoro University,Indonesia
+1001+,Duzce University,Turkey
+1001+,El Bosque University,Colombia
+1001+,Erzincan Binali Yıldırım University,Turkey
+1001+,Eskişehir Osmangazi University,Turkey
+1001+,Federal University of Lavras,Brazil
+1001+,Federal University of Mato Grosso do Sul,Brazil
+1001+,Federal University of Pará,Brazil
+1001+,Federal University of Pernambuco,Brazil
+1001+,Federal University of Viçosa,Brazil
+1001+,Galgotias University,India
+1001+,Gaziantep University,Turkey
+1001+,GITAM University,India
+1001+,Grigore T. Popa University of Medicine and Pharmacy,Romania
+1001+,Hasanuddin University,Indonesia
+1001+,Hitit University,Turkey
+1001+,Hormozgan University of Medical Sciences,Iran
+1001+,Hue University,Vietnam
+1001+,Inönü University,Turkey
+1001+,Istanbul Aydın University,Turkey
+1001+,Istanbul Medipol University,Turkey
+1001+,İstinye University,Turkey
+1001+,Jan Kochanowski University in Kielce,Poland
+1001+,Kanazawa Medical University,Japan
+1001+,Karabük University,Turkey
+1001+,Karadeniz Technical University,Turkey
+1001+,Kirikkale University,Turkey
+1001+,Kırşehir Ahi Evran University,Turkey
+1001+,Kocaeli University,Turkey
+1001+,Ladoke Akintola University of Technology,Nigeria
+1001+,Lagos State University,Nigeria
+1001+,Mahasarakham University,Thailand
+1001+,Manisa Celal Bayar University,Turkey
+1001+,Menoufia University,Egypt
+1001+,Mersin University,Turkey
+1001+,Misr University for Science and Technology,Egypt
+1001+,Mugla Sitki Kocman University,Turkey
+1001+,Muhimbili University of Health and Allied Sciences,Tanzania
+1001+,Mustansiriyah University,Iraq
+1001+,Naresuan University,Thailand
+1001+,National University of Medical Sciences (NUMS),Pakistan
+1001+,Nitte (Deemed to be University),India
+1001+,Nnamdi Azikiwe University,Nigeria
+1001+,Ondokuz Mayis University,Turkey
+1001+,Ordu University,Turkey
+1001+,Ovidius University of Constanța,Romania
+1001+,Pamukkale University,Turkey
+1001+,Pontifical Catholic University of Minas Gerais,Brazil
+1001+,Recep Tayyip Erdoğan University,Turkey
+1001+,Sakarya University,Turkey
+1001+,Sefako Makgatho Health Sciences University,South Africa
+1001+,Shanxi Medical University,China
+1001+,Sivas Cumhuriyet University,Turkey
+1001+,Sohag University,Egypt
+1001+,Srinakharinwirot University,Thailand
+1001+,Sri Ramachandra Institute of Higher Education and Research,India
+1001+,State University of Bahia,Brazil
+1001+,State University of Ponta Grossa,Brazil
+1001+,Thammasat University,Thailand
+1001+,Tokat Gaziosmanpaşa University,Turkey
+1001+,Tokyo Metropolitan University,Japan
+1001+,Trakya University,Turkey
+1001+,Transilvania University of Brașov,Romania
+1001+,Universidad Andrés Bello (UNAB),Chile
+1001+,Universidad Autónoma del Estado de Mexico (UAEMex),Mexico
+1001+,Universidad Autónoma de Nuevo León (UANL),Mexico
+1001+,Universidad Científica del Sur,Peru
+1001+,Universidad del Valle,Colombia
+1001+,Universidade do Estado de Santa Catarina,Brazil
+1001+,Universidade Estadual de Feira de Santana (UEFS),Brazil
+1001+,Universidade Estadual de Maringá,Brazil
+1001+,Universidade Estadual do Oeste do Paraná (Unioeste),Brazil
+1001+,Universidade Federal do Maranhão (UFMA),Brazil
+1001+,Universidade Nove de Julho (Uninove),Brazil
+1001+,Universidad Industrial de Santander (UIS),Colombia
+1001+,Universidad Mayor,Chile
+1001+,Universidad Peruana de Ciencias Aplicadas (UPC),Peru
+1001+,Universidad Pontificia Bolivariana (UPB),Colombia
+1001+,Universidad San Ignacio de Loyola,Peru
+1001+,Universidad Santo Tomás,Chile
+1001+,Universitas Andalas,Indonesia
+1001+,Universitas Sebelas Maret,Indonesia
+1001+,Universitas Sumatera Utara,Indonesia
+1001+,Université Hassan II de Casablanca,Morocco
+1001+,Université Mohammed Premier,Morocco
+1001+,Universiti Teknologi MARA,Malaysia
+1001+,University for Development Studies,Ghana
+1001+,University of Babylon,Iraq
+1001+,University of Baghdad,Iraq
+1001+,University of Basrah,Iraq
+1001+,University of Brawijaya,Indonesia
+1001+,University of Évora,Portugal
+1001+,University of Fortaleza (UNIFOR),Brazil
+1001+,University of Guadalajara,Mexico
+1001+,University of Guanajuato,Mexico
+1001+,University of Kelaniya,Sri Lanka
+1001+,University of La Sabana,Colombia
+1001+,University of Las Américas (UDLA),Ecuador
+1001+,University Cadi Ayyad of Marrakech,Morocco
+1001+,University of Montenegro,Montenegro
+1001+,University of Mosul,Iraq
+1001+,University of Pernambuco,Brazil
+1001+,University of Phayao,Thailand
+1001+,University of Port Harcourt,Nigeria
+1001+,University of Prishtina,Kosovo
+1001+,University of Rijeka,Croatia
+1001+,University of Rwanda,Rwanda
+1001+,University of Sarajevo,Bosnia and Herzegovina
+1001+,University of Sousse,Tunisia
+1001+,University of Sri Jayewardenepura,Sri Lanka
+1001+,University of Talca,Chile
+1001+,University of Valparaíso,Chile
+1001+,University of West Attica,Greece
+1001+,Uşak University,Turkey
+1001+,Uzhhorod National University,Ukraine
+1001+,Van Yüzüncü Yil University,Turkey
+1001+,Vinayaka Mission’s Research Foundation,India
+1001+,V.N. Karazin Kharkiv National University,Ukraine
+1001+,Zonguldak Bülent Ecevit University,Turkey
