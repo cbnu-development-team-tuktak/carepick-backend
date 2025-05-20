@@ -10,11 +10,13 @@ data class UniversityRankDetailsResponse(
 ) {
     companion object {
         fun from(entity: UniversityRank): UniversityRankDetailsResponse {
+            val regionName = entity.universityRankRegions.firstOrNull()?.region?.name ?: "Unknown"
+
             return UniversityRankDetailsResponse(
                 rank = entity.id,
                 krName = entity.krName,
                 enName = entity.enName,
-                region = entity.region
+                region = regionName
             )
         }
     }
