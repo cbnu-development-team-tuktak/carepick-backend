@@ -2,8 +2,15 @@ package com.callrapport.service.crawl
 
 import com.callrapport.component.crawler.WebCrawler
 import com.callrapport.component.file.FileManager
+
 import com.callrapport.model.university.UniversityRank
+import com.callrapport.model.university.UniversityRankRegion
+import com.callrapport.model.university.Region
+
 import com.callrapport.repository.university.UniversityRankRepository
+import com.callrapport.repository.university.UniversityRankRegionRepository
+import com.callrapport.repository.university.RegionRepository
+
 import org.jsoup.Jsoup
 import org.openqa.selenium.By
 import org.openqa.selenium.JavascriptExecutor
@@ -17,7 +24,9 @@ import java.time.Duration
 class UniversityRankCrawlService(
     private val webCrawler: WebCrawler,
     private val fileManager: FileManager,
-    private val universityRankRepository: UniversityRankRepository // ✅ 의존성 추가
+    private val universityRankRepository: UniversityRankRepository,
+    private val universityRankRegionRepository: UniversityRankRegionRepository,
+    private val regionRepository: RegionRepository
 ) {
 
     fun crawlUniversityRanks(): List<Map<String, String>> {
@@ -112,36 +121,58 @@ class UniversityRankCrawlService(
     ) {
         val data = fileManager.readCsv(filePath, charset = Charset.forName("UTF-8"))
 
-        // DB에 있는 기존 값들
+        // 기존 대학명 체크용 세트
         val existingKoreanNames = universityRankRepository.findAll().map { it.krName }.toSet()
         val existingEnglishNames = universityRankRepository.findAll().map { it.enName }.toSet()
 
         val seenKr = mutableSetOf<String>()
         val seenEn = mutableSetOf<String>()
 
-        val newEntities = data.mapNotNull { row ->
-            val rank = row["rank"]?.toIntOrNull() ?: return@mapNotNull null
-            val kr = row["kr_name"]?.trim() ?: return@mapNotNull null
-            val en = row["en_name"]?.trim() ?: return@mapNotNull null
-            val region = row["region"]?.trim() ?: ""
+        // 지역 캐시 (중복 Region 생성을 방지)
+        val regionMap = regionRepository.findAll().associateBy { it.name }.toMutableMap()
 
-            // 중복 제거 (DB에 이미 있거나, 현재 처리 중에 중복이면 제외)
-            if (kr in existingKoreanNames || kr in seenKr) return@mapNotNull null
-            if (en in existingEnglishNames || en in seenEn) return@mapNotNull null
+        val newUniversityRanks = mutableListOf<UniversityRank>()
+        val newUniversityRankRegions = mutableListOf<UniversityRankRegion>()
+
+        data.forEach { row ->
+            val rank = row["rank"]?.toIntOrNull() ?: return@forEach
+            val kr = row["kr_name"]?.trim() ?: return@forEach
+            val en = row["en_name"]?.trim() ?: return@forEach
+            val regionName = row["region"]?.trim() ?: return@forEach
+
+            if (kr in existingKoreanNames || kr in seenKr) return@forEach
+            if (en in existingEnglishNames || en in seenEn) return@forEach
 
             seenKr.add(kr)
             seenEn.add(en)
 
-            UniversityRank(
+            // Region 찾거나 새로 생성
+            val region = regionMap.getOrPut(regionName) {
+                val newRegion = regionRepository.save(Region(name = regionName))
+                newRegion
+            }
+
+            // UniversityRank 생성
+            val university = UniversityRank(
                 id = rank,
                 krName = kr,
-                enName = en,
+                enName = en
+            )
+            newUniversityRanks.add(university)
+
+            // 중간 테이블 생성
+            val mapping = UniversityRankRegion(
+                universityRank = university,
                 region = region
             )
+            newUniversityRankRegions.add(mapping)
         }
 
-        universityRankRepository.saveAll(newEntities)
-        println("✅ ${newEntities.size} new university rankings saved to database.")
-    }
+        // 저장 순서 중요: 대학 먼저, 중간 테이블 다음
+        universityRankRepository.saveAll(newUniversityRanks)
+        universityRankRegionRepository.saveAll(newUniversityRankRegions)
 
+        println("✅ ${newUniversityRanks.size} universities saved.")
+        println("✅ ${newUniversityRankRegions.size} university-region mappings saved.")
+    }
 }
