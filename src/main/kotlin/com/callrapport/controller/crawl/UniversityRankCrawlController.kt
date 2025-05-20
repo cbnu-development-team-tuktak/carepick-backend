@@ -1,7 +1,7 @@
 package com.callrapport.controller.crawl
 
 import com.callrapport.component.file.FileManager
-import com.callrapport.service.UniversityRankCrawlService
+import com.callrapport.service.crawl.UniversityRankCrawlService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -42,6 +42,17 @@ class UniversityRankCrawlController(
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("❌ Failed to merge CSVs: ${e.message}")
+        }
+    }
+
+    @GetMapping("/save")
+    fun saveToDatabase(): ResponseEntity<String> {
+        return try {
+            universityRankCrawlService.saveUniversityRanks()
+            ResponseEntity.ok("✅ University rankings saved to database.")
+        } catch (e: Exception) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("❌ Failed to save university rankings to database: ${e.message}")
         }
     }
 }
