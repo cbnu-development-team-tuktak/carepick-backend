@@ -1,4 +1,4 @@
-package com.callrapport.controller
+package com.callrapport.controller.database.hospital
 
 // DTO import 
 import com.callrapport.dto.HospitalDetailsResponse // 병원 정보 응답용 DTO

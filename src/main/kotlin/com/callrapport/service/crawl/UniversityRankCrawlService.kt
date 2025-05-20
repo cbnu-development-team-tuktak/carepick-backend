@@ -1,11 +1,12 @@
-package com.callrapport.service
+package com.callrapport.service.crawl
 
 import com.callrapport.component.crawler.WebCrawler
 import com.callrapport.component.file.FileManager
+import com.callrapport.model.university.UniversityRank
+import com.callrapport.repository.university.UniversityRankRepository
 import org.jsoup.Jsoup
 import org.openqa.selenium.By
 import org.openqa.selenium.JavascriptExecutor
-import org.openqa.selenium.WebDriver
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.openqa.selenium.support.ui.WebDriverWait
 import org.springframework.stereotype.Service
@@ -15,7 +16,8 @@ import java.time.Duration
 @Service
 class UniversityRankCrawlService(
     private val webCrawler: WebCrawler,
-    private val fileManager: FileManager
+    private val fileManager: FileManager,
+    private val universityRankRepository: UniversityRankRepository // ✅ 의존성 추가
 ) {
 
     fun crawlUniversityRanks(): List<Map<String, String>> {
@@ -92,7 +94,7 @@ class UniversityRankCrawlService(
             println("⚠️ Data size mismatch: original=${originalData.size}, translated=${translatedData.size}")
         }
 
-        val merged = originalData.zip(translatedData).mapIndexed { index, (original, translated) ->
+        val merged = originalData.zip(translatedData).mapIndexed { index, (original: Map<String, String>, translated: Map<String, String>) ->
             mapOf(
                 "rank" to (index + 1).toString(),
                 "kr_name" to translated["name"]?.trim().orEmpty(),
@@ -104,4 +106,42 @@ class UniversityRankCrawlService(
         fileManager.writeCsv(outputFilePath, merged, charset = Charset.forName("UTF-8"))
         println("✅ Merged CSV saved successfully with row-number-based rank: $outputFilePath")
     }
+
+    fun saveUniversityRanks(
+        filePath: String = "csv/university_rankings_final.csv"
+    ) {
+        val data = fileManager.readCsv(filePath, charset = Charset.forName("UTF-8"))
+
+        // DB에 있는 기존 값들
+        val existingKoreanNames = universityRankRepository.findAll().map { it.krName }.toSet()
+        val existingEnglishNames = universityRankRepository.findAll().map { it.enName }.toSet()
+
+        val seenKr = mutableSetOf<String>()
+        val seenEn = mutableSetOf<String>()
+
+        val newEntities = data.mapNotNull { row ->
+            val rank = row["rank"]?.toIntOrNull() ?: return@mapNotNull null
+            val kr = row["kr_name"]?.trim() ?: return@mapNotNull null
+            val en = row["en_name"]?.trim() ?: return@mapNotNull null
+            val region = row["region"]?.trim() ?: ""
+
+            // 중복 제거 (DB에 이미 있거나, 현재 처리 중에 중복이면 제외)
+            if (kr in existingKoreanNames || kr in seenKr) return@mapNotNull null
+            if (en in existingEnglishNames || en in seenEn) return@mapNotNull null
+
+            seenKr.add(kr)
+            seenEn.add(en)
+
+            UniversityRank(
+                id = rank,
+                krName = kr,
+                enName = en,
+                region = region
+            )
+        }
+
+        universityRankRepository.saveAll(newEntities)
+        println("✅ ${newEntities.size} new university rankings saved to database.")
+    }
+
 }
