@@ -12,6 +12,12 @@ import org.springframework.data.repository.query.Param // @Query에서 JPQL의 �
 import org.springframework.data.domain.Page // 페이지네이션을 지원하는 JPA의 기본 객체 (검색 결과를 페이지 단위로 관리)
 import org.springframework.data.domain.Pageable // 페이지네이션 요청을 처리하는 JPA 객체 (클라이언트가 요청한 페이지 정보 포함)
 
+// 공간 데이터 관련 import
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.Point
+import org.locationtech.jts.geom.PrecisionModel
+
 @Repository
 interface DoctorRepository : JpaRepository<Doctor, String> {
     // 의사 이름을 기준으로 검색
@@ -28,4 +34,31 @@ interface DoctorRepository : JpaRepository<Doctor, String> {
     override fun findAll(
         pageable: Pageable // 페이지네이션 정보를 포함한 객체
     ): Page<Doctor> // 페이지 단위의 모든 Doctor 목록
+
+    @Query(
+        """
+        SELECT d FROM Doctor d
+        LEFT JOIN d.careers c
+        LEFT JOIN HospitalDoctor hd ON hd.doctor = d
+        LEFT JOIN Hospital h ON hd.hospital = h
+        WHERE
+            (:keyword IS NULL OR d.name LIKE %:keyword%)
+        GROUP BY d
+        ORDER BY
+            CASE
+                WHEN :sortBy = 'education' THEN d.totalEducationLicenseScore
+                ELSE NULL
+            END DESC,
+            CASE
+                WHEN :sortBy = 'distance' THEN function('ST_Distance_Sphere', h.location, :location)
+                ELSE NULL
+            END ASC
+        """
+    )
+    fun searchDoctorsByFilters(
+        @Param("keyword") keyword: String?,
+        @Param("location") location: Point?,
+        @Param("sortBy") sortBy: String,
+        pageable: Pageable
+    ): Page<Doctor>
 }

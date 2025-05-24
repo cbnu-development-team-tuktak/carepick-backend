@@ -47,4 +47,16 @@ class EducationLicenseEntityController(
             ResponseEntity.status(500).body(result)
         }
     }
+
+    // 전체 의사의 학력 점수 총합 갱신
+    // 예: http://localhost:8080/api/education-license/update-total-score
+    @GetMapping("/update-total-score")
+    fun updateTotalEducationLicenseScores(): ResponseEntity<UpdateResult> {
+        val result = universityRankService.updateTotalEducationLicenseScores()
+        return if (result.success) {
+            ResponseEntity.ok(result)
+        } else {
+            ResponseEntity.status(500).body(result)
+        }
+    }
 }

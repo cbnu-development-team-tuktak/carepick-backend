@@ -15,6 +15,12 @@ import org.springframework.data.domain.Pageable // 페이징 정보(페이지 �
 import org.springframework.web.bind.annotation.* // REST 컨트롤러, 매핑, 요청 파라미터 어노테이션 등
 import org.springframework.http.ResponseEntity // HTTP 응답 데이터를 표현하는 객체
 
+// 공간 데이터 관련 import
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.Point
+import org.locationtech.jts.geom.PrecisionModel
+
 @RestController
 @RequestMapping("/api/doctors")
 class DoctorEntityController(
@@ -67,4 +73,143 @@ class DoctorEntityController(
 
         return DoctorDetailsResponse.from(doctor, hospitalDoctor)
     }
+
+    // 학력순 정렬 (위치 정보 포함)
+    // 예: http://localhost:8080/api/doctors/sort/education?lat=37.5&lng=127.1&page=0&size=10 (좌표 적용)
+    // 예: http://localhost:8080/api/doctors/sort/education?page=0&size=10 (좌표 미적용)
+    @GetMapping("/sort/education")
+    fun getDoctorsSortedByEducation(
+        @RequestParam(required = false) lat: Double?,
+        @RequestParam(required = false) lng: Double?,
+        pageable: Pageable
+    ): Page<DoctorDetailsResponse> {
+        // 좌표가 둘 다 있으면 Point 생성
+        val location = if (lat != null && lng != null) {
+            val coordinate = Coordinate(lng, lat)
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+            geometryFactory.createPoint(coordinate)
+        } else null
+
+        val doctorPage = doctorService.getDoctorsByFilters(
+            keyword = null,
+            location = location,
+            sortBy = "education",
+            pageable = pageable
+        )
+
+        val dtoList = doctorPage.content.map { doctor ->
+            val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id)
+            DoctorDetailsResponse.from(doctor, hospitalDoctor)
+        }
+
+        return PageImpl(dtoList, pageable, doctorPage.totalElements)
+    }
+
+    // 가까운 병원 소속순 정렬
+    // 예: http://localhost:8080/api/doctors/sort/distance?lat=37.5&lng=127.1&page=0&size=10
+    @GetMapping("/sort/distance")
+    fun getDoctorsSortedByDistance(
+        @RequestParam(required = true) lat: Double,
+        @RequestParam(required = true) lng: Double,
+        pageable: Pageable
+    ): Page<DoctorDetailsResponse> {
+        // 좌표 객체 생성
+        val coordinate = Coordinate(lng, lat)
+        val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+        val location = geometryFactory.createPoint(coordinate)
+
+        // 정렬 기준은 distance
+        val doctorPage = doctorService.getDoctorsByFilters(
+            keyword = null,
+            location = location,
+            sortBy = "distance",
+            pageable = pageable
+        )
+
+        val dtoList = doctorPage.content.map { doctor ->
+            val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id)
+            DoctorDetailsResponse.from(doctor, hospitalDoctor)
+        }
+
+        return PageImpl(dtoList, pageable, doctorPage.totalElements)
+    }
+
+    // 경력순 정렬 (미구현)
+    // 예: http://localhost:8080/api/doctors/sort/career?page=0&size=10
+    @GetMapping("/sort/career")
+    fun getDoctorsSortedByCareer(
+        @RequestParam(required = false) lat: Double?,
+        @RequestParam(required = false) lng: Double?,
+        pageable: Pageable
+    ): ResponseEntity<Map<String, Any>> {
+        /*
+        // 추후 경력순 정렬 로직이 구현되면 아래 로직 활성화 예정
+        val location = if (lat != null && lng != null) {
+            val coordinate = Coordinate(lng, lat)
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+            geometryFactory.createPoint(coordinate)
+        } else null
+
+        val doctorPage = doctorService.getDoctorsByFilters(
+            keyword = null,
+            location = location,
+            sortBy = "career",
+            pageable = pageable
+        )
+
+        val dtoList = doctorPage.content.map { doctor ->
+            val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id)
+            DoctorDetailsResponse.from(doctor, hospitalDoctor)
+        }
+
+        return PageImpl(dtoList, pageable, doctorPage.totalElements)
+        */
+
+        return ResponseEntity.status(501).body(
+            mapOf(
+                "message" to "경력순 정렬은 아직 구현되지 않았습니다.",
+                "implemented" to false
+            )
+        )
+    }
+
+    // 명성순 정렬 (미구현)
+    // 예: http://localhost:8080/api/doctors/sort/reputation?page=0&size=10
+    @GetMapping("/sort/reputation")
+    fun getDoctorsSortedByReputation(
+        @RequestParam(required = false) lat: Double?,
+        @RequestParam(required = false) lng: Double?,
+        pageable: Pageable
+    ): ResponseEntity<Map<String, Any>> {
+        /*
+        // 추후 명성순 정렬 로직이 구현되면 아래 로직 활성화 예정
+        val location = if (lat != null && lng != null) {
+            val coordinate = Coordinate(lng, lat)
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
+            geometryFactory.createPoint(coordinate)
+        } else null
+
+        val doctorPage = doctorService.getDoctorsByFilters(
+            keyword = null,
+            location = location,
+            sortBy = "reputation",
+            pageable = pageable
+        )
+
+        val dtoList = doctorPage.content.map { doctor ->
+            val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id)
+            DoctorDetailsResponse.from(doctor, hospitalDoctor)
+        }
+
+        return PageImpl(dtoList, pageable, doctorPage.totalElements)
+        */
+
+        return ResponseEntity.status(501).body(
+            mapOf(
+                "message" to "명성순 정렬은 아직 구현되지 않았습니다.",
+                "implemented" to false
+            )
+        )
+    }
+
 }
