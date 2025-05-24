@@ -6,16 +6,16 @@ import com.callrapport.model.doctor.Doctor // Doctor: 의사 정보를 담는 �
 import com.callrapport.model.university.UniversityRank // UniversityRank: 대학 순위 정보를 담는 도메인 모델
 
 // 리포지토리 관련 import
-import com.callrapport.repository.doctor.DoctorRepository
+import com.callrapport.repository.doctor.DoctorRepository // 의사 데이터를 조회·저장하는 JPA 리포지토리
 
 // Spring 관련 import 
 import org.springframework.stereotype.Component // 해당 클래스를 Spring의 빈(Bean)으로 등록하는 어노테이션
 
 data class ScoreDetails(
-    val matchedKeyword: String,
-    val baseScore: Int,
-    val statusModifier: Double,
-    val score: Double
+    val matchedKeyword: String, // 점수를 매기는 데 사용한 키워드 (예: "석사, "박사")
+    val baseScore: Int, // 키워드에 해당하는 기본 점수
+    val statusModifier: Double, // 상태(예: 졸업, 수료 등)에 따른 가중치
+    val score: Double // 최종 계산된 점수 (기본 점수 x 가중치 )
 )
 
 // 학력/자격면허 유형
@@ -82,11 +82,13 @@ enum class EducationLicenseType(
 
 @Component
 class EducationLicenseScore (
+    // 의사 관련 데이터를 처리하기 위한 의존성 주입
     private val doctorRepository: DoctorRepository
 ) {
+    // 점수 작업 결과를 나타내는 응답 데이터 클래스
     data class UpdateResult(
-        val success: Boolean,
-        val message: String
+        val success: Boolean, // 작업 성공 여부
+        val message: String // 작업 결과 메시지 
     )
 
     // 주어진 텍스트에서 해당하는 EducationLicenseType을 판별
@@ -121,10 +123,10 @@ class EducationLicenseScore (
 
         // 최종 점수 계산 후 반환
         return ScoreDetails(
-            matchedKeyword = keyword,
-            baseScore = baseScore,
-            statusModifier = modifier,
-            score = baseScore * modifier
+            matchedKeyword = keyword, 
+            baseScore = baseScore, 
+            statusModifier = modifier, 
+            score = baseScore * modifier 
         )
     }
 
@@ -174,19 +176,23 @@ class EducationLicenseScore (
                     // 대학 순위(rank)를 반영해 점수 계산
                     val weightedScore = scoreDetails.score * (1000.0 / rank)
 
-                    docEdu.educationLicense.score = weightedScore // 점수 저장
+                    // 계산된 점수를 해당 자격 항목에 저장
+                    docEdu.educationLicense.score = weightedScore  
                 }
-                doctorRepository.save(doctor) // 각 의사별 저장 
+                // 학력 점수를 포함한 의사 정보 재저장
+                doctorRepository.save(doctor) 
             }
             
+            // 모든 의사의 학력 점수가 정상적으로 업데이트되었다는 결과를 반환
             UpdateResult(
-                success = true,
-                message = "모든 의사의 학력 점수가 성공적으로 업데이트되었습니다."
+                success = true, // 업데이트 성공 여부 
+                message = "모든 의사의 학력 점수가 성공적으로 업데이트되었습니다." // 성공 메시지
             )
         } catch (e: Exception) {
+            // 업데이트 도중 예외가 발생한 경우 실패했다는 결과를 반환 
             UpdateResult(
-                success = false,
-                message = "업데이트 중 오류 발생: ${e.message}"
+                success = false, // 업데이트 실패 여부
+                message = "업데이트 중 오류 발생: ${e.message}" // 예외 메시지 포함 실패 메시지
             )
         }
     }

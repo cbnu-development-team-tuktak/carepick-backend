@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.* // REST 컨트롤러, 매핑, �
 import org.springframework.http.ResponseEntity // HTTP 응답 데이터를 표현하는 객체
 
 // 공간 데이터 관련 import
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.geom.Point
-import org.locationtech.jts.geom.PrecisionModel
+import org.locationtech.jts.geom.Coordinate // 좌표 (경도, 위도) 표현용 클래스
+import org.locationtech.jts.geom.GeometryFactory // 공간 객체 생성용 팩토리
+import org.locationtech.jts.geom.Point // 위치 좌표를 나타내는 공간 데이터 타입
+import org.locationtech.jts.geom.PrecisionModel // 좌표계 정밀도 설정 클래스
 
 @RestController
 @RequestMapping("/api/doctors")
@@ -74,34 +74,40 @@ class DoctorEntityController(
         return DoctorDetailsResponse.from(doctor, hospitalDoctor)
     }
 
-    // 학력순 정렬 (위치 정보 포함)
+    // 의사 학력 기준 정렬
     // 예: http://localhost:8080/api/doctors/sort/education?lat=37.5&lng=127.1&page=0&size=10 (좌표 적용)
     // 예: http://localhost:8080/api/doctors/sort/education?page=0&size=10 (좌표 미적용)
     @GetMapping("/sort/education")
-    fun getDoctorsSortedByEducation(
-        @RequestParam(required = false) lat: Double?,
-        @RequestParam(required = false) lng: Double?,
-        pageable: Pageable
+    fun getDoctorsSortedByEducation( 
+        @RequestParam(required = false) keyword: String?, // 의사명
+        @RequestParam(required = false) lat: Double?, // 위도
+        @RequestParam(required = false) lng: Double?, // 경도
+        pageable: Pageable // 페이지네이션 정보 (페이지 번호, 크기 등)
     ): Page<DoctorDetailsResponse> {
-        // 좌표가 둘 다 있으면 Point 생성
+        // 위도와 경도가 모두 존재할 경우 좌표(Point) 객체 생성
         val location = if (lat != null && lng != null) {
-            val coordinate = Coordinate(lng, lat)
-            val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
-            geometryFactory.createPoint(coordinate)
-        } else null
+            val coordinate = Coordinate(lng, lat) // 좌표 객체 생성 (경도, 위도 순)
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326) // WGS84 좌표계 (SRID: 4326)
+            geometryFactory.createPoint(coordinate) // Point 객체 생성
+        } else null // 위도 또는 경도가 없으면 null
 
+        // 의사 검색 서비스 호출 (학력 기준 정렬)
         val doctorPage = doctorService.getDoctorsByFilters(
-            keyword = null,
-            location = location,
-            sortBy = "education",
-            pageable = pageable
+            keyword = keyword, // 의사 이름 키워드 (부분 일치)
+            location = location, // 위치 정보 (Point 좌표)
+            sortBy = "education", // 학력 기준 정렬
+            pageable = pageable // 페이지네이션 정보
         )
 
+        // 검색된 위치 목록을 DTO 형태로 매핑
         val dtoList = doctorPage.content.map { doctor ->
+            // 해당 의사와 연결된 첫 번째 병원 정보 조회
             val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id)
+            // 의사 + 병원 정보를 포함한 응답 DTO 생성
             DoctorDetailsResponse.from(doctor, hospitalDoctor)
         }
 
+        // 매핑된 DTO 리스트를 Page 형태로 변환하여 반환
         return PageImpl(dtoList, pageable, doctorPage.totalElements)
     }
 
@@ -109,28 +115,35 @@ class DoctorEntityController(
     // 예: http://localhost:8080/api/doctors/sort/distance?lat=37.5&lng=127.1&page=0&size=10
     @GetMapping("/sort/distance")
     fun getDoctorsSortedByDistance(
-        @RequestParam(required = true) lat: Double,
-        @RequestParam(required = true) lng: Double,
-        pageable: Pageable
+        @RequestParam(required = false) keyword: String?, // 의사명
+        @RequestParam(required = false) lat: Double?, // 위도
+        @RequestParam(required = false) lng: Double?, // 경도
+        pageable: Pageable // 페이지네이션 정보 (페이지 번호, 크기 등)
     ): Page<DoctorDetailsResponse> {
-        // 좌표 객체 생성
-        val coordinate = Coordinate(lng, lat)
-        val geometryFactory = GeometryFactory(PrecisionModel(), 4326)
-        val location = geometryFactory.createPoint(coordinate)
-
-        // 정렬 기준은 distance
+        // 위도와 경도가 모두 존재할 경우 좌표(Point) 객체 생성
+        val location = if (lat != null && lng != null) {
+            val coordinate = Coordinate(lng, lat) // 좌표 객체 생성 (경도, 위도 순)
+            val geometryFactory = GeometryFactory(PrecisionModel(), 4326) // WGS84 좌표계 (SRID: 4326)
+            geometryFactory.createPoint(coordinate) // Point 객체 생성
+        } else null // 위도 또는 경도가 없으면 null
+        
+        // 의사 검색 서비스 호출 (거리 기준 정렬)
         val doctorPage = doctorService.getDoctorsByFilters(
-            keyword = null,
-            location = location,
-            sortBy = "distance",
-            pageable = pageable
+            keyword = keyword, // 의사 이름 키워드 (부분 일치) 
+            location = location, // 위치 정보 (Point 좌표)
+            sortBy = "distance", // 거리 기준 정렬
+            pageable = pageable // 페이지네이션 정보
         )
 
+        // 검색된 의사 목록을 DTO 형태로 매핑 
         val dtoList = doctorPage.content.map { doctor ->
+            // 해당 의사와 연결된 첫 번째 병원 정보 조회
             val hospitalDoctor = doctorService.getFirstHospitalDoctorByDoctorId(doctor.id)
+            // 의사 + 병원 정보를 포함한 응답 DTO 생성
             DoctorDetailsResponse.from(doctor, hospitalDoctor)
         }
 
+        // 매핑된 DTO 리스트를 Page 형태로 변환하여 반환
         return PageImpl(dtoList, pageable, doctorPage.totalElements)
     }
 
@@ -138,9 +151,10 @@ class DoctorEntityController(
     // 예: http://localhost:8080/api/doctors/sort/career?page=0&size=10
     @GetMapping("/sort/career")
     fun getDoctorsSortedByCareer(
-        @RequestParam(required = false) lat: Double?,
-        @RequestParam(required = false) lng: Double?,
-        pageable: Pageable
+        @RequestParam(required = false) keyword: String?, // 의사명
+        @RequestParam(required = false) lat: Double?, // 위도
+        @RequestParam(required = false) lng: Double?, // 경도
+        pageable: Pageable // 페이지네이션 정보 (페이지 번호, 크기 등)
     ): ResponseEntity<Map<String, Any>> {
         /*
         // 추후 경력순 정렬 로직이 구현되면 아래 로직 활성화 예정
@@ -151,7 +165,7 @@ class DoctorEntityController(
         } else null
 
         val doctorPage = doctorService.getDoctorsByFilters(
-            keyword = null,
+            keyword = keyword,
             location = location,
             sortBy = "career",
             pageable = pageable
@@ -165,10 +179,11 @@ class DoctorEntityController(
         return PageImpl(dtoList, pageable, doctorPage.totalElements)
         */
 
+        // 경력순 정렬 미구현에 대한 응답 반환
         return ResponseEntity.status(501).body(
             mapOf(
-                "message" to "경력순 정렬은 아직 구현되지 않았습니다.",
-                "implemented" to false
+                "message" to "경력순 정렬은 아직 구현되지 않았습니다.", // 사용자에게 전달할 안내 메시지
+                "implemented" to false // 구현 여부 플래그 (false) 
             )
         )
     }
@@ -177,9 +192,10 @@ class DoctorEntityController(
     // 예: http://localhost:8080/api/doctors/sort/reputation?page=0&size=10
     @GetMapping("/sort/reputation")
     fun getDoctorsSortedByReputation(
-        @RequestParam(required = false) lat: Double?,
-        @RequestParam(required = false) lng: Double?,
-        pageable: Pageable
+        @RequestParam(required = false) keyword: String?, // 의사명
+        @RequestParam(required = false) lat: Double?, // 위도
+        @RequestParam(required = false) lng: Double?, // 경도
+        pageable: Pageable // 페이지네이션 정보 (페이지 번호, 크기 등)
     ): ResponseEntity<Map<String, Any>> {
         /*
         // 추후 명성순 정렬 로직이 구현되면 아래 로직 활성화 예정
@@ -190,7 +206,7 @@ class DoctorEntityController(
         } else null
 
         val doctorPage = doctorService.getDoctorsByFilters(
-            keyword = null,
+            keyword = keyword,
             location = location,
             sortBy = "reputation",
             pageable = pageable
@@ -204,10 +220,11 @@ class DoctorEntityController(
         return PageImpl(dtoList, pageable, doctorPage.totalElements)
         */
 
+        // 명성순 정렬 미구현에 대한 응답 반환
         return ResponseEntity.status(501).body(
             mapOf(
-                "message" to "명성순 정렬은 아직 구현되지 않았습니다.",
-                "implemented" to false
+                "message" to "명성순 정렬은 아직 구현되지 않았습니다.", // 사용자 안내 메시지
+                "implemented" to false // 구현 여부 플래그 (false)
             )
         )
     }

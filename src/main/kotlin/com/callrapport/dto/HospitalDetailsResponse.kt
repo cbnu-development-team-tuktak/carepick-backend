@@ -1,11 +1,17 @@
 package com.callrapport.dto
 
-import com.callrapport.model.hospital.Hospital
-import com.callrapport.model.hospital.HospitalAdditionalInfo
-import com.callrapport.model.hospital.HospitalImage
-import com.callrapport.model.hospital.HospitalOperatingHours // 병원-운영시간 관계 엔티티 import
+// 병원 관련 엔티티 import
+import com.callrapport.model.hospital.Hospital // 병원 기본 정보 엔티티 
+import com.callrapport.model.hospital.HospitalAdditionalInfo // 병원 추가 정보 엔티티
+import com.callrapport.model.hospital.HospitalImage // 병원 이미지 엔티티
+import com.callrapport.model.hospital.HospitalOperatingHours // 병원 진료 시간 엔티티
+import com.callrapport.model.hospital.OperatingHours // 진료 시간 엔티티
 
-import org.locationtech.jts.geom.Point
+// 공간 좌표 관련 import  
+import org.locationtech.jts.geom.Point // 공간 좌표(Point) 타입
+
+// 시간 관련 import
+import java.time.format.DateTimeFormatter // 시간 포맷터
 
 data class HospitalDetailsResponse(
     val id: String, // 병원 ID
@@ -33,7 +39,7 @@ data class HospitalDetailsResponse(
                 operatingHours = hospital.operatingHours
                     .takeIf { it.isNotEmpty() }
                     ?.map { 
-                        // ✅ 변경된 OperatingHourResponse에 맞춰 변환
+                        // 변경된 OperatingHourResponse에 맞춰 변환
                         OperatingHourResponse.from(it.operatingHours)
                     },
                 url = hospital.url ?: "",
@@ -89,34 +95,30 @@ data class LatLng(
     val longitude: Double // 경도
 )
 
+// Point 객체를 위도·경도(LatLng) 형태로 변환
 fun Point?.toLatLng(): LatLng? {
     return this?.let {
+        // y = 위도, x = 경도
         LatLng(latitude = it.y, longitude = it.x)
     }
 }
 
 data class OperatingHourResponse(
-    val day: String,         // 요일 (예: "월")
-    val startTime: String?,  // 시작 시간 ("HH:mm" 형식)
-    val endTime: String?,    // 종료 시간 ("HH:mm" 형식)
+    val day: String, // 요일 (예: "월")
+    val startTime: String?, // 시작 시간 ("HH:mm" 형식)
+    val endTime: String?, // 종료 시간 ("HH:mm" 형식)
 ) {
     companion object {
-        fun from(entity: com.callrapport.model.hospital.OperatingHours): OperatingHourResponse {
-            val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+        fun from(operatingHours: OperatingHours): OperatingHourResponse {
+            val formatter = DateTimeFormatter.ofPattern("HH:mm") // 시간 형식 포맷터 정의
 
-            val formattedStart = entity.startTime?.format(formatter)
-            val formattedEnd = entity.endTime?.format(formatter)
-
-            val formattedTime = if (formattedStart == null || formattedEnd == null) {
-                "휴진"
-            } else {
-                "$formattedStart - $formattedEnd"
-            }
+            val formattedStart = operatingHours.startTime?.format(formatter) // 시작 시간을 문자열로 포맷
+            val formattedEnd = operatingHours.endTime?.format(formatter) // 종료 시간을 문자열로 포맷
 
             return OperatingHourResponse(
-                day = entity.day,
-                startTime = formattedStart, // null이면 휴진
-                endTime = formattedEnd,     // null이면 휴진
+                day = operatingHours.day, // 요일 설정 
+                startTime = formattedStart, // 시작 시간
+                endTime = formattedEnd, // 종료 시간
             )
         }
     }
