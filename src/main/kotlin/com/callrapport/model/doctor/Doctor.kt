@@ -15,10 +15,14 @@ data class Doctor(
     @Id // 기본 키(Primary) 설정
     val id: String, // 의사 ID (기본 키, 문자열 타입)
 
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
+    @Column(
+        nullable = false // 필수 입력 값 (NULL 허용 안 함)
+    ) 
     val name: String, // 의사 이름
 
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
+    @Column(
+        nullable = true // 선택적 입력 값 (NULL 허용)
+    ) 
     val profileImage: String? = null, // 프로필 이미지 URL  
 
     // 의사와 경력(1:N) 관계
@@ -36,6 +40,11 @@ data class Doctor(
         orphanRemoval = true // 고아 객체 자동 삭제
     )
     val educationLicenses: MutableList<DoctorEducationLicense> = mutableListOf(), // 의사의 학력 및 자격면허 정보 
+
+    @Column(
+        nullable = false // 필수 입력 값 (NULL 허용 안 함)
+    ) 
+    var totalEducationLicenseScore: Double = 0.0, // 의사의 학력/자격면허 점수 총합
 
     // 의사와 진료과(N:M) 관계를 관리하는 DoctorSpecialty와 1:N 관계
     @OneToMany(

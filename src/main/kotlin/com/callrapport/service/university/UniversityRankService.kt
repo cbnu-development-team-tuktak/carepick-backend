@@ -53,4 +53,20 @@ class UniversityRankService(
         val universityList = universityRankRepository.findAll()
         return educationLicenseScore.calculateForAllDoctors(allDoctors, universityList)
     }
+
+    fun updateTotalEducationLicenseScores(): UpdateResult {
+        val allDoctors = doctorRepository.findAll()
+
+        return try {
+            allDoctors.forEach { doctor ->
+                val total = doctor.educationLicenses.sumOf { it.educationLicense.score ?: 0.0 }
+                doctor.totalEducationLicenseScore = total
+                doctorRepository.save(doctor)
+            }
+            UpdateResult(success = true, message = "의사 전체 학력 점수 총합 갱신 완료")
+        } catch (e: Exception) {
+            UpdateResult(success = false, message = "학력 점수 총합 갱신 실패: ${e.message}")
+        }
+}
+
 }

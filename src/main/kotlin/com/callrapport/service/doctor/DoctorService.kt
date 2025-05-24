@@ -20,6 +20,12 @@ import org.springframework.transaction.annotation.Transactional // 트랜잭션 
 import org.springframework.data.domain.Page // 페이지 결과 객체
 import org.springframework.data.domain.Pageable // 페이지 요청 객체
 
+// 공간 데이터 관련 import
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.Point
+import org.locationtech.jts.geom.PrecisionModel
+
 @Service
 class DoctorService(
     // Repository: 의사 관련
@@ -225,5 +231,19 @@ class DoctorService(
     // 전체 의사 개수를 반환하는 함수
     fun countAllDoctors(): Long {
         return doctorRepository.count()  // JPA의 count() 메서드를 사용하여 전체 개수 반환
+    }
+
+    fun getDoctorsByFilters(
+        keyword: String?, // 의사 이름 키워드
+        location: Point?, // 거리 정렬 시 기준 좌표
+        sortBy: String, // 정렬 기준 (education, career, reputation, distance)
+        pageable: Pageable // 페이지네이션 정보
+    ): Page<Doctor> {
+        return doctorRepository.searchDoctorsByFilters(
+            keyword = keyword,
+            location = location,
+            sortBy = sortBy,
+            pageable = pageable
+        )
     }
 }
