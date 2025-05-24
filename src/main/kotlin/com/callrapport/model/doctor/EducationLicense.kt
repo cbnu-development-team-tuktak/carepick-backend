@@ -14,5 +14,10 @@ data class EducationLicense(
         nullable = false, // 필수 입력 값 (NULL 허용 안 함)
         unique = true // 중복 방지
     ) 
-    val name: String // 자격면허명
+    val name: String, // 자격면허명
+
+    @Column(
+        nullable = false // 필수 입력 값 (NULL 허용 안 함)
+    )
+    var score: Double = 0.0 // 점수
 )
