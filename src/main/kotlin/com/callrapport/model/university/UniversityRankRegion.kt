@@ -4,7 +4,7 @@ package com.callrapport.model.university
 import jakarta.persistence.* // JPA 엔티티 매핑을 위한 어노테이션 포함
 
 // JSON 직렬화 관련 import
-import com.fasterxml.jackson.annotation.JsonManagedReference // 순환 참조 방지를 위해 사용
+import com.fasterxml.jackson.annotation.JsonIgnore // 순환 참조 방지를 위해 사용
 
 @Entity
 @Table(
