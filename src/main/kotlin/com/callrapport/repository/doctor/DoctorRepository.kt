@@ -13,10 +13,10 @@ import org.springframework.data.domain.Page // 페이지네이션을 지원하�
 import org.springframework.data.domain.Pageable // 페이지네이션 요청을 처리하는 JPA 객체 (클라이언트가 요청한 페이지 정보 포함)
 
 // 공간 데이터 관련 import
-import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.geom.Point
-import org.locationtech.jts.geom.PrecisionModel
+import org.locationtech.jts.geom.Coordinate // 좌표를 나타내는 객체 (x: 경도, y: 위도)
+import org.locationtech.jts.geom.GeometryFactory // Geometry 객체 생성을 위한 팩토리 클래스
+import org.locationtech.jts.geom.Point // 포인트(위치)를 나타내는 공간 객체
+import org.locationtech.jts.geom.PrecisionModel // 좌표의 정밀도 모델 설정 클래스
 
 @Repository
 interface DoctorRepository : JpaRepository<Doctor, String> {
@@ -56,9 +56,9 @@ interface DoctorRepository : JpaRepository<Doctor, String> {
         """
     )
     fun searchDoctorsByFilters(
-        @Param("keyword") keyword: String?,
-        @Param("location") location: Point?,
-        @Param("sortBy") sortBy: String,
-        pageable: Pageable
-    ): Page<Doctor>
+        @Param("keyword") keyword: String?, // 의사 이름 키워드 (부분 일치)
+        @Param("location") location: Point?, // 사용자 위치 (좌표 정보)
+        @Param("sortBy") sortBy: String, // 정렬 기준: 학력순(education) 또는 가까운 병원 소속순(distance)
+        pageable: Pageable // 페이지네이션 정보
+    ): Page<Doctor> // 필터에 해당하는 의사 목록
 }

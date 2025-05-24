@@ -1,7 +1,7 @@
 package com.callrapport.dto
 
 // 엔티티 관련 import
-import com.callrapport.model.doctor.Doctor
+import com.callrapport.model.doctor.Doctor // 의사 엔티티
 import com.callrapport.model.hospital.HospitalDoctor // 병원 정보를 포함하기 위한 import
 
 // DoctorDetailsResponse DTO 정의 (의사 상세 정보를 반환하는 응답 객체)
