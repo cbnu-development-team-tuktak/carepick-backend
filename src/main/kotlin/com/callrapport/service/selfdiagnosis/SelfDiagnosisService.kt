@@ -43,8 +43,8 @@ class SelfDiagnosisService(
             .distinct() // 중복된 진료과 이름 제거 
     }
 
-    // 자연어 기반 질병 예측 (mini 모델)
-    fun diagnoseNaturalMini(
+    // 자연어 기반 질병 예측
+    fun diagnoseDisease(
         inputText: String?, // 사용자 입력 문장
         k: Int = 3 // Top-k 예측 개수 
     ): DiagnosisResult {
@@ -57,8 +57,8 @@ class SelfDiagnosisService(
             // Flask 서버와 통신하기 위한 RestTemplate 객체 생성
             val restTemplate = RestTemplate()
 
-            // Flask 서버의 mini 모델 예측 URL 구성
-            val flaskUrl = "http://localhost:5000/disease/mini?k=$k"
+            // Flask 서버의 질병 예측 모델 URL 구성
+            val flaskUrl = "http://3.34.135.144:10000/disease?k=$k"
 
             // 요청 헤더 설정
             val headers = HttpHeaders().apply {
@@ -106,7 +106,7 @@ class SelfDiagnosisService(
             val specialties = getSpecialtiesByDiseaseNames(diseaseNames)
 
             // 예측 결과를 DiagnosisResult 형태로 반환
-            return DiagnosisResult(
+            DiagnosisResult(
                 message = message, // 위에서 구성한 요약 메시지
                 suggestedSymptoms = emptyList(), // 현재는 빈 리스트로 반환 (추후 삭제 예정)
                 suggestedSpecialties = specialties // 추후 진료과 연동 시 대체 예정
@@ -120,25 +120,74 @@ class SelfDiagnosisService(
         }
     }
 
-    // 자연어 기반 질병 예측 (advanced 모델)
-    fun diagnoseNaturalAdvanced(
-        inputText: String? // 사용자 입력 문장
+    // 자연어 기반 진료과 예측
+    fun diagnoseSpecialty(
+        inputText: String?, // 사용자 입력 문장
+        k: Int = 3 // Top-k 예측 개수
     ): DiagnosisResult {
-        // 입력 텍스트가 null이거나 공백일 경우
+        // 입력 문장이 비어 있거나 null인 경우
         if (inputText.isNullOrBlank()) {
-            // 예외 메시지 반환
-            return DiagnosisResult("입력된 문장이 비어 있습니다. 다시 입력해 주세요.")
+            return DiagnosisResult("입력된 문장이 비어 있습니다. 다시 입력해 주세요.") // 에러 메시지 반환
         }
 
-        // 임시 메시지를 담은 예측 결과 반환
-        return DiagnosisResult(
-            message = """
-                입력 문장: $inputText
+        return try {
+            // Flask 서버와 통신하기 위한 RestTemplate 객체 생성
+            val restTemplate = RestTemplate()
 
-                향후 업데이트 후 예측을 제공할 예정입니다.
-            """.trimIndent(), // 멀티라인 메시지 정의 및 들여쓰기 제거
-            suggestedSymptoms = emptyList(), // 현재는 빈 리스트로 반환 (추후 삭졔 예정)
-            suggestedSpecialties = listOf("예측 진료과 제공 예정") // 추후 진료과 연동 시 대체 예정
-        )
+            // Flask 서버의 specialty 예측 URL 구성
+            val flaskUrl = "http://3.34.135.144:10000/specialty?k=$k"
+
+            // 요청 헤더 설정
+            val headers = HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON // JSON 형식 명시
+            }
+
+            // 요청 본문에 보낼 JSON 데이터 구성
+            val requestJson = mapOf("text" to inputText)
+
+            // 요청 본문과 헤더를 함께 담은 HttpEntity 객체 생성
+            val entity = HttpEntity(requestJson, headers)
+
+            // Flask 서버에 POST 요청을 보내고 응답을 List 형태로 수신
+            val response = restTemplate.postForEntity(
+                flaskUrl, // 요청 URL
+                entity, // 요청 본문 및 헤더 포함
+                List::class.java // 응답 타입 (List 형태의 JSON)
+            )
+
+            // 응답 body를 List<Map> 형태로 안전하게 캐스팅(casting)
+            val topk = response.body as? List<Map<*, *>> ?: emptyList()
+
+            // 응답 리스트에서 'specialty' 키에 해당하는 값을 추출하여 문자열 리스트로 변환
+            val specialtyNames = topk.mapNotNull { it["specialty"]?.toString() }
+
+            // 예측된 진료과명이 없는 경우
+            if (specialtyNames.isEmpty()) {
+                return DiagnosisResult("Flask 서버에서 예측된 진료과가 없습니다.") // 예측 결과가 없다는 예외 메시지 반환
+            }
+
+            // 메시지 구성
+            val message = buildString {
+                appendLine("입력 문장: $inputText") // 입력 문장 출력
+                appendLine("예측된 진료과 Top-$k") // 예측된 진료과 Top-k 제목 출력
+
+                // 예측 결과 리스트를 순회하며 진료과명과 점수를 한 줄씩 출력
+                topk.forEach {
+                    val specialty = it["specialty"]?.toString() ?: "알 수 없음" // 진료과명 추출
+                    val score = it["score"]?.toString() ?: "?" // 점수 추출
+                    appendLine("- $specialty ($score)") // 진료과명과 점수 결합
+                }
+            }
+
+            // 최종 결과 반환
+            DiagnosisResult(
+                message = message,
+                suggestedSymptoms = emptyList(),
+                suggestedSpecialties = specialtyNames
+            )
+        } catch (e: Exception) {
+            e.printStackTrace() // 에외 발생 시 스택 트레이스 출력
+            return DiagnosisResult("Flask 서버 호출 중 오류가 발생했습니다.")
+        }
     }
 }
