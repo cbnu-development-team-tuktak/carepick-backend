@@ -1,57 +1,44 @@
 package com.callrapport.model.user
 
-// JPA 관련 import
-import jakarta.persistence.* // JPA 매핑을 위한 어노테이션 포함
+import jakarta.persistence.*
+import java.time.LocalDateTime
 
-// Java 날씨 및 시간 관련 import 
-import java.time.LocalDate // 생년월일(localDate) 저장을 위한 클래스
-import java.time.LocalDateTime // 생성 및 업데이트 날짜(LocalDateTime)을 위한 클래스
+import com.callrapport.model.user.*
 
 @Entity
-@Table(name = "users")
+@Table(name = "user")
 data class User(
-    @Id // 기본 키(Primary Key) 설정
-    val id: String, // 유저 ID
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long? = null,
 
-    @Column(nullable =  false) // 필수 입력 값 (NULL 허용 안 함)
-    val password: String, // 비밀번호
+    @Column(name = "user_id", nullable = false, unique = true, length = 50)
+    val userId: String, // 로그인용 ID
 
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
-    val name: String, // 유저 이름
+    @Column(name = "email", nullable = false, unique = true)
+    val email: String, // 이메일 주소
 
-    @Enumerated(EnumType.STRING) // Enum 타입을 문자열(String)로 저장
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val gender: Gender? = null, // 성별 (MALE, FEMALE, OTHER)
+    @Column(name = "password", nullable = false)
+    val password: String, // 비밀번호 (암호화된 형태로 저장)
+    
+    @Column(name = "nickname", nullable = false, length = 30)
+    val nickname: String, // 사용자 표시용 닉네임
 
-    @Column(nullable = true) // 선택적 입력 값 (NULL 허용)
-    val birthDate: LocalDate? = null, // 생년월일
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now(), // 생성 시간
 
-    @Enumerated(EnumType.STRING) // Enum 타입을 문자열(String)로 저장
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
-    val status: UserStatus = UserStatus.ACTIVE, // 사용자 상태 (기본값: ACTIVE)
+    @Column(name = "is_active", nullable = false)
+    val isActive: Boolean = true, // 활성 상태
 
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
-    val createdAt: LocalDateTime = LocalDateTime.now(), // 계정 생성일 (기본값: 현재 시간)
+    @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, optional = false)
+    val userProfile: UserProfile? = null, // 사용자 프로필 정보
 
-    @Column(nullable = false) // 필수 입력 값 (NULL 허용 안 함)
-    var updatedAt: LocalDateTime = LocalDateTime.now() // 계정 정보 수정일 (기본값: 현재 시간)
-) {
-    // 사용자 정보 업데이트 시, updateAt 필드를 현재 시간으로 변경
-    fun updateTimestamp() {
-        updatedAt = LocalDateTime.now() // 계정 정보 변경 시 자동으로 업데이트
-    }
-}
+    @OneToOne(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, optional = false)
+    val userOauth: UserOauth? = null, // OAuth 계정 정보 (선택적)
 
-// 성별(Gender) Enum 정의
-enum class Gender {
-    MALE, // 남성
-    FEMALE, // 여성
-    OTHER // 기타 성별
-}
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val userFavoriteHospitals: MutableList<UserFavoriteHospital> = mutableListOf(), // 즐겨찾기한 병원 목록
 
-// 사용자 상태(UserStatus) Enum 정의
-enum class UserStatus {
-    ACTIVE, // 활성 계정
-    SUSPENDED, // 정지된 계정
-    DEACTIVATED // 비활성화된 계정
-}
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    val userFavoriteDoctors: MutableList<UserFavoriteDoctor> = mutableListOf() // 즐겨찾기한 의사 목록
+)
