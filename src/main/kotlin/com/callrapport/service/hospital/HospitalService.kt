@@ -67,9 +67,6 @@ class HospitalService(
     private val specialtyRepository: SpecialtyRepository, // 진료과 저장소
     private val imageRepository: ImageRepository, // 이미지 저장소
 
-    // 사용자 관련 레포지토리
-    private val userFavoriteHospitalRepository: UserFavoriteHospitalRepository, // 즐겨찾는 병원 저장소  
-
     // 좌표 변환을 위한 컴포넌트
     private val geolocation: Geolocation,
 

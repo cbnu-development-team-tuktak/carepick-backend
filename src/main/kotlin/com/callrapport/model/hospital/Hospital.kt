@@ -82,14 +82,6 @@ data class Hospital(
     @JsonManagedReference // 순환 참조 방지
     var additionalInfo: HospitalAdditionalInfo? = null, // 병원 부가 정보 (예: 24시간 진료 여부 등)
 
-    // 병원을 즐겨찾기한 사용자와의 관계 (1:N)
-    @OneToMany(
-        mappedBy = "hospital", // UserFavoriteHospital 엔티티에서 hospital 필드를 기준으로 관계 설정
-        cascade = [CascadeType.ALL], // 병원 삭제 시 UserFavoriteHospital도 함께 삭제
-        orphanRemoval = true // 관계가 끊기면 DB에서 삭제됨
-    )
-    var favoritedByUsers: MutableList<UserFavoriteHospital> = mutableListOf(), // 병원을 즐겨찾기한 사용자 목록
-
     // 병원의 위치 정보 (공간 데이터)
     @Column(
         nullable = false, // 필수 입력 값 (NULL 허용 안 함)
