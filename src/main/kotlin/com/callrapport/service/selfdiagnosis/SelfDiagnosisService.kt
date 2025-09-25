@@ -58,7 +58,7 @@ class SelfDiagnosisService(
             val restTemplate = RestTemplate()
 
             // Flask 서버의 질병 예측 모델 URL 구성
-            val flaskUrl = "http://3.34.135.144:10000/disease?k=$k"
+            val flaskUrl = "http://43.201.15.104:10000/disease?k=$k"
 
             // 요청 헤더 설정
             val headers = HttpHeaders().apply {
@@ -135,7 +135,7 @@ class SelfDiagnosisService(
             val restTemplate = RestTemplate()
 
             // Flask 서버의 specialty 예측 URL 구성
-            val flaskUrl = "http://3.34.135.144:10000/specialty?k=$k"
+            val flaskUrl = "http://43.201.15.104:10000/specialty?k=$k"
 
             // 요청 헤더 설정
             val headers = HttpHeaders().apply {
