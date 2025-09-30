@@ -23,12 +23,18 @@ import java.nio.charset.StandardCharsets // UTF-8 등의 문자 인코딩 상수
 
 // 시간 관련 import
 import java.time.Duration // WebDriverWait 등의 시간 설정 시 사용
+import java.security.MessageDigest
 
 @Component
 class HospitalImageCrawler(
     private val webCrawler: WebCrawler, // Seleium WebDriver를 생성하는 유틸리티 클래스
     private val imageRepository: ImageRepository // 이미지 정보를 DB에서 조회 및 저장하는 레포지토리
 ) {
+    fun String.sha256(): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(this.toByteArray())
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
     // 썸네일 URL에서 원본 이미지를 추출
     fun extractOriginalImageUrl(thumbnailUrl: String): String {
         return try {
@@ -93,7 +99,11 @@ class HospitalImageCrawler(
                         } else { // 이미지가 DB에 존재하지 않는 경우
                             println("✅ New image found, adding to DB: $originalUrl")
                             // 새로운 이미지 객체 생성 
-                            Image(url = originalUrl, alt = "${hospitalName}_이미지") 
+                           Image(
+                                url = originalUrl,
+                                urlHash = originalUrl.sha256(),
+                                alt = "${hospitalName}_이미지"
+                            )
                         }
                     } else {
                         null // 유효하지 않은 URL은 필터링 

@@ -87,15 +87,12 @@ class HospitalCrawler(
                 // 크롤링된 병원 수 출력
                 println("✅ Page $pageNum - Found ${hospitalElements.size} hospital links (Total: ${hospitalLinks.size})")
                 
-                /* 
-                // 전체 페이지 크롤링을 원할 경우 아래 코드로 변경
+                
                 if (hospitalElements.isEmpty()) {
                     println("No more hospital data found. Stopping at page $pageNum.")
                     break
                 }
-                */
-                if (pageNum >= maxPage) break // 최대 1페이지까지만 크롤링
-               
+                
                 pageNum++ // 다음 페이지로 이동
             }
         } catch (e: Exception) { // 오류 발생 시 출력

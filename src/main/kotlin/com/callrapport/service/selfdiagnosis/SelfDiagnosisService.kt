@@ -3,7 +3,7 @@ package com.callrapport.service.selfdiagnosis
 // HTTP 통신 관련 import
 import org.springframework.http.HttpEntity // HTTP 요청 본문 및 헤더를 함께 전달할 수 있는 클래스
 import org.springframework.http.HttpHeaders // HTTP 요청 헤더 구성용 클래스
-import org.springframework.http.MediaType // 콘텐츠 타입 정의용 클래스 
+import org.springframework.http.MediaType // 콘텐츠 타입 정의용 클래스
 
 // Spring 서비스 관련 import
 import org.springframework.stereotype.Service // 서비스 레이어 컴포넌트 지정용 어노테이션
@@ -15,6 +15,12 @@ import org.springframework.web.client.RestTemplate // 외부 HTTP 요청을 수�
 import com.callrapport.repository.disease.DiseaseRepository // 질병 정보 조회 리포지토리
 import com.callrapport.repository.disease.DiseaseSpecialtyRepository // 질병-진료과 관계 정보 조회 리포지토리
 
+// 설정 및 DTO 관련 import
+import com.callrapport.config.ChatgptApiProperties // ChatGPT API 설정 프로퍼티
+import com.callrapport.dto.request.ChatgptRequest // ChatGPT 요청 DTO
+import com.callrapport.dto.request.Message // ChatGPT 메시지 DTO
+import com.callrapport.dto.response.ChatgptResponse // ChatGPT 응답 DTO
+
 data class DiagnosisResult(
     val message: String, // 예측 결과 메시지 (예: "감기일 가능성이 있습니다")
     val suggestedSymptoms: List<String> = emptyList(), // 추천 증상 목록
@@ -25,8 +31,89 @@ data class DiagnosisResult(
 class SelfDiagnosisService(
     // Repository: 질병 관련
     private val diseaseRepository: DiseaseRepository, // 질병 정보 조회 리포지토리
-    private val diseaseSpecialtyRepository: DiseaseSpecialtyRepository, // 질병-진료과 관게 정보 조회 리포지토리
+    private val diseaseSpecialtyRepository: DiseaseSpecialtyRepository, // 질병-진료과 관계 정보 조회 리포지토리
+    private val chatgptApiProperties: ChatgptApiProperties // ChatGPT API 키 설정 주입
 ) {
+    // ChatGPT에 증상을 보내 질병 목록을 받아오는 내부 함수
+    private fun getDiseaseNamesFromGpt(inputText: String): List<String> {
+        val restTemplate = RestTemplate()
+        val chatgptUrl = "https://api.openai.com/v1/chat/completions"
+
+        val headers = HttpHeaders().apply {
+            setBearerAuth(chatgptApiProperties.apiKey)
+            contentType = MediaType.APPLICATION_JSON
+        }
+
+        // 질병명만 JSON 배열로 요청하는 프롬프트
+        val prompt = """
+            사용자의 증상은 '${inputText}' 입니다.
+            가장 관련성 높은 질병명 3개를 다른 설명 없이 JSON 문자열 배열 형식으로만 응답해주세요.
+            예시: ["감기", "독감", "편도염"]
+        """.trimIndent()
+        
+        val requestBody = ChatgptRequest(
+            model = "gpt-4o",
+            messages = listOf(Message(role = "user", content = prompt))
+        )
+
+        val entity = HttpEntity(requestBody, headers)
+
+        return try {
+            val response = restTemplate.postForEntity(chatgptUrl, entity, ChatgptResponse::class.java)
+            val jsonString = response.body?.choices?.firstOrNull()?.message?.content ?: "[]"
+
+            // JSON 문자열을 List<String>으로 파싱
+            val objectMapper = com.fasterxml.jackson.module.kotlin.jacksonObjectMapper()
+            objectMapper.readValue(jsonString, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+        
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList() // 오류 발생 시 빈 리스트 반환
+        }
+    }
+
+    // ChatGPT에 질병 목록을 보내 진료과 목록을 받아오는 내부 함수
+    private fun getSpecialtiesFromGpt(diseaseNames: List<String>): List<String> {
+        // 질병 목록이 비어있으면 API 호출 없이 빈 리스트 반환
+        if (diseaseNames.isEmpty()) {
+            return emptyList()
+        }
+
+        val restTemplate = RestTemplate()
+        val chatgptUrl = "https://api.openai.com/v1/chat/completions"
+
+        val headers = HttpHeaders().apply {
+            setBearerAuth(chatgptApiProperties.apiKey)
+            contentType = MediaType.APPLICATION_JSON
+        }
+
+        // 진료과만 JSON 배열로 요청하는 프롬프트
+        val prompt = """
+            다음 질병 목록과 관련된 모든 진료과를 중복 없이 JSON 문자열 배열 형식으로만 응답해주세요: ${diseaseNames.joinToString(", ")}.
+            예시: ["이비인후과", "내과", "가정의학과"]
+        """.trimIndent()
+
+        val requestBody = ChatgptRequest(
+            model = "gpt-4o",
+            messages = listOf(Message(role = "user", content = prompt))
+        )
+
+        val entity = HttpEntity(requestBody, headers)
+
+        return try {
+            val response = restTemplate.postForEntity(chatgptUrl, entity, ChatgptResponse::class.java)
+            val jsonString = response.body?.choices?.firstOrNull()?.message?.content ?: "[]"
+
+            // JSON 문자열을 List<String>으로 파싱
+            val objectMapper = com.fasterxml.jackson.module.kotlin.jacksonObjectMapper()
+            objectMapper.readValue(jsonString, objectMapper.typeFactory.constructCollectionType(List::class.java, String::class.java))
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList() // 오류 발생 시 빈 리스트 반환
+        }
+    }
+
     // 질병명 리스트를 받아 해당 질병들의 진료과 이름 목록을 반환
     private fun getSpecialtiesByDiseaseNames(
         diseaseNames: List<String> // 예측된 질병명 목록
@@ -56,66 +143,94 @@ class SelfDiagnosisService(
         return try {
             // Flask 서버와 통신하기 위한 RestTemplate 객체 생성
             val restTemplate = RestTemplate()
-
-            // Flask 서버의 질병 예측 모델 URL 구성
             val flaskUrl = "http://43.201.15.104:10000/disease?k=$k"
-
-            // 요청 헤더 설정
-            val headers = HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON // JSON 형식 명시
-            }
-            
-            // 요청 본문에 보낼 JSON 데이터 구성
+            val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
             val requestJson = mapOf("text" to inputText)
-
-            // 요청 본문과 헤더를 함께 담은 HttpEntity 객체 생성
             val entity = HttpEntity(requestJson, headers)
-            
-            // Flask 서버에 POST 요청을 보내고 응답을 List 형태로 수신
-            val response = restTemplate.postForEntity(
-                flaskUrl, // 요청 URL
-                entity, // 요청 본문 및 헤더 포함
-                List::class.java // 응답 타입 (List 형태의 JSON)
-            )
-            
-            // 응답 body를 List<Map> 형태로 안전하게 캐스팅(casting)
+            val response = restTemplate.postForEntity(flaskUrl, entity, List::class.java)
             val topk = response.body as? List<Map<*, *>> ?: emptyList()
-            
-            // 응답 리스트에서 'disease' 키에 해당한느 값을 추출하여 문자열 리스트로 변환
-            val diseaseNames = topk.mapNotNull { it["disease"]?.toString() }
 
-            // 예측된 질병명이 없는 경우
-            if (diseaseNames.isEmpty()) {
-                return DiagnosisResult("Flask 서버에서 예측된 질병이 없습니다.") // 예측 결과가 없다는 예외 메시지 반환
+            // Flask 응답 데이터 유효성 검사
+            val isResponseValid = topk.all { it.containsKey("disease") && it.containsKey("score") }
+            if (!isResponseValid) {
+                return DiagnosisResult("일시적인 오류로 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.")
             }
 
+            val topScore = topk.firstOrNull()?.get("score")?.toString()?.toDoubleOrNull() ?: 0.0
+
+            // 점수가 0.4 미만일 경우 ChatGPT로 재진단
+            if (topScore < 0.4) {
+                val diseaseNamesFromGpt = getDiseaseNamesFromGpt(inputText)
+                val specialtiesFromGpt = getSpecialtiesFromGpt(diseaseNamesFromGpt)
+                
+                if (diseaseNamesFromGpt.isEmpty() || specialtiesFromGpt.isEmpty()) {
+                    return DiagnosisResult("일시적인 오류로 자세한 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.")
+                }
+
+                val message = buildString {
+                    appendLine("예측된 질병 (ChatGPT 분석):")
+                    diseaseNamesFromGpt.forEach { disease ->
+                        appendLine("- $disease")
+                    }
+                }
+
+                return DiagnosisResult(
+                    message = message,
+                    suggestedSpecialties = specialtiesFromGpt
+                )
+            }
+            
+            // --- 자체 모델 예측 성공 시 로직 (핵심 수정 부분) ---
+            val diseaseNames = topk.mapNotNull { it["disease"]?.toString() }
+            if (diseaseNames.isEmpty()) {
+                return DiagnosisResult("Flask 서버에서 예측된 질병이 없습니다.")
+            }
+
+            // 1. DB에서 예측된 질병 정보와 연결된 진료과 정보를 조회
+            val existingDiseases = diseaseRepository.findByNameIn(diseaseNames)
+            val specialtiesMap = existingDiseases.associateWith { disease ->
+                diseaseSpecialtyRepository.findByDisease(disease).mapNotNull { it.specialty?.name }
+            }
+
+            // 2. DB에서 찾은 진료과 목록을 추출
+            val specialtiesFromDb = specialtiesMap.values.flatten()
+
+            // 3. DB에 없거나, DB에 있지만 진료과 정보가 없는 질병 목록을 구성
+            val dbDiseaseNames = existingDiseases.map { it.name }
+            val newDiseaseNames = diseaseNames.filterNot { it in dbDiseaseNames }
+            val diseasesWithNoSpecialties = specialtiesMap.filterValues { it.isEmpty() }.keys.map { it.name }
+            val diseasesToAskGpt = (newDiseaseNames + diseasesWithNoSpecialties).distinct()
+
+            // 4. 필요시 ChatGPT를 통해 나머지 진료과를 조회
+            val specialtiesFromGpt = if (diseasesToAskGpt.isNotEmpty()) {
+                getSpecialtiesFromGpt(diseasesToAskGpt)
+            } else {
+                emptyList()
+            }
+            
+            // 5. 두 진료과 목록을 합치고 중복을 제거
+            val allSpecialties = (specialtiesFromDb + specialtiesFromGpt).distinct()
+            
             // 메시지 구성
             val message = buildString {
-                appendLine("입력 문장: $inputText") // 입력 문장 출력
-                appendLine("예측된 질병 Top-$k:") // 예측된 질병 Top-k 제목 출력
-                
-                // 예측 결과 리스트를 순회하며 질병명과 점수를 한 줄씩 출력
+                appendLine("예측된 질병 Top-$k:")
                 topk.forEach {
-                    val disease = it["disease"]?.toString() ?: "알 수 없음" // 질병명 추출
-                    val score = it["score"]?.toString() ?: "?" // 점수 추출
-                    appendLine("- $disease ($score)") // 질병명과 점수 결합
+                    val disease = it["disease"]!!.toString()
+                    val score = it["score"]!!.toString()
+                    appendLine("- $disease ($score)")
                 }
             }
             
-            // 예측된 질병명을 기반으로 진료과 이름 리스트 조회
-            val specialties = getSpecialtiesByDiseaseNames(diseaseNames)
-
-            // 예측 결과를 DiagnosisResult 형태로 반환
-            DiagnosisResult(
-                message = message, // 위에서 구성한 요약 메시지
-                suggestedSymptoms = emptyList(), // 현재는 빈 리스트로 반환 (추후 삭제 예정)
-                suggestedSpecialties = specialties // 추후 진료과 연동 시 대체 예정
+            // 최종 결과 반환
+            return DiagnosisResult(
+                message = message,
+                suggestedSymptoms = emptyList(),
+                suggestedSpecialties = allSpecialties
             )
 
         // 예외가 발생했을 경우
         } catch (e: Exception) { 
-            e.printStackTrace() // 예외 발생 시 스택 트레이스 출력
-            // 예외 발생 시 사용자에게 오류 메시지를 포함한 결과 반환
+            e.printStackTrace()
             return DiagnosisResult("Flask 서버 호출 중 오류가 발생했습니다.")
         }
     }
@@ -158,24 +273,52 @@ class SelfDiagnosisService(
             // 응답 body를 List<Map> 형태로 안전하게 캐스팅(casting)
             val topk = response.body as? List<Map<*, *>> ?: emptyList()
 
-            // 응답 리스트에서 'specialty' 키에 해당하는 값을 추출하여 문자열 리스트로 변환
-            val specialtyNames = topk.mapNotNull { it["specialty"]?.toString() }
+            // Flask 응답 데이터 유효성 검사
+            val isFlaskResponseValid = topk.all { it.containsKey("specialty") && it.containsKey("score") }
+            if (!isFlaskResponseValid) {
+                return DiagnosisResult("일시적인 오류로 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.")
+            }
 
-            // 예측된 진료과명이 없는 경우
+            // 가장 높은 점수를 확인
+            val topScore = topk.firstOrNull()?.get("score")?.toString()?.toDoubleOrNull() ?: 0.0
+
+            // 점수가 0.4 미만일 경우 ChatGPT로 재진단
+            if (topScore < 0.4) {
+                // ChatGPT에 직접 증상을 설명하고 진료과를 추천받음
+                val specialtiesFromGpt = getSpecialtiesFromGpt(listOf(inputText)) // 기존 함수 재활용
+                
+                if (specialtiesFromGpt.isEmpty()) {
+                    return DiagnosisResult("일시적인 오류로 자세한 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.")
+                }
+
+                // ChatGPT 예측 결과로 메시지 구성
+                val message = buildString {
+                    appendLine("추천 진료과 (ChatGPT 분석):")
+                    specialtiesFromGpt.forEach { specialty ->
+                        appendLine("- $specialty")
+                    }
+                }
+
+                return DiagnosisResult(
+                    message = message,
+                    suggestedSpecialties = specialtiesFromGpt
+                )
+            }
+
+            // 점수가 0.4 이상일 경우, 기존 로직 수행
+            val specialtyNames = topk.map { it["specialty"]!!.toString() }
+
             if (specialtyNames.isEmpty()) {
-                return DiagnosisResult("Flask 서버에서 예측된 진료과가 없습니다.") // 예측 결과가 없다는 예외 메시지 반환
+                return DiagnosisResult("Flask 서버에서 예측된 진료과가 없습니다.")
             }
 
             // 메시지 구성
             val message = buildString {
-                appendLine("입력 문장: $inputText") // 입력 문장 출력
-                appendLine("예측된 진료과 Top-$k") // 예측된 진료과 Top-k 제목 출력
-
-                // 예측 결과 리스트를 순회하며 진료과명과 점수를 한 줄씩 출력
+                appendLine("예측된 진료과 Top-$k")
                 topk.forEach {
-                    val specialty = it["specialty"]?.toString() ?: "알 수 없음" // 진료과명 추출
-                    val score = it["score"]?.toString() ?: "?" // 점수 추출
-                    appendLine("- $specialty ($score)") // 진료과명과 점수 결합
+                    val specialty = it["specialty"]!!.toString()
+                    val score = it["score"]!!.toString()
+                    appendLine("- $specialty ($score)")
                 }
             }
 
@@ -186,8 +329,52 @@ class SelfDiagnosisService(
                 suggestedSpecialties = specialtyNames
             )
         } catch (e: Exception) {
-            e.printStackTrace() // 에외 발생 시 스택 트레이스 출력
+            e.printStackTrace()
             return DiagnosisResult("Flask 서버 호출 중 오류가 발생했습니다.")
         }
     }
+
+    // 테스트용: ChatGPT 질병 예측 직접 호출
+    fun diagnoseDiseaseWithGpt(inputText: String): DiagnosisResult {
+        val diseaseNamesFromGpt = getDiseaseNamesFromGpt(inputText)
+        val specialtiesFromGpt = getSpecialtiesFromGpt(diseaseNamesFromGpt)
+
+        if (diseaseNamesFromGpt.isEmpty() || specialtiesFromGpt.isEmpty()) {
+            return DiagnosisResult("ChatGPT API 호출에 실패했거나 유효한 응답을 받지 못했습니다.")
+        }
+
+        val message = buildString {
+            appendLine("예측된 질병 (ChatGPT 분석):")
+            diseaseNamesFromGpt.forEach { disease ->
+                appendLine("- $disease")
+            }
+        }
+
+        return DiagnosisResult(
+            message = message,
+            suggestedSpecialties = specialtiesFromGpt
+        )
+    }
+
+    // 테스트용: ChatGPT 진료과 예측 직접 호출
+    fun diagnoseSpecialtyWithGpt(inputText: String): DiagnosisResult {
+        val specialtiesFromGpt = getSpecialtiesFromGpt(listOf(inputText))
+
+        if (specialtiesFromGpt.isEmpty()) {
+            return DiagnosisResult("ChatGPT API 호출에 실패했거나 유효한 응답을 받지 못했습니다.")
+        }
+
+        val message = buildString {
+            appendLine("추천 진료과 (ChatGPT 분석):")
+            specialtiesFromGpt.forEach { specialty ->
+                appendLine("- $specialty")
+            }
+        }
+
+        return DiagnosisResult(
+            message = message,
+            suggestedSpecialties = specialtiesFromGpt
+        )
+    }
 }
+

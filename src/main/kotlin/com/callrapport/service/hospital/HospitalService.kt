@@ -339,37 +339,23 @@ class HospitalService(
         }
     }
 
-    // 의사와 자격면허의 관계(DoctorEducationLicense)를 저장
+    // 의사와 자격면허의 관계(DoctorEducationLicense)를 저장 (수정 후)
     private fun saveDoctorEducationLicenses(
         savedDoctor: Doctor,
-        licenseNames: List<String>
+        licenseNames: List<String>? // Nullable List<String>
     ) {
-        // 의사와 자격면허 관계 (N:M) 설정
-        if (licenseNames.isNotEmpty()) { // 자격면허 이름 리스트가 비어있지 않은 경우에만 처리
-            val doctorLicenses = licenseNames
-                .mapNotNull { licenseName ->
-                // 자격면허 이름을 기준으로 EducationLicense 엔티티 조회
-                // 존재하지 않으면 새로 생성하여 저장
-                val license = educationLicenseRepository.findByName(licenseName)
-                    ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
+        // Null이 아니고 비어있지 않은 리스트에 대해서만 처리
+        if (!licenseNames.isNullOrEmpty()) {
+            licenseNames
+                .distinct() // 1. 입력된 자격면허 이름 리스트 자체의 중복을 먼저 제거
+                .forEach { licenseName ->
+                    // 2. 자격면허 이름으로 EducationLicense 엔티티를 찾거나, 없으면 새로 저장
+                    val license = educationLicenseRepository.findByName(licenseName)
+                        ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
 
-                // 해당 의사-자격면허 관계가 이미 존재하는지 확인
-                val exists = doctorEducationLicenseRepository
-                    .existsByDoctorIdAndEducationLicenseId(savedDoctor.id, license.id!!)
-
-                if (!exists) {
-                    // 중복되지 않은 경우에만 DoctorEducationLicense 객체 생성
-                    DoctorEducationLicense(
-                        doctor = savedDoctor,  // 저장된 의사 객체
-                        educationLicense = license // 조회 또는 생성된 자격면허 객체
-                    )
-                } else {
-                    null // 이미 존재하는 관계는 저장하지 않음
+                    // 3. 어플리케이션 레벨의 확인 없이, DB가 알아서 중복을 무시하도록 Native Query 호출
+                    doctorEducationLicenseRepository.saveWithIgnore(savedDoctor.id!!, license.id!!)
                 }
-            }.filterNotNull() // null 값을 제거
-
-            // 생성된 의사-자격면허 관계 리스트를 DB에 일괄 저장
-            doctorEducationLicenseRepository.saveAll(doctorLicenses) 
         }
     }
 

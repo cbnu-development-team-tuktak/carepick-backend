@@ -23,6 +23,9 @@ data class Image(
     )
     val url: String, // 이미지 url
 
+    @Column(nullable = false, length = 64)
+    val urlHash: String = "",
+    
     @Column(nullable = false) // 필수 입력 값 (NULL 값 허용 안함)
     val alt: String, // 이미지 alt 텍스트
     

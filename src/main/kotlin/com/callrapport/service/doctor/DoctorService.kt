@@ -125,35 +125,17 @@ class DoctorService(
         }
     }
 
-    // 의사와 자격면허(N:M) 관계 저장
-    private fun saveDoctorEducationLicenses(savedDoctor: Doctor, educationLicenseNames: List<String>?) {    
-        if (!educationLicenseNames.isNullOrEmpty()) { // 자격면허 리스트가 null이 아니고 비어있지 않은 경우에만 처리
-            val doctorLicenses = educationLicenseNames
-                .distinct() // 중복된 자격면허 이름 제거
-                .mapNotNull { licenseName -> 
-                    // 자격면허 이름으로 EducationLicense 엔티티 조회
-                    // 존재하지 않으면 새로 생성하여 저장
-                val license = educationLicenseRepository.findByName(licenseName)
-                    ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
+    private fun saveDoctorEducationLicenses(savedDoctor: Doctor, educationLicenseNames: List<String>?) {
+        // 함수 시작 시점에 바로 중복을 제거
+        val uniqueLicenseNames = educationLicenseNames?.distinct()
 
-                // 해당 의사-자격면허 조합이 이미 DB에 존재하는지 확인
-                val exists = doctorEducationLicenseRepository
-                    .existsByDoctorIdAndEducationLicenseId(savedDoctor.id, license.id!!)
+        if (!uniqueLicenseNames.isNullOrEmpty()) { // 중복이 제거된 리스트로 로직 수행
+            uniqueLicenseNames.forEach { licenseName ->
+                    val license = educationLicenseRepository.findByName(licenseName)
+                        ?: educationLicenseRepository.save(EducationLicense(name = licenseName))
 
-                if (!exists) {
-                    // 중복되지 않은 경우에만 관계 객체 생성
-                    DoctorEducationLicense(
-                        doctor = savedDoctor, // 현재 저장 중인 의사
-                        educationLicense = license // 조회 또는 생성된 자격면허
-                    )
-                } else {
-                    // 이미 존재하는 경우 null 반환하여 저장하지 않음
-                    null 
+                    doctorEducationLicenseRepository.saveWithIgnore(savedDoctor.id!!, license.id!!)
                 }
-            }.filterNotNull() // null 값을 제거하여 실제 저장할 객체만 필터링
-
-            // 생성된 의사-자격면허 관계 리스트를 DB에 일괄 저장
-            doctorEducationLicenseRepository.saveAll(doctorLicenses)
         }
     }
 

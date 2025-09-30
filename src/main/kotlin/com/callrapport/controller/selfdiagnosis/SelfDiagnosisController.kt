@@ -68,4 +68,36 @@ class SelfDiagnosisController(
         // 예측 결과를 200 OK로 반환
         return ResponseEntity.ok(response)
     }
+
+    // ChatGPT 질병 예측 테스트 (GET)
+    // 예: GET http://localhost:8080/api/self-diagnosis/disease/gpt?text=몸이%20으슬으슬해요
+    @GetMapping("/disease/gpt")
+    fun getGptDiseasePrediction(@RequestParam text: String): ResponseEntity<DiagnosisResult> {
+        val response = selfDiagnosisService.diagnoseDiseaseWithGpt(text)
+        return ResponseEntity.ok(response)
+    }
+
+    // ChatGPT 질병 예측 테스트 (POST)
+    // 예: POST http://localhost:8080/api/self-diagnosis/disease/gpt
+    @PostMapping("/disease/gpt")
+    fun postGptDiseasePrediction(@RequestBody text: String): ResponseEntity<DiagnosisResult> {
+        val response = selfDiagnosisService.diagnoseDiseaseWithGpt(text)
+        return ResponseEntity.ok(response)
+    }
+
+    // ChatGPT 진료과 예측 테스트 (GET)
+    // 예: GET http://localhost:8080/api/self-diagnosis/specialty/gpt?text=몸이%20으슬으슬해요
+    @GetMapping("/specialty/gpt")
+    fun getGptSpecialtyPrediction(@RequestParam text: String): ResponseEntity<DiagnosisResult> {
+        val response = selfDiagnosisService.diagnoseSpecialtyWithGpt(text)
+        return ResponseEntity.ok(response)
+    }
+
+    // ChatGPT 진료과 예측 테스트 (POST)
+    // 예: POST http://localhost:8080/api/self-diagnosis/specialty/gpt
+    @PostMapping("/specialty/gpt")
+    fun postGptSpecialtyPrediction(@RequestBody text: String): ResponseEntity<DiagnosisResult> {
+        val response = selfDiagnosisService.diagnoseSpecialtyWithGpt(text)
+        return ResponseEntity.ok(response)
+    }
 }
