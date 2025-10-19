@@ -211,4 +211,54 @@ class AdministrativeRegionService(
             UmdDetailsResponse.from(sggUmd.umd, parentCode = sggUmd.sgg.code)
         }
     }
+
+    // 키워드로 시/군/구 목록을 조회 (부분 일치)
+    @Transactional(readOnly = true)
+    fun findSggsByKeyword(keyword: String): List<Sgg> {
+        return sggRepository.findAllByNameContaining(keyword)
+    }
+
+    // 시/군/구로 시/도 조회
+    @Transactional(readOnly = true)
+    fun findSidoBySgg(sgg: Sgg): Sido? {
+        return sidoSggRepository.findBySgg(sgg).firstOrNull()?.sido
+    }
+
+    // 키워드로 시/도 목록을 조회 (부분 일치)
+    @Transactional(readOnly = true)
+    fun findSidosByKeyword(keyword: String): List<Sido> {
+        // Sido 엔티티에 대한 Repository가 필요합니다.
+        // (예: sidoRepository.findAllByNameContaining(keyword))
+        return sidoRepository.findAllByNameContaining(keyword) 
+    }
+
+    /**
+     * 시/도 이름 키워드로 해당 시/도에 속한 모든 시/군/구(Sgg) 목록을 조회합니다.
+     * * 1. 키워드에 해당하는 시/도(Sido) 엔티티들을 찾습니다.
+     * 2. 각 시/도에 연결된 모든 시/군/구(Sgg)들을 가져옵니다.
+     * 3. 중복을 제거하고 하나의 목록으로 반환합니다.
+     */
+    @Transactional(readOnly = true)
+    fun findSggsBySidoKeyword(sidoKeyword: String): List<Sgg> {
+        // 1. 키워드에 해당하는 모든 Sido를 찾습니다.
+        val targetSidos = findSidosByKeyword(sidoKeyword)
+        
+        if (targetSidos.isEmpty()) {
+            return emptyList()
+        }
+
+        val allSggs = mutableSetOf<Sgg>()
+
+        // 2. 각 Sido에 연결된 모든 Sgg를 찾습니다.
+        targetSidos.forEach { sido ->
+            // SidoSggRepository를 사용하여 특정 Sido에 속한 모든 연결 엔티티를 조회
+            val sidoSggs = sidoSggRepository.findBySido(sido)
+            
+            // 연결 엔티티에서 Sgg만 추출하여 목록에 추가 (Set을 사용하여 중복 자동 제거)
+            sidoSggs.map { it.sgg }.toCollection(allSggs)
+        }
+
+        // 3. Set을 List로 변환하여 반환
+        return allSggs.toList()
+    }
 }

@@ -1,5 +1,8 @@
 package com.callrapport.service
 
+// Component (컴포넌트) 관련 import
+import com.callrapport.component.crawler.doctor.FamousDoctorCrawler // 명의 크롤러 컴포넌트
+
 // Model (엔티티) 관련 import 
 import com.callrapport.model.common.Specialty // 진료과 엔티티
 import com.callrapport.model.doctor.* // 의사 관련 엔티티들
@@ -28,6 +31,9 @@ import org.locationtech.jts.geom.PrecisionModel
 
 @Service
 class DoctorService(
+    // 크롤러: 명의 정보 크롤링
+     private val famousDoctorCrawler: FamousDoctorCrawler, // 명의 크롤러 서비스
+
     // Repository: 의사 관련
     private val doctorRepository: DoctorRepository, // 의사 정보를 저장/조회하는 레포지토리
     private val doctorEducationLicenseRepository: DoctorEducationLicenseRepository, // 의사-자격면허 관계 레포지토리
@@ -216,16 +222,154 @@ class DoctorService(
     }
 
     fun getDoctorsByFilters(
-        keyword: String?, // 의사 이름 키워드
-        location: Point?, // 거리 정렬 시 기준 좌표
-        sortBy: String, // 정렬 기준 (education, career, reputation, distance)
-        pageable: Pageable // 페이지네이션 정보
+        keyword: String?,
+        specialtyNames: List<String>?, // <<< 1. specialtyNames 파라미터 추가
+        location: Point?,
+        sortBy: String,
+        pageable: Pageable
     ): Page<Doctor> {
+        // <<< 2. 빈 리스트가 넘어올 경우를 대비해 null로 처리
+        val finalSpecialtyNames = if (specialtyNames.isNullOrEmpty()) null else specialtyNames
+
         return doctorRepository.searchDoctorsByFilters(
             keyword = keyword,
+            specialtyNames = finalSpecialtyNames, // <<< 3. 레포지토리에 파라미터 전달
             location = location,
             sortBy = sortBy,
             pageable = pageable
         )
+    }
+
+    fun crawlAndFetchFamousDoctors(): List<Map<String, String>> {
+        println("--- Service layer: Starting famous doctor crawl process ---")
+        val crawledData = famousDoctorCrawler.crawlFamousDoctors()
+        println("--- Service layer: Crawl process finished, returning data to controller ---")
+        return crawledData
+    }
+
+    /**
+     * [신규 추가] 크롤링된 데이터에서 모든 'specialtyName'을 추출하여 중복 없이 반환하는 분석 함수.
+     * 자체 검수 목적으로 사용됨.
+     */
+    fun analyzeCrawledSpecialties(): List<String> {
+        println("--- Service layer: Analyzing crawled specialty names... ---")
+        // 크롤러를 호출하여 원본 데이터 리스트를 가져옵니다.
+        val crawledData = famousDoctorCrawler.crawlFamousDoctors()
+
+        // specialtyName을 쉼표로 분리하고, 모든 공백을 제거한 뒤, 중복을 없애고 정렬
+        val uniqueSpecialties = crawledData
+            .flatMap { it["specialtyName"]?.split(",") ?: emptyList() }
+            .map { it.trim() }
+            .toSet() // Set을 사용하여 중복 제거
+            .sorted() // 정렬
+
+        println("--- Service layer: Analysis complete. Found ${uniqueSpecialties.size} unique specialties. ---")
+        return uniqueSpecialties
+    }
+
+    /**
+     * 명의 크롤링부터 DB 업데이트까지 모든 과정을 총괄하는 함수
+     * @return 업데이트된 의사 엔티티 목록
+     */
+    @Transactional
+    fun updateFamousDoctors(): List<Doctor> { 
+        println("--- Starting famous doctor update process ---")
+
+        // 1단계: 최신 명의 목록 크롤링
+        val famousDoctorsData = famousDoctorCrawler.crawlFamousDoctors()
+        println("Crawling complete. Found ${famousDoctorsData.size} raw doctor data entries.")
+
+        // 2단계: DB에서 조회할 이름 목록 준비 (중복 제거)
+        val processedData = famousDoctorsData.distinctBy { it["name"] to it["hospitalName"] to it["specialtyName"] }
+        val crawledNames = processedData.mapNotNull { it["name"] }.distinct()
+        
+        // 3단계: Repository에서 이름이 일치하는 모든 후보 의사를 한 번에 가져옴 (HospitalDoctorRepository 함수는 별도 파일에 추가되었음을 가정)
+        val candidateDoctors = doctorRepository.findByNameIn(crawledNames) // <<< findByNameIn 사용
+        val candidateDoctorIds = candidateDoctors.map { it.id }
+        
+        // 후보 의사들의 병원 연결 정보를 메모리로 가져옴
+        val hospitalRelations = hospitalDoctorRepository.findByDoctorIdIn(candidateDoctorIds)
+            .groupBy { it.doctor.id }
+
+        // 4단계: 메모리에서 데이터 가공 및 최종 매칭 (동명이인 구분 로직)
+        val doctorsToUpdate = mutableListOf<Doctor>()
+        println("Processing ${processedData.size} unique famous doctors.")
+
+        processedData.forEach { data ->
+            val crawledName = data["name"] ?: return@forEach
+            // 공백 제거: 띄어쓰기 오류 방지
+            val crawledHospital = data["hospitalName"]?.replace(" ", "") ?: return@forEach 
+            // 매핑된 진료과 목록 (쉼표로 분리되어 있음)
+            val crawledSpecialties = data["specialtyName"]?.split(",")?.map { it.trim() } ?: return@forEach 
+
+            // 이름이 일치하는 후보 의사 필터링 (동명이인 처리 시작)
+            val nameCandidates = candidateDoctors.filter { it.name == crawledName }
+
+            if (nameCandidates.isEmpty()) {
+                println("FAILED: Name=$crawledName, Hospital=$crawledHospital. Reason: Doctor name not found in DB.")
+                return@forEach
+            }
+            
+            var matchSuccess = false
+            for (candidate in nameCandidates) {
+                
+                // 1. 병원명 일치 여부 확인 (공백 제거 후 부분 포함 비교)
+                val dbHospitals = hospitalRelations[candidate.id]
+                    ?.map { it.hospital.name.replace(" ", "") } ?: emptyList()
+                val isHospitalMatch = dbHospitals.any { it.contains(crawledHospital) || crawledHospital.contains(it) }
+
+                // 2. 진료과 일치 여부 확인 (매핑/포함 관계 비교)
+                val dbSpecialties = candidate.specialties.map { it.specialty.name }
+                val isSpecialtyMatch = dbSpecialties.any { dbSpec ->
+                    crawledSpecialties.any { crawledSpec ->
+                        dbSpec.contains(crawledSpec) || crawledSpec.contains(dbSpec) 
+                    }
+                }
+                
+                if (isHospitalMatch && isSpecialtyMatch) {
+                    // 5단계: 업데이트 (명의 여부만 변경)
+                    candidate.isFamous = true
+                    doctorsToUpdate.add(candidate)
+                    println("SUCCESS: Matched doctor: ${candidate.name} at ${data["hospitalName"]}")
+                    matchSuccess = true
+                    break // 매칭 성공 시 동명이인 루프 종료
+                }
+            }
+            
+            // 6단계: 상세 실패 이유 로깅 (매칭 실패 시)
+            if (!matchSuccess) {
+                // 실패한 이유를 찾기 위해 후보군을 다시 분석 (디버그 용도)
+                val isAnyHospitalMatch = nameCandidates.any { candidate ->
+                    val dbHospitals = hospitalRelations[candidate.id]?.map { it.hospital.name.replace(" ", "") } ?: emptyList()
+                    dbHospitals.any { it.contains(crawledHospital) || crawledHospital.contains(it) }
+                }
+                val isAnySpecialtyMatch = nameCandidates.any { candidate ->
+                    val dbSpecialties = candidate.specialties.map { it.specialty.name }
+                    dbSpecialties.any { dbSpec ->
+                        crawledSpecialties.any { crawledSpec ->
+                            dbSpec.contains(crawledSpec) || crawledSpec.contains(dbSpec)
+                        }
+                    }
+                }
+
+                val failureReason = when {
+                    !isAnyHospitalMatch && !isAnySpecialtyMatch -> "Reason: Both Hospital and Specialty Match Failed."
+                    !isAnyHospitalMatch -> "Reason: Hospital Match Failed for all Candidates."
+                    !isAnySpecialtyMatch -> "Reason: Specialty Match Failed for all Candidates."
+                    else -> "Reason: Unforeseen Logic/Ambiguity Error."
+                }
+                println("FAILED: Name=$crawledName, Hospital=${data["hospitalName"]}. $failureReason")
+            }
+        }
+
+        // 7단계: 변경된 의사 정보를 '한번에' DB에 저장
+        val distinctUpdatedDoctors = doctorsToUpdate.distinctBy { it.id }
+        if (distinctUpdatedDoctors.isNotEmpty()) {
+            doctorRepository.saveAll(distinctUpdatedDoctors)
+        }
+        
+        println("--- Famous doctor update process finished. Total ${distinctUpdatedDoctors.size} records updated. ---")
+        
+        return distinctUpdatedDoctors
     }
 }

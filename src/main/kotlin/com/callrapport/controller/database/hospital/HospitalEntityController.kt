@@ -63,7 +63,7 @@ class HospitalEntityController(
     }
 
     // 모든 병원 목록 조회 (DTO 반환)
-    // 예: http://localhost:8080/api/hospitals?page=0&size=10
+    // 예: http://localhost:8080/api/hospitals?page=0&size=1000
     @GetMapping
     fun getAllHospitals(
         pageable: Pageable // 페이징 정보

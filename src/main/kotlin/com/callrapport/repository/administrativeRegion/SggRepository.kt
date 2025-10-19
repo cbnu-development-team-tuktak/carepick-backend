@@ -6,8 +6,10 @@ import org.springframework.stereotype.Repository
 
 // SggRepository 인터페이스 정의
 @Repository
-interface SggRepository : JpaRepository<Sgg, String> {
-    fun findByCode(code: String): Sgg? // 코드로 Sgg 엔티티를 찾는 메소드
-    fun findByName(name: String): Sgg? // 이름으로 Sgg 엔티티를 찾는 메소드
-    fun findAllByName(name : String): List<Sgg> // 이름으로 Sgg 엔티티 리스트를 찾는 메소드
+interface SggRepository : JpaRepository<Sgg, Long> {
+    fun findByCode(code: String): Sgg?
+    fun findByName(name: String): Sgg?
+    fun findAllByName(name: String): List<Sgg>
+
+    fun findAllByNameContaining(name: String): List<Sgg> 
 }

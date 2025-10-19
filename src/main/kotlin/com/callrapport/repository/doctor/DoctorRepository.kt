@@ -37,13 +37,14 @@ interface DoctorRepository : JpaRepository<Doctor, String> {
 
     @Query(
         """
-        SELECT d FROM Doctor d
+        SELECT DISTINCT d FROM Doctor d
         LEFT JOIN d.careers c
+        LEFT JOIN d.specialties ds
         LEFT JOIN HospitalDoctor hd ON hd.doctor = d
         LEFT JOIN Hospital h ON hd.hospital = h
         WHERE
             (:keyword IS NULL OR d.name LIKE %:keyword%)
-        GROUP BY d
+            AND (:specialtyNames IS NULL OR ds.specialty.name IN :specialtyNames)
         ORDER BY
             CASE
                 WHEN :sortBy = 'education' THEN d.totalEducationLicenseScore
@@ -56,9 +57,17 @@ interface DoctorRepository : JpaRepository<Doctor, String> {
         """
     )
     fun searchDoctorsByFilters(
-        @Param("keyword") keyword: String?, // 의사 이름 키워드 (부분 일치)
-        @Param("location") location: Point?, // 사용자 위치 (좌표 정보)
-        @Param("sortBy") sortBy: String, // 정렬 기준: 학력순(education) 또는 가까운 병원 소속순(distance)
-        pageable: Pageable // 페이지네이션 정보
-    ): Page<Doctor> // 필터에 해당하는 의사 목록
+        @Param("keyword") keyword: String?,
+        @Param("specialtyNames") specialtyNames: List<String>?,
+        @Param("location") location: Point?,
+        @Param("sortBy") sortBy: String,
+        pageable: Pageable
+    ): Page<Doctor>
+
+
+    /**
+     * 의사 이름 목록(크롤링된 이름)을 기준으로 의사 후보들을 한 번에 조회합니다.
+     * (Service 레이어에서 모든 동명이인 후보를 메모리로 가져올 때 사용됩니다.)
+     */
+    fun findByNameIn(names: List<String>): List<Doctor>
 }

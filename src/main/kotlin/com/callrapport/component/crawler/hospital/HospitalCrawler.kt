@@ -8,6 +8,9 @@ import com.callrapport.component.extractor.HospitalInfoExtractor // HospitalInfo
 import org.jsoup.Jsoup // HTML 문서를 다운로드하고, DOM을 분석하는 라이브러리
 import org.jsoup.nodes.Document // Jsoup에서 HTML 문서를 나타내는 객체
 
+// Repository 관련 import
+import com.callrapport.repository.administrativeRegion.SggRepository // 행정구역(Sgg) 관련 데이터베이스 작업을 위한 리포지토리
+
 // Selenium (웹 자동화) 관련 import
 import org.openqa.selenium.* // Selenium의 WebDriver, WebElement 등 포함
 import org.openqa.selenium.chrome.ChromeDriver // Chrome 브라우저 드라이버
@@ -34,74 +37,66 @@ class HospitalCrawler(
 ) {
     // 병원 목록(이름 + URL) 크롤링
     fun crawlHospitalLinks(
-        maxPage: Int = 1 // 최대 페이지 수
+        area1: String? = null, // 시/도 (예: "충청북도")
+        area2: String? = null  // 시/군/구 (예: "청주시 서원구")
     ): List<Pair<String, String>> {
-        val hospitalLinks = mutableListOf<Pair<String, String>>() // 병원 목록 저장 리스트
-        val driver = webCrawler.createWebDriver() // WebDriver 생성
+        val hospitalLinks = mutableListOf<Pair<String, String>>()
+        val driver = webCrawler.createWebDriver()
         try {
-            var pageNum = 1 // 크롤링할 페이지 번호
-    
+            var pageNum = 1
+
             while (true) {
-                // 병원 검색 결과 페이지 URL (페이지 번호에 따라 변경됨)
-                val url = "https://mobile.hidoc.co.kr/find/result/list?orderType=15010&page=$pageNum&filterType=H"
-                driver.get(url) // 해당 페이지로 이동
-    
-                // 최대 20초 동안 요소 로딩 대기
+                val urlBuilder = StringBuilder("https://mobile.hidoc.co.kr/find/result/list?orderType=15010&filterType=H")
+
+                area1?.let { urlBuilder.append("&area1=$it") }
+                area2?.let { urlBuilder.append("&area2=$it") }
+
+                urlBuilder.append("&page=$pageNum")
+
+                val url = urlBuilder.toString()
+                println("Crawling URL: $url")
+                driver.get(url)
+
                 val wait = WebDriverWait(driver, Duration.ofSeconds(20))
-                // 병원 리스트가 로드될 때까지 대기
                 wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.item_search")))
 
-                // 페이지 내 자동 스크롤을 실행하여 추가 데이터 로드
                 val jsExecutor = driver as JavascriptExecutor
                 for (i in 1..5) {
-                    // 페이지 맨 아래로 스크롤
                     jsExecutor.executeScript("window.scrollTo(0, document.body.scrollHeight);")
-                    Thread.sleep(3000) // 데이터 로딩을 위한 대기 (3초)
+                    Thread.sleep(3000)
                 }
-    
-                // 병원 목록이 있는 요소 찾기
-                val hospitalElements: List<WebElement> = driver.findElements(By.cssSelector("div.item_search a.link_item"))
-    
-                // 병원 데이터가 없을 경우 재시도
-                if (hospitalElements.isEmpty()) {
-                    println("🚨 No hospital data found (page: $pageNum). Retrying...") // 병원 데이터가 없을 경우 로그 출력
-                    Thread.sleep(5000) // 5초 대기 후 재시도
-                    continue
-                }
-                
-                // 병원 이름 및 URL 추출
-                for (element in hospitalElements) {
-                    // 병원 이름 추출 (없으면 "이름 없음")
-                    val name = element.findElement(By.tagName("strong")).text ?: "이름 없음"
 
-                    // 병원 상세 페이지 URL (상대경로)
+                val hospitalElements: List<WebElement> = driver.findElements(By.cssSelector("div.item_search a.link_item"))
+
+                if (hospitalElements.isEmpty()) {
+                    if (pageNum == 1) {
+                        println("🚨 No hospital data found for the selected region. Stopping.")
+                    } else {
+                        println("No more hospital data found. Stopping at page ${pageNum - 1}.")
+                    }
+                    break // 데이터가 없으면 루프 종료
+                }
+
+                for (element in hospitalElements) {
+                    val name = element.findElement(By.tagName("strong")).text ?: "이름 없음"
                     val relativeLink = element.getAttribute("href") ?: ""
-                    
-                    // 절대 URL로 변환
                     val fullLink = if (relativeLink.startsWith("/")) "https://mobile.hidoc.co.kr$relativeLink" else relativeLink
-                    
-                    // 병원 이름과 URL을 리스트에 추가
                     hospitalLinks.add(name to fullLink)
                 }
-                
-                // 크롤링된 병원 수 출력
+
                 println("✅ Page $pageNum - Found ${hospitalElements.size} hospital links (Total: ${hospitalLinks.size})")
-                
-                
-                if (hospitalElements.isEmpty()) {
-                    println("No more hospital data found. Stopping at page $pageNum.")
-                    break
-                }
-                
-                pageNum++ // 다음 페이지로 이동
+
+                // maxPage 관련 if문 제거
+
+                pageNum++
             }
-        } catch (e: Exception) { // 오류 발생 시 출력
+        } catch (e: Exception) {
             println("⚠️ Error in crawlHospitalLinks: ${e.message}")
-        } finally { // WebDriver 종료
+        } finally {
             driver.quit()
         }
-        
-        return hospitalLinks // 병원 목록 반환
+
+        return hospitalLinks
     }
     
     // 병원 상세 정보 크롤링 (지정된 필드만 추출)

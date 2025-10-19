@@ -7,6 +7,7 @@ import com.callrapport.component.crawler.hospital.HospitalImageCrawler // 병원
 import com.callrapport.component.crawler.doctor.DoctorCrawler // 의사 정보를 크롤링하는 클래스
 
 // 서비스 관련 import
+import com.callrapport.service.map.AdministrativeRegionService
 import com.callrapport.service.HospitalService // 병원 데이터를 저장하는 서비스
 import com.callrapport.service.DoctorService // 의사 데이터를 저장하는 서비스
 
@@ -27,10 +28,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper // JSON 변환을
 import com.fasterxml.jackson.module.kotlin.readValue // JSON 문자열을 객체로 변환하는 기능 제공
 
 import com.callrapport.component.crawler.hospital.HospitalField
-
 import java.net.URLEncoder
-
-import com.callrapport.component.log.LogBroadcaster // 로그 브로드캐스터
 
 @RestController
 @RequestMapping("/api/crawl/hospital")
@@ -43,6 +41,7 @@ class HospitalCrawlController(
     // 서비스
     private val hospitalService: HospitalService, // 병원 서비스
     private val doctorService: DoctorService, // 의사 서비스
+    private val administrativeRegionService: AdministrativeRegionService, // (수정) 행정구역 서비스 타입 명시
 
     // 리포지토리 
     private val specialtyRepository: SpecialtyRepository, // 진료과 정보 관리
@@ -50,8 +49,6 @@ class HospitalCrawlController(
     private val doctorRepository: DoctorRepository, // 의사 정보 관리
     private val hospitalDoctorRepository: HospitalDoctorRepository, // 병원-의사 관계 관리
     private val hospitalAdditionalInfoRepository: HospitalAdditionalInfoRepository, // 병원 추가 정보 관리
-
-    private val logBroadcaster: LogBroadcaster
 ) {
 
     private val objectMapper = jacksonObjectMapper() // JSON 변환 객체 생성
@@ -78,8 +75,251 @@ class HospitalCrawlController(
         }
     }
 
+    /**
+     * 도시/시 이름 키워드로 관련 모든 시/군/구의 병원 정보를 크롤링하고 저장합니다.
+     *
+     * 예시 URL:
+     * - GET http://localhost:8080/api/crawl/hospital/by-city?keyword=청주시
+     * - GET http://localhost:8080/api/crawl/hospital/by-city?keyword=충주시
+     * - GET http://localhost:8080/api/crawl/hospital/by-city?keyword=서울특별시
+     */
+    @GetMapping("/by-city")
+    fun crawlByCityKeyword(@RequestParam("keyword") cityKeyword: String): ResponseEntity<String> {
+        println("▶️ API Request: Starting crawl for keyword '$cityKeyword'.")
+
+        val targetSggs = administrativeRegionService.findSggsByKeyword(cityKeyword)
+
+        if (targetSggs.isEmpty()) {
+            val message = "⚠️ 키워드 '$cityKeyword'에 해당하는 시/군/구를 DB에서 찾을 수 없습니다."
+            println("⚠️ Could not find any SGG in DB for keyword '$cityKeyword'.")
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message)
+        }
+
+        Thread {
+            try {
+                val targetRegionsText = targetSggs.joinToString { it.name }
+                println("✅ Starting crawl for target regions: [${targetRegionsText}]")
+
+                for (sgg in targetSggs) {
+                    val sido = administrativeRegionService.findSidoBySgg(sgg)
+
+                    if (sido == null) {
+                        println("🚨 Could not find parent Sido for '${sgg.name}'. Skipping.")
+                        continue
+                    }
+
+                    println("   - Starting crawl for region: '${sido.name} ${sgg.name}'...")
+
+                    val hospitalLinks = hospitalCrawler.crawlHospitalLinks(
+                        area1 = sido.name,
+                        area2 = sgg.name
+                    )
+
+                    println("   - Found ${hospitalLinks.size} hospitals in '${sido.name} ${sgg.name}'. Starting to save details.")
+                    
+                    hospitalLinks.forEach { (name, url) ->
+                        try {
+                            // 상세 정보 저장 로직 시작
+                            val hospitalId = extractHospitalIdFromUrl(url)
+                            val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url, HospitalField.values().toList())
+                            
+                            val additionalInfoJson = hospitalInfo["additional_info"]?.toString() ?: "{}"
+                            val operatingHoursJson = hospitalInfo["operating_hours"]?.toString()
+                            
+                            val operatingHours: Map<String, Pair<String, String>>? = if (!operatingHoursJson.isNullOrBlank()) {
+                                try {
+                                    val parsedMap = objectMapper.readValue<Map<String, String>>(operatingHoursJson)
+                                    parsedMap.mapValues { (_, value) ->
+                                        val parts = value.split("~")
+                                        val start = parts.getOrNull(0)?.trim() ?: "휴진"
+                                        val end = parts.getOrNull(1)?.trim() ?: "휴진"
+                                        start to end
+                                    }
+                                } catch (e: Exception) {
+                                    println("❌ Failed to parse operating hours for hospital [$name]: ${e.message} (JSON: $operatingHoursJson)")
+                                    null
+                                }
+                            } else {
+                                null
+                            }
+
+                            val additionalInfo: Map<String, Any> = objectMapper.readValue(additionalInfoJson)
+                            val specialties = hospitalInfo["specialties"] as? List<String> ?: emptyList()
+                            val doctorUrlsJson = hospitalInfo["doctor_urls"]?.toString() ?: "[]"
+                            val doctorUrls: List<Map<String, String>> = objectMapper.readValue(doctorUrlsJson)
+                            
+                            val doctorsData = mutableListOf<Map<String, String?>>()
+                            doctorUrls.forEach { doctorData ->
+                                val doctorName = doctorData["name"]
+                                val doctorUrl = doctorData["url"]
+                                val doctorId = doctorData["id"]
+
+                                if (doctorName != null && doctorUrl != null && doctorId != null) {
+                                    val doctorInfo = doctorCrawler.crawlDoctorInfos(doctorId, doctorName, doctorUrl)
+                                    if (doctorInfo.isNotEmpty()) {
+                                        doctorsData.add(doctorInfo)
+                                    }
+                                }
+                            }
+                            
+                            val hospitalImages: List<Image> = hospitalImageCrawler.crawlHospitalImages(name)
+
+                            hospitalService.saveHospital(
+                                id = hospitalId,
+                                name = name,
+                                phoneNumber = hospitalInfo["phone_number"]?.toString(),
+                                homepage = hospitalInfo["homepage"]?.toString(),
+                                address = hospitalInfo["address"]?.toString() ?: "",
+                                operatingHoursMap = operatingHours,
+                                specialties = specialties,
+                                url = url,
+                                additionalInfo = additionalInfo,
+                                doctors = doctorsData,
+                                hospitalImages = hospitalImages
+                            )
+                            
+                            println("   💾 Saved information for hospital [${name}].")
+                            Thread.sleep(1000)
+                            // 상세 정보 저장 로직 끝
+
+                        } catch (e: Exception) {
+                             println("   🚨 Error processing details for hospital [${name}]: ${e.message}")
+                        }
+                    }
+                }
+                println("🏁 Crawling task for keyword '$cityKeyword' has completed successfully.")
+            } catch (e: Exception) {
+                println("Fatal Error: A critical error occurred during the crawl for '$cityKeyword': ${e.message}")
+            }
+        }.start()
+
+        return ResponseEntity.ok("'$cityKeyword' 키워드에 대한 크롤링이 백그라운드에서 시작되었습니다.")
+    }
+
+    /**
+     * 광역자치단체(시/도) 이름 키워드로 해당 시/도에 속한 모든 시/군/구의 병원 정보를 크롤링하고 저장합니다.
+     *
+     * 예시 URL:
+     * - GET http://localhost:8080/api/crawl/hospital/by-sido?keyword=울산
+     */
+    @GetMapping("/by-sido")
+    fun crawlBySidoKeyword(@RequestParam("keyword") sidoKeyword: String): ResponseEntity<String> {
+        println("▶️ API Request: Starting Sido crawl for keyword '$sidoKeyword'.")
+
+        // 1. 키워드에 해당하는 모든 시/군/구(SGG) 목록을 조회 (새로운 서비스 함수 필요)
+        // NOTE: 이 함수는 sidoKeyword가 "충청북도"라면 '청주시', '충주시', '제천시' 등의 모든 SGG를 반환해야 합니다.
+        val targetSggs = administrativeRegionService.findSggsBySidoKeyword(sidoKeyword)
+
+        if (targetSggs.isEmpty()) {
+            val message = "⚠️ 키워드 '$sidoKeyword'에 해당하는 시/군/구를 DB에서 찾을 수 없습니다."
+            println("⚠️ Could not find any SGGs in DB for sido keyword '$sidoKeyword'.")
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message)
+        }
+
+        Thread {
+            try {
+                val targetRegionsText = targetSggs.joinToString { it.name }
+                println("✅ Starting crawl for target regions: [${targetRegionsText}]")
+
+                // 2. 이후의 로직은 SGG 목록을 반복하며 크롤링하는 기존 로직과 동일합니다.
+                for (sgg in targetSggs) {
+                    // SGG 객체에서 부모 Sido를 찾는 기존 로직 사용
+                    val sido = administrativeRegionService.findSidoBySgg(sgg) 
+
+                    if (sido == null) {
+                        println("🚨 Could not find parent Sido for '${sgg.name}'. Skipping.")
+                        continue
+                    }
+
+                    println("   - Starting crawl for region: '${sido.name} ${sgg.name}'...")
+
+                    val hospitalLinks = hospitalCrawler.crawlHospitalLinks(
+                        area1 = sido.name,
+                        area2 = sgg.name
+                    )
+
+                    println("   - Found ${hospitalLinks.size} hospitals in '${sido.name} ${sgg.name}'. Starting to save details.")
+                    
+                    hospitalLinks.forEach { (name, url) ->
+                        try {
+                            // --- 상세 정보 저장 로직 (이하 기존 로직과 동일) ---
+                            val hospitalId = extractHospitalIdFromUrl(url)
+                            val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url, HospitalField.values().toList())
+                            
+                            val additionalInfoJson = hospitalInfo["additional_info"]?.toString() ?: "{}"
+                            val operatingHoursJson = hospitalInfo["operating_hours"]?.toString()
+                            
+                            val operatingHours: Map<String, Pair<String, String>>? = if (!operatingHoursJson.isNullOrBlank()) {
+                                try {
+                                    val parsedMap = objectMapper.readValue<Map<String, String>>(operatingHoursJson)
+                                    parsedMap.mapValues { (_, value) ->
+                                        val parts = value.split("~")
+                                        val start = parts.getOrNull(0)?.trim() ?: "휴진"
+                                        val end = parts.getOrNull(1)?.trim() ?: "휴진"
+                                        start to end
+                                    }
+                                } catch (e: Exception) {
+                                    println("❌ Failed to parse operating hours for hospital [$name]: ${e.message} (JSON: $operatingHoursJson)")
+                                    null
+                                }
+                            } else {
+                                null
+                            }
+
+                            val additionalInfo: Map<String, Any> = objectMapper.readValue(additionalInfoJson)
+                            val specialties = hospitalInfo["specialties"] as? List<String> ?: emptyList()
+                            val doctorUrlsJson = hospitalInfo["doctor_urls"]?.toString() ?: "[]"
+                            val doctorUrls: List<Map<String, String>> = objectMapper.readValue(doctorUrlsJson)
+                            
+                            val doctorsData = mutableListOf<Map<String, String?>>()
+                            doctorUrls.forEach { doctorData ->
+                                val doctorName = doctorData["name"]
+                                val doctorUrl = doctorData["url"]
+                                val doctorId = doctorData["id"]
+
+                                if (doctorName != null && doctorUrl != null && doctorId != null) {
+                                    val doctorInfo = doctorCrawler.crawlDoctorInfos(doctorId, doctorName, doctorUrl)
+                                    if (doctorInfo.isNotEmpty()) {
+                                        doctorsData.add(doctorInfo)
+                                    }
+                                }
+                            }
+                            
+                            val hospitalImages: List<Image> = hospitalImageCrawler.crawlHospitalImages(name)
+
+                            hospitalService.saveHospital(
+                                id = hospitalId,
+                                name = name,
+                                phoneNumber = hospitalInfo["phone_number"]?.toString(),
+                                homepage = hospitalInfo["homepage"]?.toString(),
+                                address = hospitalInfo["address"]?.toString() ?: "",
+                                operatingHoursMap = operatingHours,
+                                specialties = specialties,
+                                url = url,
+                                additionalInfo = additionalInfo,
+                                doctors = doctorsData,
+                                hospitalImages = hospitalImages
+                            )
+                            
+                            println("   💾 Saved information for hospital [${name}].")
+                            Thread.sleep(1000)
+                            // --- 상세 정보 저장 로직 끝 ---
+
+                        } catch (e: Exception) {
+                            println("   🚨 Error processing details for hospital [${name}]: ${e.message}")
+                        }
+                    }
+                }
+                println("🏁 Crawling task for sido keyword '$sidoKeyword' has completed successfully.")
+            } catch (e: Exception) {
+                println("Fatal Error: A critical error occurred during the crawl for '$sidoKeyword': ${e.message}")
+            }
+        }.start()
+
+        return ResponseEntity.ok("'$sidoKeyword' 키워드에 대한 크롤링이 백그라운드에서 시작되었습니다.")
+    }
     // 병원 전체 데이터 저장 (이름, 상세정보, 의사 목록 포함)
-    // 예: http://localhost:8080/api/crawl/hospital/save-all
+    // 예: http://localhost:8088/api/crawl/hospital/save-all
     @GetMapping("/save-all")
     fun saveAllHospitals(): ResponseEntity<String> {
         return try {
@@ -95,38 +335,25 @@ class HospitalCrawlController(
                 
                 // 병원 정보에서 운영 시간 JSON 문자열 추출
                 val operatingHoursJson = hospitalInfo["operating_hours"]?.toString()
-
-                // 운영 시간 JSON 로그 송신
-                logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 JSON 수신: $operatingHoursJson")
                 
                 // 유효한 JSON 문자열이 있는 경우만 처리
                 val operatingHours: Map<String, Pair<String, String>>? = if (!operatingHoursJson.isNullOrBlank()) {
                     try {
                         // JSON 문자열을 Map<String, Map<String, String>> 구조로 파싱
                         val parsed = objectMapper.readValue<Map<String, Map<String, String>>>(operatingHoursJson)
-                        
-                        // 파싱된 운영 시간을 순회하며 로그 송신
-                        parsed.forEach { (day, value) ->
-                            logBroadcaster.sendLog("📅 요일: $day, 시작: ${value["first"]}, 종료: ${value["second"]}")
-                        }
-                        
+
                         // 내부 value Map에서 "first"와 "second" 값을 추출하여 Pair로 변환
                         val splitMap = parsed.mapValues { (_, value) ->
                             val start = value["first"] ?: "휴진" // 시작 시간이 없으면 "휴진"으로 처리
                             val end = value["second"] ?: "휴진" // 종료 시간이 없으면 "휴진"으로 처리
                             start to end // (시작, 종료) 형태로 반환
-                        }
-                        
-                        // 최종 파싱된 운영 시간 로그 송신
-                        logBroadcaster.sendLog("✅ 병원 [$name] 운영 시간 파싱 성공: $splitMap")
+                        }                
                         splitMap // 변환된 결과 반환
                     } catch (e: Exception) { // 파싱 도중 예외가 발생한 경우
                         // 파싱 에러 로그 송신
-                        logBroadcaster.sendLog("❌ 병원 [$name] 운영 시간 파싱 실패: ${e.message}")
                         null // 실패 시 null 반환
                     }
                 } else {
-                    logBroadcaster.sendLog("ℹ️ 병원 [$name] 운영 시간 정보 없음")
                     null
                 }
 
@@ -228,68 +455,5 @@ class HospitalCrawlController(
         // URL의 마지막 '/' 이후에 나오는 문자열을 반환 (예: .../H001234567 → H0001234567)
         return url.substringAfterLast("/")
     }
-
-    // 병원 목록을 maxPage까지 크롤링하고, 운영 시간만 가져오는 엔드포인트
-    // 예: http://localhost:8080/api/crawl/hospital/operating-hours?maxPage=1
-    @GetMapping("/operating-hours")
-    fun crawlHospitalOperatingHours(
-        @RequestParam maxPage: Int
-    ): ResponseEntity<List<Map<String, Any>>> {
-        return try {
-            // 병원 목록(이름 + URL)을 maxPage까지 크롤링
-            val hospitalLinks = hospitalCrawler.crawlHospitalLinks(maxPage = maxPage)
-
-            // 병원 운영 시간만 크롤링
-            val operatingHoursList = mutableListOf<Map<String, Any>>()
-
-            hospitalLinks.forEach { (name, url) ->
-                // 병원 운영 시간만 크롤링
-                val hospitalInfo = hospitalCrawler.crawlHospitalInfos(name, url, listOf(HospitalField.OPERATING_HOURS))
-
-                // 운영 시간 정보만 추출하여 리스트에 추가
-                val operatingHours = hospitalInfo["operating_hours"]?.toString() ?: "정보 없음"
-
-                // 결과를 리스트에 추가
-                operatingHoursList.add(
-                    mapOf(
-                        "name" to name,
-                        "url" to url,
-                        "operating_hours" to operatingHours
-                    )
-                )
-            }
-
-            // HTTP 상태 코드 200(OK)와 함께 운영 시간 목록 응답 반환
-            ResponseEntity(operatingHoursList, HttpStatus.OK)
-        } catch (e: Exception) {
-            // 오류 발생 시 로그 출력 및 HTTP 500 오류 코드 반환
-            ResponseEntity.status(500)
-                .body(listOf(mapOf("error" to "⚠️ ${e.message}")))
-        }
-    }
-
-
-    // 예: http://localhost:8080/api/crawl/hospital/operating-hours-from-naver?name=베이드의원
-    @GetMapping("/operating-hours-from-naver")
-    fun crawlHospitalOperatingHoursFromNaver(@RequestParam name: String): ResponseEntity<Map<String, Any>> {
-        return try {
-            // 네이버 검색 URL 생성
-            val searchUrl = "https://search.naver.com/search.naver?where=nexearch&sm=top_sug.pre&fbm=0&acr=1&acq=${URLEncoder.encode(name, "UTF-8")}&qdt=0&ie=utf8&query=${URLEncoder.encode(name, "UTF-8")}"
-
-            // 네이버에서 운영 시간 크롤링
-            val operatingHours = hospitalCrawler.crawlOperatingHoursFromNaver(searchUrl) // 네이버에서 운영 시간 크롤링
-
-            // 응답 반환
-            ResponseEntity.ok(
-                mapOf(
-                    "hospital_name" to name,
-                    "operating_hours_from_naver" to operatingHours
-                )
-            )
-        } catch (e: Exception) {
-            // 오류 발생 시 로그 출력 및 HTTP 500 오류 코드 반환
-            ResponseEntity.status(500)
-                .body(mapOf("error" to "⚠️ ${e.message}"))
-        }
-    }
 }
+

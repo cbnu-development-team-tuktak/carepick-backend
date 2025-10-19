@@ -25,6 +25,9 @@ data class Doctor(
     ) 
     val profileImage: String? = null, // 프로필 이미지 URL  
 
+    @Column(nullable = false)
+    var isFamous: Boolean = false, // 명의 여부 (기본값: false)
+    
     // 의사와 경력(1:N) 관계
     @OneToMany(
         mappedBy = "doctor", // DoctorCareer 엔티티의 doctor 필드와 매핑

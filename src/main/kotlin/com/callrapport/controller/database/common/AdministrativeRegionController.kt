@@ -134,7 +134,7 @@ class AdministrativeRegionController(
     }
 
     // 전국 시/군/구 상세 목록을 페이지 단위로 조회
-    // 예: http://localhost:8080/api/administrative-regions/sggs?page=0&size=1000
+    // 예: http://localhost:8080/api/administrative-regions/sggs?page=0&size=100
     @GetMapping("/sggs")
     fun getSggList(pageable: Pageable): Page<SggDetailsResponse> {
         // 행정구역 서비스에서 시군구 목록을 페이지 단위로 조회

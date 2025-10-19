@@ -23,4 +23,10 @@ interface HospitalDoctorRepository : JpaRepository<HospitalDoctor, Long> {
 
     // 특정 의사 ID에 대해 첫 번째 병원-의사 관계 조회
     fun findFirstByDoctorId(doctorId: String): HospitalDoctor?
+
+    /**
+     * [추가] 의사 ID 목록을 받아 해당하는 모든 병원-의사 관계를 조회합니다.
+     * (Service에서 동명이인 매칭 시 병원 정보를 메모리로 가져올 때 사용됩니다.)
+     */
+    fun findByDoctorIdIn(doctorIds: List<String>): List<HospitalDoctor>
 }
