@@ -158,29 +158,35 @@ class SelfDiagnosisService(
 
             val topScore = topk.firstOrNull()?.get("score")?.toString()?.toDoubleOrNull() ?: 0.0
 
-            // 점수가 0.4 미만일 경우 ChatGPT로 재진단
+            // --- 수정된 부분: ChatGPT 로직 ---
+            // 점수가 0.4 미만일 경우 ChatGPT로 재진단 (1차 시도)
             if (topScore < 0.4) {
                 val diseaseNamesFromGpt = getDiseaseNamesFromGpt(inputText)
                 val specialtiesFromGpt = getSpecialtiesFromGpt(diseaseNamesFromGpt)
                 
-                if (diseaseNamesFromGpt.isEmpty() || specialtiesFromGpt.isEmpty()) {
-                    return DiagnosisResult("일시적인 오류로 자세한 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.")
-                }
-
-                val message = buildString {
-                    appendLine("예측된 질병 (ChatGPT 분석):")
-                    diseaseNamesFromGpt.forEach { disease ->
-                        appendLine("- $disease")
+                // ChatGPT가 성공적으로 답변을 생성한 경우에만, ChatGPT 결과를 반환
+                if (diseaseNamesFromGpt.isNotEmpty() && specialtiesFromGpt.isNotEmpty()) {
+                    val message = buildString {
+                        appendLine("예측된 질병 (ChatGPT 분석):")
+                        diseaseNamesFromGpt.forEach { disease ->
+                            appendLine("- $disease")
+                        }
                     }
-                }
 
-                return DiagnosisResult(
-                    message = message,
-                    suggestedSpecialties = specialtiesFromGpt
-                )
+                    return DiagnosisResult(
+                        message = message,
+                        suggestedSpecialties = specialtiesFromGpt
+                    )
+                }
+                // 💡 만약 ChatGPT가 실패하면 (위 if문을 타지 않으면)
+                // 'return'하지 않고 if 블록을 빠져나가,
+                // 아래의 '자체 모델 예측 로직'을 실행하게 됨 (Fallback)
             }
             
-            // --- 자체 모델 예측 성공 시 로직 (핵심 수정 부분) ---
+            // --- 자체 모델 예측 성공 시 로직 (Fallback 또는 topScore >= 0.4) ---
+            // 1. topScore >= 0.4 인 경우
+            // 2. topScore < 0.4 였지만 ChatGPT가 실패한 경우
+            // 위 두 가지 경우 모두 이 로직을 실행함
             val diseaseNames = topk.mapNotNull { it["disease"]?.toString() }
             if (diseaseNames.isEmpty()) {
                 return DiagnosisResult("Flask 서버에서 예측된 질병이 없습니다.")

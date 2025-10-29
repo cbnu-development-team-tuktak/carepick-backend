@@ -56,10 +56,10 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
     @Query(
         """
         SELECT h FROM Hospital h
-        JOIN h.specialties hs
-        JOIN hs.specialty s
-        JOIN h.operatingHours hoh
-        JOIN hoh.operatingHours oh
+        LEFT JOIN h.specialties hs
+        LEFT JOIN hs.specialty s
+        LEFT JOIN h.operatingHours hoh
+        LEFT JOIN hoh.operatingHours oh
         WHERE
             (:keyword IS NULL OR h.name LIKE %:keyword%) 
             AND (:specialties IS NULL OR s.name IN :specialties)
@@ -79,7 +79,7 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
         HAVING 
             (:selectedDays IS NULL OR COUNT(DISTINCT CASE
                 WHEN (:startTime IS NULL OR oh.startTime <= :startTime)
-                AND (:endTime IS NULL OR oh.endTime >= :endTime)
+                AND (:endTime IS NULL OR oh.endTime >= :endTime) 
                 AND oh.day IN :selectedDays
                 THEN oh.day
             END) = :dayCount)
@@ -95,15 +95,15 @@ interface HospitalRepository : JpaRepository<Hospital, String> {
         """
     )
     fun searchHospitalsByFilters(
-        @Param("keyword") keyword: String?, // 병원 이름 검색 키워드 (부분 일치)             
-        @Param("location") location: Point?, // 기준 좌표 (위치 기반 검색용)
-        @Param("maxDistance") maxDistanceInMeters: Double?, // 최대 거리 (미터 단위)
-        @Param("specialties") specialties: List<String>?, // 진료과목 필터
-        @Param("selectedDays") selectedDays: List<String>?, // 원하는 요일 목록
-        @Param("startTime") startTime: LocalTime?, // 희망 진료 시작 시간
-        @Param("endTime") endTime: LocalTime?, // 희망 진료 종료 시간
-        @Param("dayCount") dayCount: Long, // 선택된 요일 수 (selectedDays.size.toLong())
-        @Param("sortBy") sortBy: String, // 정렬 기준 ("distance" 또는 "name")
-        pageable: Pageable // 페이지네이션 결과
-    ): Page<Hospital> // 페이징된 병원 리스트 결과
+        @Param("keyword") keyword: String?,
+        @Param("location") location: Point?,
+        @Param("maxDistance") maxDistanceInMeters: Double?,
+        @Param("specialties") specialties: List<String>?,
+        @Param("selectedDays") selectedDays: List<String>?,
+        @Param("startTime") startTime: LocalTime?,
+        @Param("endTime") endTime: LocalTime?,
+        @Param("dayCount") dayCount: Long,
+        @Param("sortBy") sortBy: String,
+        pageable: Pageable
+    ): Page<Hospital>
 }

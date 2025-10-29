@@ -14,7 +14,7 @@ class SelfDiagnosisController(
     private val selfDiagnosisService: SelfDiagnosisService // 자가진단 비즈니스 로직을 처리
 ) {
     // 자연어 기반 자가진단 - 질병 예측 (GET)
-    // 예: GET http://localhost:8080/api/self-diagnosis/disease?text=기침이%20계속돼요&k=3
+    // 예: GET http://localhost:8080/api/self-diagnosis/disease?text=알레르기가%20있어요&k=3
     @GetMapping("/disease")
     fun getDiseasePrediction(
         @RequestParam text: String, // 증상 설명 텍스트

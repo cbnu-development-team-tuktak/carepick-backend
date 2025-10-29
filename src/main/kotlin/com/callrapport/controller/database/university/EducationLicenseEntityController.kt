@@ -38,7 +38,7 @@ class EducationLicenseEntityController(
 
     // 학력 점수 갱신
     // 예: http://localhost:8080/api/education-license/update-scores    
-    @GetMapping("/education-license/update-scores")
+    @GetMapping("/update-scores")
     fun updateAllDoctorEducationScores(): ResponseEntity<UpdateResult> {
         val result = universityRankService.updateEducationLicenseScores()
         return if (result.success) {
